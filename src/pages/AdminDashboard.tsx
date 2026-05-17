@@ -226,17 +226,17 @@ export default function AdminDashboard() {
   return (
     <Layout>
       <section className="container-px py-8">
-        <div className="max-w-7xl mx-auto bg-navy rounded-[2rem] p-6 md:p-10 shadow-navy relative overflow-hidden">
+        <div className="max-w-7xl mx-auto bg-navy rounded-[2rem] p-4 sm:p-6 md:p-10 shadow-navy relative overflow-hidden">
           <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-primary/20 blur-3xl" />
           <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-accent/15 blur-3xl" />
 
           <div className="relative">
-            <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
               <div>
                 <div className="text-white/50 text-xs uppercase tracking-widest">Admin</div>
                 <h1 className="text-display text-3xl md:text-4xl text-white mt-1">Dashboard</h1>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 self-start sm:self-auto">
                 {/* Dynamic Notification Bell */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -296,11 +296,13 @@ export default function AdminDashboard() {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="mb-8 bg-white/5 border border-white/10 rounded-full px-1 py-1 h-auto">
-                <TabsTrigger value="leads" className="text-white data-[state=active]:bg-white/10 data-[state=active]:text-white rounded-full px-6 py-2">Leads</TabsTrigger>
-                <TabsTrigger value="projects" className="text-white data-[state=active]:bg-white/10 data-[state=active]:text-white rounded-full px-6 py-2">Manage Projects</TabsTrigger>
-                <TabsTrigger value="messages" className="text-white data-[state=active]:bg-white/10 data-[state=active]:text-white rounded-full px-6 py-2">Messages</TabsTrigger>
-              </TabsList>
+              <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:-mx-0 sm:px-0">
+                <TabsList className="mb-8 bg-white/5 border border-white/10 rounded-full px-1 py-1 h-auto flex w-max sm:w-auto min-w-full sm:min-w-0">
+                  <TabsTrigger value="leads" className="text-white data-[state=active]:bg-white/10 data-[state=active]:text-white rounded-full px-6 py-2 whitespace-nowrap flex-1 text-center">Leads</TabsTrigger>
+                  <TabsTrigger value="projects" className="text-white data-[state=active]:bg-white/10 data-[state=active]:text-white rounded-full px-6 py-2 whitespace-nowrap flex-1 text-center">Manage Projects</TabsTrigger>
+                  <TabsTrigger value="messages" className="text-white data-[state=active]:bg-white/10 data-[state=active]:text-white rounded-full px-6 py-2 whitespace-nowrap flex-1 text-center">Messages</TabsTrigger>
+                </TabsList>
+              </div>
 
               <TabsContent value="leads" className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -321,17 +323,17 @@ export default function AdminDashboard() {
                   ))}
                 </div>
 
-                <div className="glass-dark rounded-2xl p-5">
-                  <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+                <div className="glass-dark rounded-2xl p-4 sm:p-5">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-5 gap-4">
                     <h3 className="text-white font-medium">Custom project requests</h3>
-                    <div className="flex gap-2 items-center">
-                      <div className="flex items-center gap-2 bg-white/5 rounded-full px-3 w-64">
-                        <Search className="w-4 h-4 text-white/40" />
+                    <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center w-full sm:w-auto">
+                      <div className="flex items-center gap-2 bg-white/5 rounded-full px-3 w-full sm:w-64">
+                        <Search className="w-4 h-4 text-white/40 shrink-0" />
                         <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search leads…"
                           className="border-0 bg-transparent text-white placeholder:text-white/40 focus-visible:ring-0 h-9" />
                       </div>
                       <Select value={status} onValueChange={setStatus}>
-                        <SelectTrigger className="w-36 rounded-full bg-white/5 border-0 text-white"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="w-full sm:w-36 rounded-full bg-white/5 border-0 text-white"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All status</SelectItem>
                           {["New", "Reviewing", "Contacted", "Quoted", "In Progress", "Delivered", "Cancelled"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -340,8 +342,8 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                  <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:-mx-0 sm:px-0">
+                    <table className="w-full text-sm min-w-[800px]">
                       <thead>
                         <tr className="text-white/50 text-xs uppercase tracking-wider">
                           {["ID", "Name", "Project", "Category", "Budget", "Status", "Submitted", ""].map(h => (
@@ -503,8 +505,8 @@ export default function AdminDashboard() {
                     <h3 className="text-white font-medium">Standard Contact Messages</h3>
                   </div>
                   
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                  <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:-mx-0 sm:px-0">
+                    <table className="w-full text-sm min-w-[700px]">
                       <thead>
                         <tr className="text-white/50 text-xs uppercase tracking-wider">
                           <th className="text-left py-3 px-3 font-normal">Sender</th>
