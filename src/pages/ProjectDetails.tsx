@@ -1,8 +1,10 @@
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video } from "lucide-react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import ProjectCard from "@/components/ProjectCard";
-import { PROJECTS } from "@/lib/mockData";
+import { Project, PROJECTS } from "@/lib/mockData";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,8 +14,34 @@ const includeIcons: Record<string, any> = { "Source Code (.zip)": Download, "Doc
 
 export default function ProjectDetails() {
   const { id } = useParams();
-  const project = PROJECTS.find(p => p.id === id) ?? PROJECTS[0];
-  const related = PROJECTS.filter(p => p.category === project.category && p.id !== project.id).slice(0, 3);
+  const [project, setProject] = useState<Project | null>(null);
+  const [related, setRelated] = useState<Project[]>([]);
+
+  useEffect(() => {
+    const mockProject = PROJECTS.find(p => p.id === id);
+    if (mockProject) {
+      setProject(mockProject);
+      setRelated(PROJECTS.filter(p => p.category === mockProject.category && p.id !== mockProject.id).slice(0, 3));
+      return;
+    }
+    
+    supabase.from("projects").select("*").eq("id", id).single().then(({ data }) => {
+      if (data) {
+        setProject(data as Project);
+        supabase.from("projects").select("*").eq("category", data.category).neq("id", data.id).limit(3).then(({ data: rData }) => {
+          if (rData) setRelated(rData as Project[]);
+        });
+      }
+    });
+  }, [id]);
+
+  if (!project) {
+    return (
+      <Layout>
+        <div className="container-px py-20 text-center text-navy font-medium">Loading project details...</div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -23,18 +51,18 @@ export default function ProjectDetails() {
 
           <div className="grid lg:grid-cols-[1fr_360px] gap-8 mt-6">
             <div>
-              <div className="aspect-[16/10] rounded-3xl shadow-elegant relative overflow-hidden" style={{ background: project.thumb }}>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                <button className="absolute inset-0 grid place-items-center group">
-                  <div className="w-16 h-16 rounded-full glass grid place-items-center group-hover:scale-110 transition-transform"><Play className="w-6 h-6 text-navy fill-navy ml-1" /></div>
-                </button>
+              <div className="aspect-[16/10] rounded-3xl shadow-elegant relative overflow-hidden" style={project.thumb?.startsWith('http') ? undefined : { background: project.thumb || '#ccc' }}>
+                {project.video_url ? (
+                  <video src={project.video_url} controls poster={project.thumb} className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  project.thumb?.startsWith('http') && <img src={project.thumb} alt={project.title} className="absolute inset-0 w-full h-full object-cover" />
+                )}
               </div>
 
               <div className="mt-6">
                 <Badge className="bg-secondary text-navy hover:bg-secondary">{project.category}</Badge>
                 <h1 className="text-display text-4xl md:text-5xl text-navy mt-3">{project.title}</h1>
                 <div className="flex items-center gap-4 mt-4 text-sm">
-                  <span className="flex items-center gap-1"><Star className="w-4 h-4 fill-amber-400 text-amber-400" /><b>{project.rating.toFixed(1)}</b> <span className="text-muted-foreground">({project.reviews})</span></span>
                   <Badge variant="outline" className="rounded-full">{project.difficulty}</Badge>
                 </div>
                 <p className="text-navy/70 mt-5 text-lg leading-relaxed">{project.description}</p>
@@ -43,52 +71,43 @@ export default function ProjectDetails() {
               <div className="mt-8">
                 <h3 className="font-medium text-navy mb-3">Tech stack</h3>
                 <div className="flex flex-wrap gap-2">
-                  {project.tech.map(t => <span key={t} className="px-3 py-1.5 rounded-full bg-secondary text-navy text-sm">{t}</span>)}
+                  {(project.tech || []).map(t => <span key={t} className="px-3 py-1.5 rounded-full bg-secondary text-navy text-sm">{t}</span>)}
                 </div>
               </div>
 
-              <Tabs defaultValue="features" className="mt-10">
-                <TabsList className="rounded-full bg-secondary p-1">
-                  <TabsTrigger value="features" className="rounded-full">Features</TabsTrigger>
-                  <TabsTrigger value="screens" className="rounded-full">Screenshots</TabsTrigger>
-                  <TabsTrigger value="reviews" className="rounded-full">Reviews</TabsTrigger>
-                </TabsList>
-                <TabsContent value="features" className="mt-6 bg-white rounded-3xl p-6 border border-border shadow-soft">
-                  <ul className="space-y-3">
-                    {project.features.map(f => (
-                      <li key={f} className="flex items-start gap-3 text-navy">
-                        <div className="w-5 h-5 rounded-full bg-primary/10 grid place-items-center shrink-0 mt-0.5"><Check className="w-3 h-3 text-primary" /></div>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                </TabsContent>
-                <TabsContent value="screens" className="mt-6">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                      <div key={i} className="aspect-video rounded-2xl shadow-soft" style={{ background: project.thumb, filter: `hue-rotate(${i * 40}deg)` }} />
-                    ))}
-                  </div>
-                </TabsContent>
-                <TabsContent value="reviews" className="mt-6 space-y-4">
-                  {[
-                    { name: "Aarav K.", text: "Worked out of the box. Saved me weeks of grunt work." },
-                    { name: "Sneha P.", text: "Documentation is exceptional — my professor was impressed." },
-                    { name: "Yusuf A.", text: "Great architecture. Easy to extend with my own features." },
-                  ].map((r, i) => (
-                    <div key={i} className="bg-white rounded-2xl p-5 border border-border">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-primary-gradient grid place-items-center text-white text-xs">{r.name[0]}</div>
-                        <div>
-                          <div className="text-sm font-medium text-navy">{r.name}</div>
-                          <div className="flex gap-0.5">{Array.from({ length: 5 }).map((_, j) => <Star key={j} className="w-3 h-3 fill-amber-400 text-amber-400" />)}</div>
-                        </div>
+              {((project.features || []).length > 0 || (project.screenshots || []).length > 0) && (
+                <Tabs defaultValue={(project.features || []).length > 0 ? "features" : "screens"} className="mt-10">
+                  <TabsList className="rounded-full bg-secondary p-1">
+                    {(project.features || []).length > 0 && <TabsTrigger value="features" className="rounded-full">Features</TabsTrigger>}
+                    {(project.screenshots || []).length > 0 && <TabsTrigger value="screens" className="rounded-full">Screenshots</TabsTrigger>}
+                  </TabsList>
+                  
+                  {(project.features || []).length > 0 && (
+                    <TabsContent value="features" className="mt-6 bg-white rounded-3xl p-6 border border-border shadow-soft">
+                      <ul className="space-y-3">
+                        {project.features!.map(f => (
+                          <li key={f} className="flex items-start gap-3 text-navy">
+                            <div className="w-5 h-5 rounded-full bg-primary/10 grid place-items-center shrink-0 mt-0.5"><Check className="w-3 h-3 text-primary" /></div>
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+                    </TabsContent>
+                  )}
+                  
+                  {(project.screenshots || []).length > 0 && (
+                    <TabsContent value="screens" className="mt-6">
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        {project.screenshots!.map((img, i) => (
+                          <div key={i} className="aspect-video rounded-2xl shadow-soft overflow-hidden">
+                            <img src={img} alt="Screenshot" className="w-full h-full object-cover" />
+                          </div>
+                        ))}
                       </div>
-                      <p className="text-sm text-navy/70 mt-3">{r.text}</p>
-                    </div>
-                  ))}
-                </TabsContent>
-              </Tabs>
+                    </TabsContent>
+                  )}
+                </Tabs>
+              )}
             </div>
 
             {/* Sidebar */}
@@ -101,10 +120,10 @@ export default function ProjectDetails() {
                 <div className="mt-5 pt-5 border-t border-border">
                   <h4 className="font-medium text-navy mb-3 text-sm">What's included</h4>
                   <ul className="space-y-2">
-                    {project.includes.map(i => {
+                    {(project.includes || []).length > 0 ? (project.includes || []).map(i => {
                       const Icon = includeIcons[i] ?? FileText;
                       return <li key={i} className="flex items-center gap-2 text-sm text-navy/80"><Icon className="w-4 h-4 text-primary" />{i}</li>;
-                    })}
+                    }) : <li className="text-sm text-navy/60">Source code included</li>}
                   </ul>
                 </div>
                 <div className="mt-5 pt-5 border-t border-border flex items-center gap-2 text-xs text-muted-foreground">

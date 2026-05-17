@@ -3,7 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import { LayoutGrid, List, SlidersHorizontal, Search } from "lucide-react";
 import Layout from "@/components/Layout";
 import ProjectCard from "@/components/ProjectCard";
-import { CATEGORIES, PROJECTS } from "@/lib/mockData";
+import { CATEGORIES, PROJECTS, Project } from "@/lib/mockData";
+import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,6 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 
-const ALL_TECH = Array.from(new Set(PROJECTS.flatMap(p => p.tech))).sort();
 const DIFFICULTIES = ["Beginner", "Intermediate", "Advanced"] as const;
 
 export default function Marketplace() {
@@ -20,27 +20,42 @@ export default function Marketplace() {
   const [cat, setCat] = useState<string>(params.get("cat") ?? "all");
   const [sort, setSort] = useState("latest");
   const [view, setView] = useState<"grid" | "list">("grid");
-  const [price, setPrice] = useState([0, 10000]);
+  const [price, setPrice] = useState([0, 100000]);
   const [diffs, setDiffs] = useState<string[]>([]);
   const [techs, setTechs] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => { setCat(params.get("cat") ?? "all"); setQ(params.get("q") ?? ""); }, [params]);
 
+  useEffect(() => {
+    supabase.from("projects").select("*").order("created_at", { ascending: false }).then(({ data }) => {
+      if (data) {
+        setProjects([...(data as Project[]), ...PROJECTS]);
+      } else {
+        setProjects([...PROJECTS]);
+      }
+      setIsLoading(false);
+    });
+  }, []);
+
+  const ALL_TECH = useMemo(() => Array.from(new Set(projects.flatMap(p => p.tech || []))).sort(), [projects]);
+
   const filtered = useMemo(() => {
-    let r = PROJECTS.filter(p =>
+    let r = projects.filter(p =>
       (cat === "all" || p.category === cat) &&
-      (q === "" || (p.title + p.short + p.tech.join(" ")).toLowerCase().includes(q.toLowerCase())) &&
-      p.price >= price[0] && p.price <= price[1] &&
+      (q === "" || ((p.title || "") + (p.short || "") + (p.tech || []).join(" ")).toLowerCase().includes(q.toLowerCase())) &&
+      (p.price || 0) >= price[0] && (p.price || 0) <= price[1] &&
       (diffs.length === 0 || diffs.includes(p.difficulty)) &&
-      (techs.length === 0 || techs.some(t => p.tech.includes(t)))
+      (techs.length === 0 || techs.some(t => (p.tech || []).includes(t)))
     );
-    if (sort === "popular") r = [...r].sort((a, b) => b.reviews - a.reviews);
-    if (sort === "rating") r = [...r].sort((a, b) => b.rating - a.rating);
-    if (sort === "price-low") r = [...r].sort((a, b) => a.price - b.price);
-    if (sort === "price-high") r = [...r].sort((a, b) => b.price - a.price);
+    if (sort === "popular") r = [...r].sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
+    if (sort === "rating") r = [...r].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    if (sort === "price-low") r = [...r].sort((a, b) => (a.price || 0) - (b.price || 0));
+    if (sort === "price-high") r = [...r].sort((a, b) => (b.price || 0) - (a.price || 0));
     return r;
-  }, [q, cat, sort, price, diffs, techs]);
+  }, [projects, q, cat, sort, price, diffs, techs]);
 
   const toggle = (arr: string[], v: string, set: (a: string[]) => void) =>
     set(arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v]);
@@ -50,7 +65,7 @@ export default function Marketplace() {
       <section className="bg-mesh py-16">
         <div className="container-px max-w-6xl mx-auto">
           <h1 className="text-display text-5xl md:text-6xl text-navy">Marketplace</h1>
-          <p className="text-navy/60 mt-3 text-lg">{PROJECTS.length}+ production-ready projects, instant download.</p>
+          <p className="text-navy/60 mt-3 text-lg">{projects.length}+ production-ready projects, instant download.</p>
         </div>
       </section>
 
@@ -91,8 +106,8 @@ export default function Marketplace() {
             <aside className={`${showFilters ? "block" : "hidden lg:block"} space-y-6`}>
               <div className="bg-white rounded-3xl p-5 border border-border shadow-soft">
                 <h4 className="font-medium text-navy mb-3">Price range</h4>
-                <Slider value={price} onValueChange={setPrice} max={10000} step={500} />
-                <div className="flex justify-between text-xs text-muted-foreground mt-3"><span>₹{price[0]}</span><span>₹{price[1]}</span></div>
+                <Slider value={price} onValueChange={setPrice} max={100000} step={500} />
+                <div className="flex justify-between text-xs text-muted-foreground mt-3"><span>₹{price[0].toLocaleString()}</span><span>₹{price[1].toLocaleString()}</span></div>
               </div>
               <div className="bg-white rounded-3xl p-5 border border-border shadow-soft">
                 <h4 className="font-medium text-navy mb-3">Difficulty</h4>
@@ -119,7 +134,11 @@ export default function Marketplace() {
 
             <div>
               <div className="text-sm text-muted-foreground mb-4">{filtered.length} projects</div>
-              {filtered.length === 0 ? (
+              {isLoading ? (
+                <div className="bg-white rounded-3xl p-12 text-center border border-border">
+                  <p className="text-navy font-medium">Loading projects...</p>
+                </div>
+              ) : filtered.length === 0 ? (
                 <div className="bg-white rounded-3xl p-12 text-center border border-border">
                   <p className="text-navy font-medium">No projects match your filters.</p>
                 </div>

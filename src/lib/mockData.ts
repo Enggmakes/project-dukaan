@@ -30,8 +30,10 @@ export interface Project {
   rating: number;
   reviews: number;
   tech: string[];
-  features: string[];
-  includes: string[];
+  features?: string[];
+  includes?: string[];
+  screenshots?: string[];
+  video_url?: string;
   thumb: string;
 }
 

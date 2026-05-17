@@ -3,10 +3,25 @@ import { Sparkles, Twitter, Github, Linkedin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAdmin(session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAdmin(session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.includes("@")) return toast.error("Enter a valid email");
@@ -14,13 +29,22 @@ export default function Footer() {
     setEmail("");
   };
 
+  const productItems: [string, string][] = [
+    ["Marketplace", "/marketplace"],
+    ["Custom Build", "/custom-request"]
+  ];
+
+  if (isAdmin) {
+    productItems.push(["Admin", "/admin"]);
+  }
+
   return (
     <footer className="bg-navy text-white/80 mt-24">
       <div className="container-px py-16">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-5 gap-10">
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-xl bg-primary-gradient flex items-center justify-center"><Sparkles className="w-4 h-4 text-white" /></div>
+              <img src="/logo.png" alt="ProjectDukaan" className="w-9 h-9 object-contain brightness-0 invert" />
               <span className="font-semibold text-white">Project<span className="text-primary-glow">Dukaan</span></span>
             </div>
             <p className="text-sm max-w-sm text-white/60 mb-6">Build faster. Learn smarter. Ship real projects. The premium marketplace for engineering, AI & final-year projects.</p>
@@ -35,7 +59,7 @@ export default function Footer() {
             </form>
           </div>
 
-          <FooterCol title="Product" items={[["Marketplace", "/marketplace"], ["Custom Build", "/custom-request"], ["Admin", "/admin"]]} />
+          <FooterCol title="Product" items={productItems} />
           <FooterCol title="Company" items={[["About", "/about"], ["Contact", "/contact"], ["Pricing", "/marketplace"]]} />
           <FooterCol title="Legal" items={[["Privacy", "#"], ["Terms", "#"], ["Refunds", "#"]]} />
         </div>

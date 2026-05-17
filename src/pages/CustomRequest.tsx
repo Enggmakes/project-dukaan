@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CATEGORIES } from "@/lib/mockData";
+import { supabase } from "@/lib/supabase";
+import emailjs from "@emailjs/browser";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -39,6 +41,7 @@ export default function CustomRequest() {
     description: "", tech: "", budget: "", deadline: "", notes: "", contact: "email",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const set = (k: keyof FormData, v: string) => setData(d => ({ ...d, [k]: v }));
 
@@ -73,10 +76,61 @@ export default function CustomRequest() {
   const next = () => validateStep() && setStep(s => Math.min(s + 1, steps.length - 1));
   const prev = () => setStep(s => Math.max(s - 1, 0));
 
-  const submit = () => {
+  const submit = async () => {
     const result = schema.safeParse(data);
     if (!result.success) { toast.error("Please complete required fields"); return; }
-    setSubmitted(true);
+    
+    setIsSubmitting(true);
+    const toastId = toast.loading("Submitting your request...");
+    
+    try {
+      const { error } = await supabase.from('custom_requests').insert({
+        full_name: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        college: data.college || null,
+        title: data.title,
+        category: data.category,
+        description: data.description,
+        tech: data.tech || null,
+        budget: data.budget,
+        deadline: data.deadline,
+        contact_method: data.contact,
+        notes: data.notes || null
+      });
+
+      if (error) throw new Error(error.message);
+
+      // Send email notification via EmailJS
+      const emailParams = {
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        college: data.college || "N/A",
+        title: data.title,
+        category: data.category,
+        tech: data.tech || "N/A",
+        budget: data.budget,
+        deadline: data.deadline,
+        description: data.description,
+        notes: data.notes || "None",
+        contact: data.contact,
+      };
+
+      await emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        emailParams,
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+      );
+
+      toast.success("Request submitted successfully!", { id: toastId });
+      setSubmitted(true);
+    } catch (err: any) {
+      toast.error(err.message, { id: toastId });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -231,7 +285,9 @@ export default function CustomRequest() {
               {step < steps.length - 1 ? (
                 <Button onClick={next} className="rounded-full bg-primary hover:bg-primary/90 px-6">Next <ArrowRight className="w-4 h-4 ml-1" /></Button>
               ) : (
-                <Button onClick={submit} className="rounded-full bg-navy hover:bg-navy-light px-6">Submit request</Button>
+                <Button onClick={submit} disabled={isSubmitting} className="rounded-full bg-navy hover:bg-navy-light px-6">
+                  {isSubmitting ? "Submitting..." : "Submit request"}
+                </Button>
               )}
             </div>
           </div>

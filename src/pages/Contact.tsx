@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { z } from "zod";
+import { supabase } from "@/lib/supabase";
 
 const schema = z.object({
   name: z.string().trim().min(2).max(80),
@@ -16,12 +17,32 @@ const schema = z.object({
 
 export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
-  const submit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const r = schema.safeParse(form);
     if (!r.success) return toast.error(r.error.errors[0].message);
-    toast.success("Message sent. We'll reply within 24 hours.");
-    setForm({ name: "", email: "", message: "" });
+    
+    setIsSubmitting(true);
+    const toastId = toast.loading("Sending your message...");
+
+    try {
+      const { error } = await supabase.from('contact_messages').insert({
+        name: form.name,
+        email: form.email,
+        message: form.message
+      });
+
+      if (error) throw new Error(error.message);
+
+      toast.success("Message sent! We'll reply within 24 hours.", { id: toastId });
+      setForm({ name: "", email: "", message: "" });
+    } catch (err: any) {
+      toast.error(err.message, { id: toastId });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -49,14 +70,16 @@ export default function Contact() {
               <Label className="text-navy text-sm">Message</Label>
               <Textarea rows={5} value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} placeholder="How can we help?" className="mt-1.5" />
             </div>
-            <Button type="submit" className="rounded-full bg-primary hover:bg-primary/90 px-6"><Send className="w-4 h-4 mr-2" /> Send message</Button>
+            <Button type="submit" disabled={isSubmitting} className="rounded-full bg-primary hover:bg-primary/90 px-6">
+              <Send className="w-4 h-4 mr-2" /> {isSubmitting ? "Sending..." : "Send message"}
+            </Button>
           </form>
 
           <aside className="space-y-4">
             {[
-              { icon: Mail, label: "Email", value: "team@projectdukaan.ai" },
-              { icon: Phone, label: "Phone", value: "+91 98000 12345" },
-              { icon: MapPin, label: "HQ", value: "Bengaluru, India" },
+              { icon: Mail, label: "Email", value: "team@projectdukaan.vercel.app" },
+              { icon: Phone, label: "Phone", value: "+91 77569 37861" },
+              { icon: MapPin, label: "HQ", value: "Pune, India" },
             ].map(i => (
               <div key={i.label} className="bg-white rounded-3xl p-6 border border-border shadow-soft">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 grid place-items-center text-primary"><i.icon className="w-4 h-4" /></div>

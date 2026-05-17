@@ -8,15 +8,51 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Layout from "@/components/Layout";
 import ProjectCard from "@/components/ProjectCard";
-import { CATEGORIES, CATEGORY_META, PROJECTS, STATS, TESTIMONIALS, FAQS } from "@/lib/mockData";
+import React, { useEffect } from "react";
+import { CATEGORIES, CATEGORY_META, STATS, TESTIMONIALS, FAQS, Project, PROJECTS } from "@/lib/mockData";
+import { supabase } from "@/lib/supabase";
+
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {error: Error | null}> {
+  state = { error: null };
+  static getDerivedStateFromError(error: Error) { return { error }; }
+  render() {
+    if (this.state.error) return <div className="p-20 text-red-500 font-mono text-xl">CRASH: {(this.state.error as Error).message} <br/><br/> {(this.state.error as Error).stack}</div>;
+    return this.props.children;
+  }
+}
 
 const ICONS = { Brain, Network, Eye, Bot, Cpu, Globe, Smartphone, Link2, Shield } as const;
 
 export default function Home() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [statsData, setStatsData] = useState({
+    projectsCount: 0,
+    leadsCount: 0,
+  });
+
+  useEffect(() => {
+    supabase.from("projects").select("*").order("created_at", { ascending: false }).limit(6).then(({ data }) => {
+      const dbProjects = (data || []) as Project[];
+      setProjects([...dbProjects, ...PROJECTS].slice(0, 6));
+    });
+
+    supabase.from('projects').select('id', { count: 'exact', head: true }).then(({ count }) => {
+      if (count !== null) {
+        setStatsData(prev => ({ ...prev, projectsCount: count }));
+      }
+    });
+
+    supabase.from('custom_requests').select('id', { count: 'exact', head: true }).then(({ count }) => {
+      if (count !== null) {
+        setStatsData(prev => ({ ...prev, leadsCount: count }));
+      }
+    });
+  }, []);
 
   return (
+    <ErrorBoundary>
     <Layout>
       {/* HERO */}
       <section className="relative overflow-hidden -mt-24 pt-32 pb-24">
@@ -24,9 +60,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-white" />
         <div className="relative container-px">
           <div className="max-w-5xl mx-auto text-center">
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm text-navy mb-8">
-              <Sparkles className="w-3.5 h-3.5 text-primary" /> New: GPT-powered support bot template now live
-            </motion.div>
+
             <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
               className="text-display text-5xl sm:text-6xl md:text-7xl lg:text-[88px] text-navy">
               Build faster.<br />
@@ -81,10 +115,10 @@ export default function Home() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <div className="text-white/50 text-xs uppercase tracking-widest">Live insights</div>
-                <h3 className="text-white text-2xl font-semibold mt-1">Your project dashboard</h3>
+                <h3 className="text-white text-2xl font-semibold mt-1">Our Project Dashboard</h3>
               </div>
               <div className="hidden md:flex gap-2">
-                {["Overview", "Builds", "Reviews", "Earnings"].map((t, i) => (
+                {["Overview", "Downloads", "Builds", "Reviews"].map((t, i) => (
                   <span key={t} className={`px-3 py-1.5 rounded-full text-xs ${i === 0 ? "bg-white text-navy" : "text-white/60 bg-white/5"}`}>{t}</span>
                 ))}
               </div>
@@ -92,9 +126,9 @@ export default function Home() {
 
             <div className="grid md:grid-cols-3 gap-4">
               {[
-                { icon: TrendingUp, label: "Monthly downloads", value: "24,891", delta: "+18%" },
-                { icon: Users, label: "Active learners", value: "8,420", delta: "+9%" },
-                { icon: Activity, label: "Avg. ship time", value: "3.2 days", delta: "-12%" },
+                { icon: Zap, label: "Active project blueprints", value: statsData.projectsCount.toString(), delta: "+15%" },
+                { icon: Users, label: "Custom requests processed", value: statsData.leadsCount.toString(), delta: "+24%" },
+                { icon: Star, label: "Average client rating", value: "4.9 / 5.0", delta: "Excellent" },
               ].map((s) => (
                 <div key={s.label} className="glass-dark rounded-2xl p-5">
                   <div className="flex items-center justify-between">
@@ -165,7 +199,7 @@ export default function Home() {
             <Link to="/marketplace" className="text-sm text-navy font-medium hover:text-primary">All projects →</Link>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {PROJECTS.slice(0, 6).map(p => <ProjectCard key={p.id} project={p} />)}
+            {projects.map(p => <ProjectCard key={p.id} project={p} />)}
           </div>
         </div>
       </section>
@@ -239,5 +273,6 @@ export default function Home() {
         </div>
       </section>
     </Layout>
+    </ErrorBoundary>
   );
 }
