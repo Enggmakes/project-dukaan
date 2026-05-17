@@ -13,7 +13,7 @@ export default function About() {
       <section className="bg-mesh py-24">
         <div className="container-px max-w-4xl mx-auto text-center">
           <h1 className="text-display text-5xl md:text-7xl text-navy">We help builders ship.</h1>
-          <p className="text-navy/70 mt-6 text-lg max-w-2xl mx-auto">ProjectForge AI is a curated marketplace and custom build studio for the engineers, students and founders who'd rather ship than scaffold.</p>
+          <p className="text-navy/70 mt-6 text-lg max-w-2xl mx-auto">ProjectDukaan is a curated marketplace and custom build studio for the engineers, students and founders who'd rather ship than scaffold.</p>
         </div>
       </section>
 
@@ -32,7 +32,7 @@ export default function About() {
       <section className="container-px py-20">
         <div className="max-w-3xl mx-auto bg-navy text-white rounded-[2rem] p-12 text-center">
           <h2 className="text-display text-4xl">From a hostel room to 38,000 builders.</h2>
-          <p className="text-white/70 mt-4">ProjectForge AI started as a side-hustle to help juniors finish their final-year projects. Today, our marketplace powers final-year submissions, hackathon wins and indie product launches across 42 countries.</p>
+          <p className="text-white/70 mt-4">ProjectDukaan started as a side-hustle to help juniors finish their final-year projects. Today, our marketplace powers final-year submissions, hackathon wins and indie product launches across 42 countries.</p>
         </div>
       </section>
     </Layout>

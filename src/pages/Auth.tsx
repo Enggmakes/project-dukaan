@@ -21,11 +21,11 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
         <div className="absolute inset-0 bg-gradient-to-br from-transparent to-white/20" />
         <Link to="/" className="absolute top-8 left-8 flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-primary-gradient grid place-items-center"><Sparkles className="w-4 h-4 text-white" /></div>
-          <span className="font-semibold text-navy">ProjectForge<span className="text-primary">AI</span></span>
+          <span className="font-semibold text-navy">Project<span className="text-primary">Dukaan</span></span>
         </Link>
         <div className="absolute bottom-12 left-12 right-12">
           <h2 className="text-display text-4xl text-navy">Build faster.<br />Ship real projects.</h2>
-          <p className="text-navy/60 mt-3">Join 38,000+ builders shipping with ProjectForge AI.</p>
+          <p className="text-navy/60 mt-3">Join 38,000+ builders shipping with ProjectDukaan.</p>
         </div>
       </div>
 
@@ -33,7 +33,7 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
         <div className="w-full max-w-md">
           <Link to="/" className="lg:hidden flex items-center gap-2 mb-8">
             <div className="w-8 h-8 rounded-xl bg-primary-gradient grid place-items-center"><Sparkles className="w-4 h-4 text-white" /></div>
-            <span className="font-semibold text-navy">ProjectForge<span className="text-primary">AI</span></span>
+            <span className="font-semibold text-navy">Project<span className="text-primary">Dukaan</span></span>
           </Link>
           <h1 className="text-display text-4xl text-navy">{isLogin ? "Welcome back" : "Create your account"}</h1>
           <p className="text-muted-foreground mt-2">{isLogin ? "Sign in to access your projects." : "Start shipping in minutes."}</p>

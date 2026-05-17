@@ -91,7 +91,7 @@ export const PROJECTS: Project[] = titles.map(([title, category, tech, price], i
 export const TESTIMONIALS = [
   { name: "Ananya Sharma", role: "CS Final Year, IIT Delhi", quote: "Submitted my final-year project a month early. The code quality and docs are insanely good.", avatar: "AS" },
   { name: "Rohan Mehta", role: "ML Engineer, Zylo Labs", quote: "We forked the GPT support bot and shipped it to production in three days. Saved us weeks.", avatar: "RM" },
-  { name: "Priya Iyer", role: "Robotics Lead, Bengaluru", quote: "ProjectForge AI is now our default starting point for IoT prototypes.", avatar: "PI" },
+  { name: "Priya Iyer", role: "Robotics Lead, Bengaluru", quote: "ProjectDukaan is now our default starting point for IoT prototypes.", avatar: "PI" },
   { name: "Marco Rossi", role: "Indie Hacker", quote: "The Stripe-grade polish here is rare. Worth every rupee.", avatar: "MR" },
 ];
 
