@@ -7,22 +7,22 @@ import { Badge } from "@/components/ui/badge";
 export default function ProjectCard({ project, view = "grid" }: { project: Project; view?: "grid" | "list" }) {
   if (view === "list") {
     return (
-      <motion.div whileHover={{ y: -2 }} className="bg-white rounded-3xl p-4 shadow-soft border border-border flex gap-4 hover:shadow-elegant transition-shadow">
-        <div className="w-40 h-28 rounded-2xl shrink-0 overflow-hidden relative" style={project.thumb?.startsWith('http') ? undefined : { background: project.thumb || '#ccc' }}>
+      <motion.div whileHover={{ y: -2 }} className="bg-white rounded-3xl p-4 shadow-soft border border-border flex flex-col sm:flex-row gap-4 hover:shadow-elegant transition-shadow">
+        <div className="w-full h-48 sm:w-40 sm:h-28 rounded-2xl shrink-0 overflow-hidden relative" style={project.thumb?.startsWith('http') ? undefined : { background: project.thumb || '#ccc' }}>
           {project.thumb?.startsWith('http') && <img src={project.thumb} alt={project.title} className="w-full h-full object-cover" />}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0 flex flex-col justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
             <div>
               <Badge className="bg-secondary text-navy hover:bg-secondary mb-2">{project.category}</Badge>
-              <h3 className="font-semibold text-navy truncate">{project.title}</h3>
+              <h3 className="font-semibold text-navy text-lg sm:text-base leading-tight truncate">{project.title}</h3>
               <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{project.short}</p>
             </div>
-            <div className="text-right shrink-0">
+            <div className="mt-1 sm:mt-0 sm:text-right shrink-0">
               <div className="text-lg font-semibold text-navy">₹{project.price.toLocaleString()}</div>
             </div>
           </div>
-          <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center justify-between mt-4 sm:mt-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-border">
             <div className="flex gap-1.5 flex-wrap">
               {(project.tech || []).slice(0, 3).map(t => <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-secondary text-navy">{t}</span>)}
             </div>

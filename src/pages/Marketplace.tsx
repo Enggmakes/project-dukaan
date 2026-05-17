@@ -71,34 +71,53 @@ export default function Marketplace() {
 
       <section className="container-px py-10">
         <div className="max-w-6xl mx-auto">
-          <div className="bg-white rounded-3xl shadow-soft border border-border p-4 flex flex-wrap gap-3 items-center sticky top-24 z-30">
-            <div className="flex-1 min-w-[200px] flex items-center gap-2 px-3 bg-secondary rounded-full">
-              <Search className="w-4 h-4 text-muted-foreground" />
-              <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search projects…" className="border-0 bg-transparent focus-visible:ring-0" />
+          <div className="bg-white rounded-[2rem] md:rounded-full shadow-soft border border-border p-3 md:p-3.5 flex flex-col md:flex-row gap-2.5 items-stretch md:items-center sticky top-20 md:top-24 z-30">
+            {/* Search Input - Spans full width on mobile, flexible on desktop */}
+            <div className="flex-1 flex items-center gap-2 px-4 py-1 md:py-0 bg-secondary rounded-full">
+              <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+              <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search projects…" className="border-0 bg-transparent focus-visible:ring-0 h-9" />
             </div>
-            <Select value={cat} onValueChange={setCat}>
-              <SelectTrigger className="w-44 rounded-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
-                {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={sort} onValueChange={setSort}>
-              <SelectTrigger className="w-40 rounded-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="latest">Latest</SelectItem>
-                <SelectItem value="popular">Most popular</SelectItem>
-                <SelectItem value="rating">Highest rated</SelectItem>
-                <SelectItem value="price-low">Price ↑</SelectItem>
-                <SelectItem value="price-high">Price ↓</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" className="rounded-full" onClick={() => setShowFilters(!showFilters)}>
-              <SlidersHorizontal className="w-4 h-4 mr-1.5" /> Filters
-            </Button>
-            <div className="flex bg-secondary rounded-full p-1">
-              <button onClick={() => setView("grid")} className={`p-1.5 rounded-full ${view === "grid" ? "bg-white shadow-soft" : ""}`}><LayoutGrid className="w-4 h-4" /></button>
-              <button onClick={() => setView("list")} className={`p-1.5 rounded-full ${view === "list" ? "bg-white shadow-soft" : ""}`}><List className="w-4 h-4" /></button>
+
+            {/* Selects & Controls Container - Elegant wrap flow */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+              <div className="flex items-center gap-2 flex-1">
+                {/* Category Select */}
+                <div className="flex-1 sm:flex-none">
+                  <Select value={cat} onValueChange={setCat}>
+                    <SelectTrigger className="w-full sm:w-44 rounded-full bg-white border-border"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All categories</SelectItem>
+                      {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Sort Select */}
+                <div className="flex-1 sm:flex-none">
+                  <Select value={sort} onValueChange={setSort}>
+                    <SelectTrigger className="w-full sm:w-40 rounded-full bg-white border-border"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="latest">Latest</SelectItem>
+                      <SelectItem value="popular">Most popular</SelectItem>
+                      <SelectItem value="rating">Highest rated</SelectItem>
+                      <SelectItem value="price-low">Price ↑</SelectItem>
+                      <SelectItem value="price-high">Price ↓</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Filters Trigger & Grid/List View switcher */}
+              <div className="flex items-center gap-2">
+                <Button variant="outline" className="flex-1 sm:flex-none rounded-full h-10 border-border bg-white" onClick={() => setShowFilters(!showFilters)}>
+                  <SlidersHorizontal className="w-4 h-4 mr-1.5" /> Filters
+                </Button>
+                
+                <div className="flex bg-secondary rounded-full p-1 h-10 shrink-0">
+                  <button onClick={() => setView("grid")} className={`p-1.5 px-2.5 rounded-full ${view === "grid" ? "bg-white shadow-soft" : ""}`}><LayoutGrid className="w-4 h-4" /></button>
+                  <button onClick={() => setView("list")} className={`p-1.5 px-2.5 rounded-full ${view === "list" ? "bg-white shadow-soft" : ""}`}><List className="w-4 h-4" /></button>
+                </div>
+              </div>
             </div>
           </div>
 
