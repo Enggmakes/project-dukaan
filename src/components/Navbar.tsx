@@ -40,7 +40,7 @@ export default function Navbar() {
             <div className="w-8 h-8 rounded-xl bg-primary-gradient flex items-center justify-center shadow-elegant">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <span className="font-semibold text-navy tracking-tight">ProjectForge<span className="text-primary">AI</span></span>
+            <span className="font-semibold text-navy tracking-tight">Project<span className="text-primary">Dukaan</span></span>
           </Link>
 
           <div className="hidden md:flex items-center gap-1">

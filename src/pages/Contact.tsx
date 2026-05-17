@@ -54,7 +54,7 @@ export default function Contact() {
 
           <aside className="space-y-4">
             {[
-              { icon: Mail, label: "Email", value: "team@projectforge.ai" },
+              { icon: Mail, label: "Email", value: "team@projectdukaan.ai" },
               { icon: Phone, label: "Phone", value: "+91 98000 12345" },
               { icon: MapPin, label: "HQ", value: "Bengaluru, India" },
             ].map(i => (

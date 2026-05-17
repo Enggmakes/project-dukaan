@@ -21,7 +21,7 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-xl bg-primary-gradient flex items-center justify-center"><Sparkles className="w-4 h-4 text-white" /></div>
-              <span className="font-semibold text-white">ProjectForge<span className="text-primary-glow">AI</span></span>
+              <span className="font-semibold text-white">Project<span className="text-primary-glow">Dukaan</span></span>
             </div>
             <p className="text-sm max-w-sm text-white/60 mb-6">Build faster. Learn smarter. Ship real projects. The premium marketplace for engineering, AI & final-year projects.</p>
             <form onSubmit={submit} className="flex gap-2 max-w-sm">
@@ -41,7 +41,7 @@ export default function Footer() {
         </div>
 
         <div className="max-w-6xl mx-auto mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/50">© {new Date().getFullYear()} ProjectForge AI. Crafted for builders.</p>
+          <p className="text-xs text-white/50">© {new Date().getFullYear()} ProjectDukaan. Crafted for builders.</p>
           <div className="flex gap-3">
             <a href="#" className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 grid place-items-center"><Twitter className="w-4 h-4" /></a>
             <a href="#" className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 grid place-items-center"><Github className="w-4 h-4" /></a>
