@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, TrendingUp, Users, IndianRupee, Activity, MoreHorizontal, Bell, ChevronDown, Plus, Image as ImageIcon, Mail, Trash2, CheckCircle, LogOut, Globe } from "lucide-react";
+import { Search, TrendingUp, Users, IndianRupee, Activity, MoreHorizontal, Bell, ChevronDown, Plus, Image as ImageIcon, Mail, Trash2, CheckCircle, LogOut, Globe, ShoppingBag, Truck } from "lucide-react";
 import Layout from "@/components/Layout";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
@@ -63,6 +63,7 @@ export default function AdminDashboard() {
   const [status, setStatus] = useState("all");
   const [leads, setLeads] = useState<any[]>(LEADS);
   const [messages, setMessages] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("leads");
   const [readMessages, setReadMessages] = useState<string[]>([]);
 
@@ -87,7 +88,25 @@ export default function AdminDashboard() {
     supabase.from('contact_messages').select('*').order('created_at', { ascending: false }).then(({ data }) => {
       if (data) setMessages(data);
     });
+
+    supabase.from('orders').select('*').order('created_at', { ascending: false }).then(({ data }) => {
+      if (data) setOrders(data);
+    });
   }, []);
+
+  const updateOrderStatus = async (orderId: string, newStatus: string, trackingId?: string) => {
+    const payload: any = { status: newStatus };
+    if (trackingId) payload.tracking_id = trackingId;
+
+    const { error } = await supabase.from('orders').update(payload).eq('id', orderId);
+    if (error) {
+      toast.error("Failed to update order status");
+      return;
+    }
+
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...payload } : o));
+    toast.success(`Order marked as ${newStatus}`);
+  };
 
   const updateLeadStatus = async (lead: any, newStatus: string) => {
     // Only update in Supabase for real leads (UUID id format)
@@ -244,7 +263,9 @@ export default function AdminDashboard() {
                   <DropdownMenuTrigger asChild>
                     <button className="w-10 h-10 rounded-full glass-dark grid place-items-center text-white relative hover:bg-white/10 transition-colors">
                       <Bell className="w-4 h-4" />
-                      {(leads.filter(l => l.status === "New" && l.rawId).length + messages.filter(m => !readMessages.includes(m.id)).length) > 0 && (
+                      {(leads.filter(l => l.status === "New" && l.rawId).length + 
+                        messages.filter(m => !readMessages.includes(m.id)).length +
+                        orders.filter(o => o.status === "Processing").length) > 0 && (
                         <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-magenta animate-pulse" />
                       )}
                     </button>
@@ -252,6 +273,16 @@ export default function AdminDashboard() {
                   <DropdownMenuContent align="end" className="w-72 bg-navy border-white/10 text-white p-2">
                     <div className="px-3 py-1.5 text-xs text-white/50 uppercase tracking-wider font-semibold">Notifications</div>
                     <DropdownMenuSeparator className="bg-white/10" />
+                    
+                    {orders.filter(o => o.status === "Processing").map(o => (
+                      <DropdownMenuItem key={o.id} onClick={() => { setActiveTab("orders"); }}
+                        className="text-sm p-3 hover:bg-white/5 rounded-lg flex flex-col items-start gap-1 cursor-pointer">
+                        <span className="font-semibold text-emerald-400">New Purchase (₹{o.amount})</span>
+                        <span className="text-xs text-white/70">{o.customer_name} bought "{o.project_title}"</span>
+                        <span className="text-[10px] text-white/40">{new Date(o.created_at).toLocaleDateString()}</span>
+                      </DropdownMenuItem>
+                    ))}
+
                     {leads.filter(l => l.status === "New" && l.rawId).map(l => (
                       <DropdownMenuItem key={l.id} onClick={() => handleNotificationClickLead(l)}
                         className="text-sm p-3 hover:bg-white/5 rounded-lg flex flex-col items-start gap-1 cursor-pointer">
@@ -260,6 +291,7 @@ export default function AdminDashboard() {
                         <span className="text-[10px] text-white/40">{l.date}</span>
                       </DropdownMenuItem>
                     ))}
+                    
                     {messages.filter(m => !readMessages.includes(m.id)).map(m => (
                       <DropdownMenuItem key={m.id} onClick={() => handleNotificationClickMessage(m.id)}
                         className="text-sm p-3 hover:bg-white/5 rounded-lg flex flex-col items-start gap-1 cursor-pointer">
@@ -268,7 +300,10 @@ export default function AdminDashboard() {
                         <span className="text-[10px] text-white/40">{new Date(m.created_at).toLocaleDateString()}</span>
                       </DropdownMenuItem>
                     ))}
-                    {(leads.filter(l => l.status === "New" && l.rawId).length + messages.filter(m => !readMessages.includes(m.id)).length) === 0 && (
+                    
+                    {(leads.filter(l => l.status === "New" && l.rawId).length + 
+                      messages.filter(m => !readMessages.includes(m.id)).length +
+                      orders.filter(o => o.status === "Processing").length) === 0 && (
                       <div className="py-6 text-center text-xs text-white/40">No new notifications</div>
                     )}
                   </DropdownMenuContent>
@@ -302,6 +337,7 @@ export default function AdminDashboard() {
                 <TabsList className="mb-8 bg-white/5 border border-white/10 rounded-full px-1 py-1 h-auto flex w-max sm:w-auto min-w-full sm:min-w-0">
                   <TabsTrigger value="leads" className="text-white data-[state=active]:bg-white/10 data-[state=active]:text-white rounded-full px-6 py-2 whitespace-nowrap flex-1 text-center">Leads</TabsTrigger>
                   <TabsTrigger value="projects" className="text-white data-[state=active]:bg-white/10 data-[state=active]:text-white rounded-full px-6 py-2 whitespace-nowrap flex-1 text-center">Manage Projects</TabsTrigger>
+                  <TabsTrigger value="orders" className="text-white data-[state=active]:bg-white/10 data-[state=active]:text-white rounded-full px-6 py-2 whitespace-nowrap flex-1 text-center">Orders</TabsTrigger>
                   <TabsTrigger value="messages" className="text-white data-[state=active]:bg-white/10 data-[state=active]:text-white rounded-full px-6 py-2 whitespace-nowrap flex-1 text-center">Messages</TabsTrigger>
                 </TabsList>
               </div>
@@ -451,8 +487,8 @@ export default function AdminDashboard() {
                         <Select value={newProject.delivery_type} onValueChange={v => setNewProject({ ...newProject, delivery_type: v })}>
                           <SelectTrigger className="bg-white/5 border-white/10 text-white h-11"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="digital">💻 Digital (Instant Download)</SelectItem>
-                            <SelectItem value="physical">🤖 Physical (Hardware/Robotics Kit Shipping)</SelectItem>
+                            <SelectItem value="digital">Digital (Instant Download)</SelectItem>
+                            <SelectItem value="physical">Physical (Hardware/Robotics Kit Shipping)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -561,6 +597,141 @@ export default function AdminDashboard() {
                       </tbody>
                     </table>
                     {messages.length === 0 && <div className="text-center py-10 text-white/50 text-sm">No contact messages yet</div>}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="orders" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="glass-dark rounded-2xl p-5">
+                  <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+                    <h3 className="text-white font-medium flex items-center gap-2">
+                      <ShoppingBag className="w-5 h-5 text-emerald-400" />
+                      Client Order Registry
+                    </h3>
+                    <Badge className="bg-white/10 text-white border-white/5 rounded-full py-1 px-3">
+                      {orders.length} orders total
+                    </Badge>
+                  </div>
+
+                  <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:-mx-0 sm:px-0">
+                    <table className="w-full text-sm min-w-[900px]">
+                      <thead>
+                        <tr className="text-white/50 text-xs uppercase tracking-wider">
+                          <th className="text-left py-3 px-3 font-normal">Order ID</th>
+                          <th className="text-left py-3 px-3 font-normal">Buyer</th>
+                          <th className="text-left py-3 px-3 font-normal">Project Purchased</th>
+                          <th className="text-left py-3 px-3 font-normal">Price</th>
+                          <th className="text-left py-3 px-3 font-normal">Type</th>
+                          <th className="text-left py-3 px-3 font-normal">Shipping Address / Details</th>
+                          <th className="text-left py-3 px-3 font-normal">Status</th>
+                          <th className="text-left py-3 px-3 font-normal">Tracking ID</th>
+                          <th className="text-right py-3 px-3 font-normal"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {orders.map(o => {
+                          const isPhysical = o.delivery_type === "physical";
+                          return (
+                            <tr key={o.id} className="border-t border-white/5 hover:bg-white/5 transition-colors">
+                              <td className="py-4 px-3 text-white/50 font-mono text-xs truncate max-w-[80px]" title={o.id}>
+                                #{o.id.substring(0, 8)}
+                              </td>
+                              <td className="py-4 px-3">
+                                <div className="text-white font-medium">{o.customer_name}</div>
+                                <div className="text-white/40 text-xs mt-0.5">{o.customer_email}</div>
+                              </td>
+                              <td className="py-4 px-3 text-white font-medium max-w-[180px] truncate" title={o.project_title}>
+                                {o.project_title}
+                              </td>
+                              <td className="py-4 px-3 text-white font-medium">₹{o.amount.toLocaleString()}</td>
+                              <td className="py-4 px-3">
+                                <Badge className={isPhysical ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" : "bg-purple-500/10 text-purple-400 border-purple-500/20"}>
+                                  {isPhysical ? "Physical Kit" : "Digital ZIP"}
+                                </Badge>
+                              </td>
+                              <td className="py-4 px-3 text-white/70 max-w-[200px] truncate text-xs" title={isPhysical ? `${o.shipping_address}, ${o.city}, ${o.state} - ${o.pincode} | Tel: ${o.customer_phone}` : "Instant Digital Download"}>
+                                {isPhysical ? (
+                                  <>
+                                    <div>{o.shipping_address}, {o.city}</div>
+                                    <div className="text-white/40 text-[10px] mt-0.5">Phone: {o.customer_phone}</div>
+                                  </>
+                                ) : (
+                                  <span className="text-white/40">Instant Delivery</span>
+                                )}
+                              </td>
+                              <td className="py-4 px-3">
+                                <Badge className={
+                                  o.status === "Delivered" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                                  o.status === "Shipped" ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" :
+                                  "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                }>
+                                  {o.status}
+                                </Badge>
+                              </td>
+                              <td className="py-4 px-3 font-mono text-xs text-white/50">
+                                {o.tracking_id ? (
+                                  <span className="text-white/80 font-semibold">{o.tracking_id}</span>
+                                ) : (
+                                  <span className="text-white/20">—</span>
+                                )}
+                              </td>
+                              <td className="py-4 px-3 text-right">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <button className="text-white/40 hover:text-white p-1 rounded hover:bg-white/10 transition-colors">
+                                      <MoreHorizontal className="w-4 h-4" />
+                                    </button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-52 bg-navy border-white/10 text-white p-2">
+                                    <div className="px-2 py-1 text-white/40 text-xs uppercase tracking-wider font-semibold">Set Order Status</div>
+                                    <DropdownMenuSeparator className="bg-white/10" />
+                                    
+                                    {isPhysical && (
+                                      <DropdownMenuItem 
+                                        onClick={() => {
+                                          const tid = prompt("Enter courier (DTDC) tracking ID:", o.tracking_id || "");
+                                          if (tid === null) return;
+                                          updateOrderStatus(o.id, "Shipped", tid.trim() || undefined);
+                                        }}
+                                        className="flex items-center gap-2 text-white/80 hover:text-white cursor-pointer rounded-md"
+                                      >
+                                        <Truck className="w-4 h-4 text-indigo-400" /> {o.tracking_id ? "Update Tracking ID" : "Mark as Shipped"}
+                                      </DropdownMenuItem>
+                                    )}
+                                    
+                                    <DropdownMenuItem 
+                                      onClick={() => updateOrderStatus(o.id, "Processing")}
+                                      className="flex items-center gap-2 text-white/80 hover:text-white cursor-pointer rounded-md"
+                                    >
+                                      <MoreHorizontal className="w-4 h-4 text-amber-400" /> Mark as Processing
+                                    </DropdownMenuItem>
+                                    
+                                    <DropdownMenuItem 
+                                      onClick={() => updateOrderStatus(o.id, "Delivered")}
+                                      className="flex items-center gap-2 text-white/80 hover:text-white cursor-pointer rounded-md"
+                                    >
+                                      <CheckCircle className="w-4 h-4 text-emerald-400" /> Mark as Delivered
+                                    </DropdownMenuItem>
+
+                                    <DropdownMenuSeparator className="bg-white/10" />
+                                    <DropdownMenuItem 
+                                      onClick={async () => {
+                                        if (!confirm("Are you sure you want to cancel this order? This cannot be undone.")) return;
+                                        updateOrderStatus(o.id, "Cancelled");
+                                      }}
+                                      className="flex items-center gap-2 text-rose-400 hover:text-rose-300 cursor-pointer rounded-md"
+                                    >
+                                      <Trash2 className="w-4 h-4" /> Cancel Order
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                    {orders.length === 0 && <div className="text-center py-12 text-white/50 text-sm">No purchases registered yet. Run test checkout inside store!</div>}
                   </div>
                 </div>
               </TabsContent>

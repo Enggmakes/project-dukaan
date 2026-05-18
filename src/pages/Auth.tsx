@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,10 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const isLogin = mode === "login";
+
+  const redirectUrl = searchParams.get("redirect");
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +29,15 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
         });
         if (error) throw error;
         toast.success("Login successful!");
-        navigate("/admin");
+        
+        const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+        if (redirectUrl) {
+          navigate(redirectUrl);
+        } else if (form.email === adminEmail) {
+          navigate("/admin");
+        } else {
+          navigate("/profile");
+        }
       } else {
         const { error } = await supabase.auth.signUp({
           email: form.email,
@@ -39,7 +50,12 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
         });
         if (error) throw error;
         toast.success("Account created successfully!");
-        navigate("/");
+        
+        if (redirectUrl) {
+          navigate(redirectUrl);
+        } else {
+          navigate("/profile");
+        }
       }
     } catch (error: any) {
       toast.error(error.message || "An error occurred during authentication");

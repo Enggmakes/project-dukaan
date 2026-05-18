@@ -100,6 +100,9 @@ export default function Navbar() {
                   <div className="px-2 py-1.5 text-xs text-muted-foreground truncate mb-1">
                     {user.email}
                   </div>
+                  <DropdownMenuItem className="rounded-xl cursor-pointer py-2 mb-1" onClick={() => navigate("/profile")}>
+                    <User className="w-4 h-4 mr-2" /> My Profile
+                  </DropdownMenuItem>
                   {isAdmin && (
                     <DropdownMenuItem className="rounded-xl cursor-pointer py-2 mb-1" onClick={() => navigate("/admin")}>
                       <User className="w-4 h-4 mr-2" /> Admin Dashboard
@@ -136,6 +139,9 @@ export default function Navbar() {
                   <div className="px-3 py-2 text-xs text-muted-foreground truncate">
                     {user.email}
                   </div>
+                  <Button variant="ghost" className="w-full justify-start rounded-lg text-navy" onClick={() => { navigate("/profile"); setOpen(false); }}>
+                    <User className="w-4 h-4 mr-2" /> My Profile
+                  </Button>
                   {isAdmin && (
                     <Button variant="ghost" className="w-full justify-start rounded-lg text-navy" onClick={() => { navigate("/admin"); setOpen(false); }}>
                       <User className="w-4 h-4 mr-2" /> Admin Dashboard
