@@ -35,6 +35,7 @@ export interface Project {
   screenshots?: string[];
   video_url?: string;
   thumb: string;
+  delivery_type?: "digital" | "physical";
 }
 
 const grad = (a: string, b: string) =>
@@ -88,6 +89,7 @@ export const PROJECTS: Project[] = titles.map(([title, category, tech, price], i
   ],
   includes: ["Source Code (.zip)", "Documentation (PDF)", "Dataset", "Demo Video", "Report Template (DOCX)"],
   thumb: thumbs[i % thumbs.length],
+  delivery_type: (category === "Robotics" || category === "IoT") ? "physical" : "digital",
 }));
 
 export const TESTIMONIALS = [
