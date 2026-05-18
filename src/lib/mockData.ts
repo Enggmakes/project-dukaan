@@ -34,6 +34,7 @@ export interface Project {
   includes?: string[];
   screenshots?: string[];
   video_url?: string;
+  github_url?: string;
   thumb: string;
   delivery_type?: "digital" | "physical";
 }

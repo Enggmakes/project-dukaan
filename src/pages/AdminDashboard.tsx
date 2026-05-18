@@ -163,6 +163,7 @@ export default function AdminDashboard() {
     tech: "",
     features: "",
     includes: "",
+    github_url: "",
     image: null as File | null,
     video: null as File | null,
     screenshots: null as FileList | null
@@ -227,6 +228,7 @@ export default function AdminDashboard() {
         tech: newProject.tech.split(',').map(t => t.trim()).filter(Boolean),
         features: newProject.features.split('\n').map(t => t.trim()).filter(Boolean),
         includes: newProject.includes.split('\n').map(t => t.trim()).filter(Boolean),
+        github_url: newProject.github_url.trim() || null,
         screenshots: screenshotUrls,
         video_url: videoUrl,
         thumb: publicUrlData.publicUrl
@@ -235,7 +237,7 @@ export default function AdminDashboard() {
       if (dbError) throw new Error("Database error: " + dbError.message);
 
       toast.success("Project published successfully!", { id: toastId });
-      setNewProject({ title: "", description: "", category: "AI & Machine Learning", price: "", difficulty: "Beginner", delivery_type: "digital", tech: "", features: "", includes: "", image: null, video: null, screenshots: null });
+      setNewProject({ title: "", description: "", category: "AI & Machine Learning", price: "", difficulty: "Beginner", delivery_type: "digital", tech: "", features: "", includes: "", github_url: "", image: null, video: null, screenshots: null });
     } catch (err: any) {
       toast.error(err.message, { id: toastId });
     } finally {
@@ -539,6 +541,16 @@ export default function AdminDashboard() {
                           accept="video/*"
                           onChange={e => setNewProject({ ...newProject, video: e.target.files?.[0] || null })}
                           className="bg-white/5 border-white/10 text-white h-11 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-4 file:mr-4 file:rounded-md hover:file:bg-white/20"
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-1">
+                        <Label className="text-white/70">GitHub Repository ZIP Link (Optional)</Label>
+                        <Input
+                          type="url"
+                          value={newProject.github_url}
+                          onChange={e => setNewProject({ ...newProject, github_url: e.target.value })}
+                          placeholder="https://github.com/username/repo/archive/refs/heads/main.zip"
+                          className="bg-white/5 border-white/10 text-white h-11"
                         />
                       </div>
                     </div>

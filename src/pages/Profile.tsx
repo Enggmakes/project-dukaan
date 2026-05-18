@@ -73,20 +73,20 @@ export default function Profile() {
     toast.success("Tracking ID copied to clipboard!");
   };
 
-  const handleDownload = (projectName: string) => {
-    toast.loading(`Preparing secure lifetime download for ${projectName}...`, { id: "dl-toast" });
-    
-    setTimeout(() => {
-      toast.success("Download started! Source code and wiring diagrams are now downloading.", { id: "dl-toast" });
-      
-      // Simulate file download by creating a temporary anchor
-      const link = document.createElement("a");
-      link.href = "#"; // Replace with actual asset URL if available
-      link.setAttribute("download", `${projectName.replace(/\s+/g, "-")}-Assets.zip`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }, 1500);
+  const handleDownload = (order: any) => {
+    if (order.github_url) {
+      window.open(order.github_url, "_blank");
+      toast.success("Downloading project files from GitHub!");
+    } else {
+      // Fallback for older orders without a github url
+      const element = document.createElement("a");
+      element.href = "#"; // Replace with actual zip url
+      element.download = `${order.project_title.replace(/\s+/g, '_')}_source.zip`;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+      toast.success("Download started!");
+    }
   };
 
   const getInitials = () => {
@@ -335,7 +335,7 @@ export default function Profile() {
 
                         <div className="w-full md:w-auto">
                           <Button 
-                            onClick={() => handleDownload(o.project_title)}
+                            onClick={() => handleDownload(o)}
                             className="w-full md:w-auto bg-emerald-500 hover:bg-emerald-600 text-navy font-semibold rounded-full px-6 h-11 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all"
                           >
                             <Download className="w-4 h-4" /> Download Files (ZIP)

@@ -93,6 +93,7 @@ export default function ProjectDetails() {
         project_title: project.title,
         amount: project.price,
         delivery_type: project.delivery_type || 'digital',
+        github_url: project.github_url || null,
         shipping_address: project.delivery_type === 'physical' ? form.address : null,
         city: project.delivery_type === 'physical' ? form.city : null,
         state: project.delivery_type === 'physical' ? form.state : null,
