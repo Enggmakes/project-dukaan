@@ -121,11 +121,27 @@ export default function ProjectDetails() {
     }
   };
 
-  const handleDownloadMock = () => {
-    const toastId = toast.loading("Preparing download package...");
-    setTimeout(() => {
-      toast.success("Source Code ZIP downloaded successfully!", { id: toastId });
-    }, 1500);
+  const handleDownload = () => {
+    if (project?.github_url) {
+      let finalUrl = project.github_url;
+      // Auto-format standard github repo link to a ZIP download
+      if (finalUrl.includes("github.com") && !finalUrl.includes("/archive/")) {
+        finalUrl = finalUrl.replace(/\.git$/, '');
+        finalUrl = `${finalUrl}/archive/refs/heads/main.zip`;
+      }
+      
+      const element = document.createElement("a");
+      element.href = finalUrl;
+      element.target = "_blank";
+      element.download = `${project.title.replace(/\s+/g, '_')}_source.zip`;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+      
+      toast.success("Downloading project files from GitHub!");
+    } else {
+      toast.error("This project doesn't have a download link attached. Please contact support.");
+    }
   };
 
   useEffect(() => {
@@ -512,7 +528,7 @@ export default function ProjectDetails() {
                       <span className="text-muted-foreground">Click below to fetch the production-ready source code ZIP and documentation PDF.</span>
                     </div>
                     <Button 
-                      onClick={handleDownloadMock}
+                      onClick={handleDownload}
                       className="w-full mt-2 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white h-11 font-semibold flex items-center justify-center gap-2 shadow-elegant"
                     >
                       <Download className="w-4 h-4" />
