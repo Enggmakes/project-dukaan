@@ -86,9 +86,8 @@ export default function ProjectDetails() {
       
       // Real insert to live Supabase orders table!
       const { error } = await supabase.from('orders').insert({
-        user_id: session?.user?.id,
-        customer_name: form.name,
-        customer_email: form.email,
+        customer_name: form.name.trim(),
+        customer_email: form.email.trim().toLowerCase(),
         customer_phone: form.phone || null,
         project_id: project.id.length === 36 ? project.id : null,
         project_title: project.title,

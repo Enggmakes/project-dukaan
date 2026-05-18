@@ -35,17 +35,20 @@ export default function Profile() {
       }
       setUser(session.user);
 
-      // Fetch orders for this email
+      // Fetch all orders and filter client-side to prevent case/whitespace issues
       const { data: ordersData, error } = await supabase
         .from("orders")
         .select("*")
-        .ilike("customer_email", session.user.email)
         .order("created_at", { ascending: false });
 
       if (error) {
         toast.error("Failed to load purchases");
       } else if (ordersData) {
-        setOrders(ordersData);
+        const userEmail = session.user.email.trim().toLowerCase();
+        const myOrders = ordersData.filter((o: any) => 
+          o.customer_email && o.customer_email.trim().toLowerCase() === userEmail
+        );
+        setOrders(myOrders);
       }
       setLoading(false);
     };
