@@ -216,15 +216,18 @@ export default function AdminDashboard() {
         if (subscribers && subscribers.length > 0) {
           for (const sub of subscribers) {
             const emailParams = {
-              to_email: sub.email,
-              title: newProject.title,
+              fullName: "ProjectDukaan Subscriber",
+              email: sub.email, // Maps to {{email}} in your EmailJS template settings
+              phone: "N/A",
+              college: "N/A",
+              title: `🎉 NEW PROJECT: ${newProject.title}`,
               category: newProject.category,
-              price: newProject.price,
-              difficulty: newProject.difficulty,
-              description: newProject.description,
               tech: newProject.tech,
-              message: `A new project "${newProject.title}" has been published under "${newProject.category}" for ₹${newProject.price}!`,
-              project_link: `https://projectdukaan.vercel.app/marketplace`
+              budget: `₹${newProject.price}`,
+              deadline: "Now Available",
+              description: newProject.description,
+              notes: `Difficulty: ${newProject.difficulty}. Check it out on the marketplace!`,
+              contact: "email",
             };
 
             await emailjs.send(
