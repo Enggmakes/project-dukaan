@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CATEGORIES } from "@/lib/mockData";
 import { toast } from "sonner";
+import emailjs from "@emailjs/browser";
 
 const LEADS = [
   { id: "LD-2104", name: "Aarav Khanna", project: "AI Resume Screener", category: "AI & ML", budget: "₹15k–50k", status: "New", date: "2h ago" },
@@ -209,7 +210,36 @@ export default function AdminDashboard() {
 
       if (dbError) throw new Error("Database error: " + dbError.message);
 
-      toast.success("Project published successfully!", { id: toastId });
+      // Fetch all subscribers to notify them via EmailJS
+      try {
+        const { data: subscribers } = await supabase.from('subscribers').select('email');
+        if (subscribers && subscribers.length > 0) {
+          for (const sub of subscribers) {
+            const emailParams = {
+              to_email: sub.email,
+              title: newProject.title,
+              category: newProject.category,
+              price: newProject.price,
+              difficulty: newProject.difficulty,
+              description: newProject.description,
+              tech: newProject.tech,
+              message: `A new project "${newProject.title}" has been published under "${newProject.category}" for ₹${newProject.price}!`,
+              project_link: `https://projectdukaan.vercel.app/marketplace`
+            };
+
+            await emailjs.send(
+              import.meta.env.VITE_EMAILJS_SERVICE_ID,
+              import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+              emailParams,
+              import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+            );
+          }
+        }
+      } catch (emailErr) {
+        console.error("Failed to notify subscribers:", emailErr);
+      }
+
+      toast.success("Project published successfully and subscribers notified!", { id: toastId });
       setNewProject({ title: "", description: "", category: "AI & Machine Learning", price: "", difficulty: "Beginner", tech: "", features: "", includes: "", image: null, video: null, screenshots: null });
     } catch (err: any) {
       toast.error(err.message, { id: toastId });
