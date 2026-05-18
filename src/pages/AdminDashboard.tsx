@@ -136,6 +136,7 @@ export default function AdminDashboard() {
     category: "AI & Machine Learning",
     price: "",
     difficulty: "Beginner",
+    delivery_type: "digital", // 'digital' or 'physical'
     tech: "",
     features: "",
     includes: "",
@@ -199,6 +200,7 @@ export default function AdminDashboard() {
         category: newProject.category,
         difficulty: newProject.difficulty,
         price: Number(newProject.price),
+        delivery_type: newProject.delivery_type,
         tech: newProject.tech.split(',').map(t => t.trim()).filter(Boolean),
         features: newProject.features.split('\n').map(t => t.trim()).filter(Boolean),
         includes: newProject.includes.split('\n').map(t => t.trim()).filter(Boolean),
@@ -210,7 +212,7 @@ export default function AdminDashboard() {
       if (dbError) throw new Error("Database error: " + dbError.message);
 
       toast.success("Project published successfully!", { id: toastId });
-      setNewProject({ title: "", description: "", category: "AI & Machine Learning", price: "", difficulty: "Beginner", tech: "", features: "", includes: "", image: null, video: null, screenshots: null });
+      setNewProject({ title: "", description: "", category: "AI & Machine Learning", price: "", difficulty: "Beginner", delivery_type: "digital", tech: "", features: "", includes: "", image: null, video: null, screenshots: null });
     } catch (err: any) {
       toast.error(err.message, { id: toastId });
     } finally {
@@ -441,6 +443,16 @@ export default function AdminDashboard() {
                             <SelectItem value="Beginner">Beginner</SelectItem>
                             <SelectItem value="Intermediate">Intermediate</SelectItem>
                             <SelectItem value="Advanced">Advanced</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-white/70">Delivery Type</Label>
+                        <Select value={newProject.delivery_type} onValueChange={v => setNewProject({ ...newProject, delivery_type: v })}>
+                          <SelectTrigger className="bg-white/5 border-white/10 text-white h-11"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="digital">💻 Digital (Instant Download)</SelectItem>
+                            <SelectItem value="physical">🤖 Physical (Hardware/Robotics Kit Shipping)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
