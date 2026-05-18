@@ -75,17 +75,27 @@ export default function Profile() {
 
   const handleDownload = (order: any) => {
     if (order.github_url) {
-      window.open(order.github_url, "_blank");
-      toast.success("Downloading project files from GitHub!");
-    } else {
-      // Fallback for older orders without a github url
+      let finalUrl = order.github_url;
+      // If the user pasted a standard github repo link (with or without .git), auto-format it to a ZIP download
+      if (finalUrl.includes("github.com") && !finalUrl.includes("/archive/")) {
+        // Remove .git if it exists
+        finalUrl = finalUrl.replace(/\.git$/, '');
+        // Append zip path
+        finalUrl = `${finalUrl}/archive/refs/heads/main.zip`;
+      }
+      
       const element = document.createElement("a");
-      element.href = "#"; // Replace with actual zip url
+      element.href = finalUrl;
+      element.target = "_blank";
       element.download = `${order.project_title.replace(/\s+/g, '_')}_source.zip`;
       document.body.appendChild(element);
       element.click();
       document.body.removeChild(element);
-      toast.success("Download started!");
+      
+      toast.success("Downloading project files from GitHub!");
+    } else {
+      // Fallback for older orders without a github url
+      toast.error("This order doesn't have a download link attached. Please contact support.");
     }
   };
 
