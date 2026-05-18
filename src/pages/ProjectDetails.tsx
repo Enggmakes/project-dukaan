@@ -138,7 +138,7 @@ export default function ProjectDetails() {
       element.click();
       document.body.removeChild(element);
       
-      toast.success("Downloading project files from GitHub!");
+      toast.success("Project downloading successfully! Thank you.");
     } else {
       toast.error("This project doesn't have a download link attached. Please contact support.");
     }

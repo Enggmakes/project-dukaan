@@ -92,7 +92,7 @@ export default function Profile() {
       element.click();
       document.body.removeChild(element);
       
-      toast.success("Downloading project files from GitHub!");
+      toast.success("Project downloading successfully! Thank you.");
     } else {
       // Fallback for older orders without a github url
       toast.error("This order doesn't have a download link attached. Please contact support.");
