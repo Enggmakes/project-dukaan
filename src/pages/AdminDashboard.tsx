@@ -13,7 +13,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CATEGORIES } from "@/lib/mockData";
 import { toast } from "sonner";
-import emailjs from "@emailjs/browser";
 
 const LEADS = [
   { id: "LD-2104", name: "Aarav Khanna", project: "AI Resume Screener", category: "AI & ML", budget: "₹15k–50k", status: "New", date: "2h ago" },
@@ -210,39 +209,7 @@ export default function AdminDashboard() {
 
       if (dbError) throw new Error("Database error: " + dbError.message);
 
-      // Fetch all subscribers to notify them via EmailJS
-      try {
-        const { data: subscribers } = await supabase.from('subscribers').select('email');
-        if (subscribers && subscribers.length > 0) {
-          for (const sub of subscribers) {
-            const emailParams = {
-              fullName: "ProjectDukaan Subscriber",
-              email: sub.email, // Maps to {{email}} in your EmailJS template settings
-              phone: "N/A",
-              college: "N/A",
-              title: `🎉 NEW PROJECT: ${newProject.title}`,
-              category: newProject.category,
-              tech: newProject.tech,
-              budget: `₹${newProject.price}`,
-              deadline: "Now Available",
-              description: newProject.description,
-              notes: `Difficulty: ${newProject.difficulty}. Check it out on the marketplace!`,
-              contact: "email",
-            };
-
-            await emailjs.send(
-              import.meta.env.VITE_EMAILJS_SERVICE_ID,
-              import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-              emailParams,
-              import.meta.env.VITE_EMAILJS_PUBLIC_KEY
-            );
-          }
-        }
-      } catch (emailErr) {
-        console.error("Failed to notify subscribers:", emailErr);
-      }
-
-      toast.success("Project published successfully and subscribers notified!", { id: toastId });
+      toast.success("Project published successfully!", { id: toastId });
       setNewProject({ title: "", description: "", category: "AI & Machine Learning", price: "", difficulty: "Beginner", tech: "", features: "", includes: "", image: null, video: null, screenshots: null });
     } catch (err: any) {
       toast.error(err.message, { id: toastId });
