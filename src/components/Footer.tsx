@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -22,11 +23,32 @@ export default function Footer() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.includes("@")) return toast.error("Enter a valid email");
-    toast.success("You're subscribed. Welcome aboard ✨");
-    setEmail("");
+    
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from('subscribers')
+        .insert([{ email }]);
+
+      if (error) {
+        if (error.code === '23505') { // Unique violation
+          toast.error("You're already subscribed!");
+        } else {
+          toast.error("Failed to subscribe. Please try again.");
+          console.error(error);
+        }
+      } else {
+        toast.success("You're subscribed! We will notify you when new projects are added.");
+        setEmail("");
+      }
+    } catch (err) {
+      toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const productItems: [string, string][] = [
@@ -54,9 +76,13 @@ export default function Footer() {
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@university.edu"
                 className="rounded-full bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                disabled={isLoading}
               />
-              <Button type="submit" className="rounded-full bg-primary hover:bg-primary/90 px-6">Subscribe</Button>
+              <Button type="submit" disabled={isLoading} className="rounded-full bg-primary hover:bg-primary/90 px-6">
+                {isLoading ? "Wait..." : "Subscribe"}
+              </Button>
             </form>
+            <p className="text-[11px] text-white/40 mt-2 ml-2">We will notify you when new premium projects are added. Yes!</p>
           </div>
 
           <FooterCol title="Product" items={productItems} />
