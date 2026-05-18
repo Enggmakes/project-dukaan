@@ -82,8 +82,11 @@ export default function ProjectDetails() {
     const toastId = toast.loading("Verifying Cashfree payment session...");
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
       // Real insert to live Supabase orders table!
       const { error } = await supabase.from('orders').insert({
+        user_id: session?.user?.id,
         customer_name: form.name,
         customer_email: form.email,
         customer_phone: form.phone || null,

@@ -39,7 +39,7 @@ export default function Profile() {
       const { data: ordersData, error } = await supabase
         .from("orders")
         .select("*")
-        .eq("customer_email", session.user.email)
+        .ilike("customer_email", session.user.email)
         .order("created_at", { ascending: false });
 
       if (error) {
