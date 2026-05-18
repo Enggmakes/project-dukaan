@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, TrendingUp, Users, IndianRupee, Activity, MoreHorizontal, Bell, ChevronDown, Plus, Image as ImageIcon, Mail, Trash2, CheckCircle, LogOut, Globe, ShoppingBag, Truck } from "lucide-react";
+import { Search, TrendingUp, Users, IndianRupee, Activity, MoreHorizontal, Bell, ChevronDown, Plus, Image as ImageIcon, Mail, Trash2, CheckCircle, LogOut, Globe, ShoppingBag, Truck, Download } from "lucide-react";
 import Layout from "@/components/Layout";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
@@ -83,7 +83,8 @@ export default function AdminDashboard() {
           category: d.category,
           budget: d.budget,
           status: d.status,
-          date: new Date(d.created_at).toLocaleDateString()
+          date: new Date(d.created_at).toLocaleDateString(),
+          document_url: d.document_url
         }));
         setLeads([...formattedLeads, ...LEADS]);
       }
@@ -413,6 +414,16 @@ export default function AdminDashboard() {
                                   </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-52 bg-navy border-white/10">
+                                  {l.document_url && (
+                                    <>
+                                      <DropdownMenuItem asChild>
+                                        <a href={l.document_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-emerald-400 hover:text-emerald-350 cursor-pointer font-medium">
+                                          <Download className="w-4 h-4" /> Download Document
+                                        </a>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator className="bg-white/10" />
+                                    </>
+                                  )}
                                   {l.email && (
                                     <DropdownMenuItem asChild>
                                       <a href={`mailto:${l.email}`} className="flex items-center gap-2 text-white/80 hover:text-white cursor-pointer">

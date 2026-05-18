@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, Upload, Sparkles } from "lucide-react";
 import Layout from "@/components/Layout";
@@ -42,6 +42,8 @@ export default function CustomRequest() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const set = (k: keyof FormData, v: string) => setData(d => ({ ...d, [k]: v }));
 
@@ -84,6 +86,28 @@ export default function CustomRequest() {
     const toastId = toast.loading("Submitting your request...");
     
     try {
+      let documentUrl = null;
+      if (selectedFile) {
+        toast.loading("Uploading requirement document...", { id: toastId });
+        const fileExt = selectedFile.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `custom-requests/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('requirements-files')
+          .upload(filePath, selectedFile);
+          
+        if (uploadError) throw new Error("File upload failed: " + uploadError.message);
+        
+        const { data: publicUrlData } = supabase.storage
+          .from('requirements-files')
+          .getPublicUrl(filePath);
+          
+        documentUrl = publicUrlData.publicUrl;
+      }
+
+      toast.loading("Submitting project details...", { id: toastId });
+
       const { error } = await supabase.from('custom_requests').insert({
         full_name: data.fullName,
         email: data.email,
@@ -96,7 +120,8 @@ export default function CustomRequest() {
         budget: data.budget,
         deadline: data.deadline,
         contact_method: data.contact,
-        notes: data.notes || null
+        notes: data.notes || null,
+        document_url: documentUrl
       });
 
       if (error) throw new Error(error.message);
@@ -115,6 +140,7 @@ export default function CustomRequest() {
         description: data.description,
         notes: data.notes || "None",
         contact: data.contact,
+        documentUrl: documentUrl || "None"
       };
 
       await emailjs.send(
@@ -238,11 +264,52 @@ export default function CustomRequest() {
                       <Field label="Deadline *" error={errors.deadline}><Input type="date" value={data.deadline} onChange={e => set("deadline", e.target.value)} /></Field>
                     </div>
                     <Field label="Upload requirement documents">
-                      <div className="border-2 border-dashed border-border rounded-2xl p-8 text-center hover:border-primary transition-colors cursor-pointer">
-                        <Upload className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-sm text-navy">Drop files or click to browse</p>
-                        <p className="text-xs text-muted-foreground mt-1">PDF, DOCX, PNG up to 10MB</p>
-                        <input type="file" className="hidden" />
+                      <div 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-2 border-dashed border-border rounded-2xl p-8 text-center hover:border-primary transition-colors cursor-pointer relative"
+                      >
+                        {selectedFile ? (
+                          <div className="space-y-2">
+                            <Check className="w-6 h-6 text-emerald-500 mx-auto" />
+                            <p className="text-sm font-medium text-navy">{selectedFile.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                            </p>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedFile(null);
+                                if (fileInputRef.current) fileInputRef.current.value = "";
+                              }}
+                              className="text-xs text-destructive hover:underline mt-2 block mx-auto font-medium"
+                            >
+                              Remove File
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <Upload className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                            <p className="text-sm text-navy">Drop files or click to browse</p>
+                            <p className="text-xs text-muted-foreground mt-1">PDF, DOCX, PNG, JPG up to 10MB</p>
+                          </>
+                        )}
+                        <input 
+                          type="file" 
+                          ref={fileInputRef}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null;
+                            if (file) {
+                              if (file.size > 10 * 1024 * 1024) {
+                                toast.error("File size exceeds 10MB limit");
+                                return;
+                              }
+                              setSelectedFile(file);
+                            }
+                          }}
+                          className="hidden" 
+                          accept=".pdf,.docx,.png,.jpg,.jpeg"
+                        />
                       </div>
                     </Field>
                     <Field label="Preferred contact method">
@@ -271,8 +338,9 @@ export default function CustomRequest() {
                       <Row label="Project" value={data.title} />
                       <Row label="Category" value={data.category} />
                       <Row label="Budget" value={data.budget} />
-                      <Row label="Deadline" value={data.deadline} />
+                       <Row label="Deadline" value={data.deadline} />
                       <Row label="Contact via" value={data.contact} />
+                      {selectedFile && <Row label="Document" value={selectedFile.name} />}
                     </div>
                     <p className="text-xs text-muted-foreground">By submitting you agree to be contacted by our team about this project.</p>
                   </div>
