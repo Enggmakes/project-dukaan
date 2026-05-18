@@ -135,7 +135,7 @@ serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "ProjectDukaan <notifications@projectdukaan.in>",
+        from: "ProjectDukaan <onboarding@resend.dev>",
         to: emails,
         subject: `🎉 New Project: ${project.title} — ProjectDukaan`,
         html: emailHtml,
