@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { CATEGORIES } from "@/lib/mockData";
 import { toast } from "sonner";
 
@@ -66,6 +67,9 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("leads");
   const [readMessages, setReadMessages] = useState<string[]>([]);
+  const [isTrackingDialogOpen, setIsTrackingDialogOpen] = useState(false);
+  const [trackingOrderInfo, setTrackingOrderInfo] = useState<{ id: string, currentTracking: string | null } | null>(null);
+  const [trackingIdInput, setTrackingIdInput] = useState("");
 
   useEffect(() => {
     supabase.from('custom_requests').select('*').order('created_at', { ascending: false }).then(({ data }) => {
@@ -689,9 +693,9 @@ export default function AdminDashboard() {
                                     {isPhysical && (
                                       <DropdownMenuItem 
                                         onClick={() => {
-                                          const tid = prompt("Enter courier (DTDC) tracking ID:", o.tracking_id || "");
-                                          if (tid === null) return;
-                                          updateOrderStatus(o.id, "Shipped", tid.trim() || undefined);
+                                          setTrackingOrderInfo({ id: o.id, currentTracking: o.tracking_id || null });
+                                          setTrackingIdInput(o.tracking_id || "");
+                                          setIsTrackingDialogOpen(true);
                                         }}
                                         className="flex items-center gap-2 text-white/80 hover:text-white cursor-pointer rounded-md"
                                       >
@@ -739,6 +743,42 @@ export default function AdminDashboard() {
           </div>
         </div>
       </section>
+
+      {/* Tracking ID Dialog */}
+      <Dialog open={isTrackingDialogOpen} onOpenChange={setIsTrackingDialogOpen}>
+        <DialogContent className="bg-navy border border-white/10 text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white">Enter Tracking Details</DialogTitle>
+            <DialogDescription className="text-white/60">
+              Provide the courier tracking ID to mark this order as shipped.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="tracking-id" className="text-white/70 mb-2 block">Tracking ID (e.g., DTDC)</Label>
+            <Input 
+              id="tracking-id" 
+              value={trackingIdInput} 
+              onChange={e => setTrackingIdInput(e.target.value)} 
+              placeholder="Enter tracking number" 
+              className="bg-white/5 border-white/10 text-white h-11" 
+              autoFocus 
+            />
+          </div>
+          <DialogFooter className="flex gap-2 sm:justify-end">
+            <Button variant="ghost" onClick={() => setIsTrackingDialogOpen(false)} className="text-white/70 hover:text-white hover:bg-white/10">
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              if (trackingOrderInfo) {
+                updateOrderStatus(trackingOrderInfo.id, "Shipped", trackingIdInput.trim() || undefined);
+                setIsTrackingDialogOpen(false);
+              }
+            }} className="bg-indigo-500 hover:bg-indigo-600 text-white">
+              Save Tracking & Ship
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
