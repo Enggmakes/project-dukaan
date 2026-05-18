@@ -43,7 +43,37 @@ export default function CustomRequest() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files?.[0] || null;
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File size exceeds 10MB limit");
+        return;
+      }
+      const allowedExtensions = ["pdf", "docx", "png", "jpg", "jpeg"];
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      if (!ext || !allowedExtensions.includes(ext)) {
+        toast.error("Only PDF, DOCX, PNG, and JPG files are allowed");
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
 
   const set = (k: keyof FormData, v: string) => setData(d => ({ ...d, [k]: v }));
 
@@ -266,7 +296,12 @@ export default function CustomRequest() {
                     <Field label="Upload requirement documents">
                       <div 
                         onClick={() => fileInputRef.current?.click()}
-                        className="border-2 border-dashed border-border rounded-2xl p-8 text-center hover:border-primary transition-colors cursor-pointer relative"
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer relative ${
+                          isDragging ? "border-primary bg-primary/5 scale-[1.01]" : "border-border hover:border-primary"
+                        }`}
                       >
                         {selectedFile ? (
                           <div className="space-y-2">
@@ -294,23 +329,23 @@ export default function CustomRequest() {
                             <p className="text-xs text-muted-foreground mt-1">PDF, DOCX, PNG, JPG up to 10MB</p>
                           </>
                         )}
-                        <input 
-                          type="file" 
-                          ref={fileInputRef}
-                          onChange={(e) => {
-                            const file = e.target.files?.[0] || null;
-                            if (file) {
-                              if (file.size > 10 * 1024 * 1024) {
-                                toast.error("File size exceeds 10MB limit");
-                                return;
-                              }
-                              setSelectedFile(file);
-                            }
-                          }}
-                          className="hidden" 
-                          accept=".pdf,.docx,.png,.jpg,.jpeg"
-                        />
                       </div>
+                      <input 
+                        type="file" 
+                        ref={fileInputRef}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          if (file) {
+                            if (file.size > 10 * 1024 * 1024) {
+                              toast.error("File size exceeds 10MB limit");
+                              return;
+                            }
+                            setSelectedFile(file);
+                          }
+                        }}
+                        className="hidden" 
+                        accept=".pdf,.docx,.png,.jpg,.jpeg"
+                      />
                     </Field>
                     <Field label="Preferred contact method">
                       <RadioGroup value={data.contact} onValueChange={v => set("contact", v)} className="flex gap-4">
