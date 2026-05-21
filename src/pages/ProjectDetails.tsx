@@ -2,6 +2,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot } from "lucide-react";
 import { useState, useEffect } from "react";
 import { load } from '@cashfreepayments/cashfree-js';
+import { Helmet } from 'react-helmet-async';
 import Layout from "@/components/Layout";
 import ProjectCard from "@/components/ProjectCard";
 import { Project, PROJECTS } from "@/lib/mockData";
@@ -212,6 +213,13 @@ export default function ProjectDetails() {
 
   return (
     <Layout>
+      <Helmet>
+        <title>{project.title} - Source Code & Documentation | ProjectDukaan</title>
+        <meta name="description" content={`Buy and download ${project.title}. ${project.description.substring(0, 150)}...`} />
+        <meta property="og:title" content={`${project.title} | ProjectDukaan`} />
+        <meta property="og:description" content={`Buy and download ${project.title}. ${project.description.substring(0, 150)}...`} />
+        {project.thumb?.startsWith('http') && <meta property="og:image" content={project.thumb} />}
+      </Helmet>
       <div className="container-px py-8">
         <div className="max-w-6xl mx-auto">
           <Link to="/marketplace" className="text-sm text-muted-foreground hover:text-navy inline-flex items-center gap-1"><ArrowLeft className="w-4 h-4" /> Back to marketplace</Link>
