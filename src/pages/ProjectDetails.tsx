@@ -178,11 +178,11 @@ export default function ProjectDetails() {
 
           <div className="grid lg:grid-cols-[1fr_360px] gap-8 mt-6">
             <div>
-              <div className="aspect-[16/10] rounded-3xl shadow-elegant relative overflow-hidden" style={project.thumb?.startsWith('http') ? undefined : { background: project.thumb || '#ccc' }}>
+              <div className="aspect-[16/10] rounded-3xl shadow-elegant relative overflow-hidden bg-black/5" style={project.thumb?.startsWith('http') ? undefined : { background: project.thumb || '#ccc' }}>
                 {project.video_url ? (
-                  <video src={project.video_url} controls poster={project.thumb} className="absolute inset-0 w-full h-full object-cover" />
+                  <video src={project.video_url} controls poster={project.thumb} className="absolute inset-0 w-full h-full object-contain" />
                 ) : (
-                  project.thumb?.startsWith('http') && <img src={project.thumb} alt={project.title} className="absolute inset-0 w-full h-full object-cover" />
+                  project.thumb?.startsWith('http') && <img src={project.thumb} alt={project.title} className="absolute inset-0 w-full h-full object-contain" />
                 )}
               </div>
 
