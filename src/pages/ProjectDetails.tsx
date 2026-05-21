@@ -1,6 +1,7 @@
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot } from "lucide-react";
 import { useState, useEffect } from "react";
+import { load } from '@cashfreepayments/cashfree-js';
 import Layout from "@/components/Layout";
 import ProjectCard from "@/components/ProjectCard";
 import { Project, PROJECTS } from "@/lib/mockData";
@@ -52,7 +53,7 @@ export default function ProjectDetails() {
     pincode: ""
   });
 
-  const handleCheckoutSubmit = (e: React.FormEvent) => {
+  const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.email.trim()) {
       return toast.error("Please fill in all required fields.");
@@ -71,10 +72,49 @@ export default function ProjectDetails() {
     }
 
     setIsPaying(true);
-    setTimeout(() => {
+    
+    try {
+      const cashfree = await load({
+        mode: "sandbox"
+      });
+
+      const response = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: project.price,
+          customer_name: form.name.trim(),
+          customer_email: form.email.trim().toLowerCase(),
+          customer_phone: form.phone || "9999999999"
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.payment_session_id) {
+        let checkoutOptions = {
+          paymentSessionId: data.payment_session_id,
+          redirectTarget: "_modal" as const,
+        };
+        
+        cashfree.checkout(checkoutOptions).then((result: any) => {
+          if (result.error) {
+            setIsPaying(false);
+            toast.error("Payment cancelled or failed.");
+          } else if (result.paymentDetails) {
+            handleCashfreePaymentSuccess();
+          } else {
+            setIsPaying(false);
+          }
+        });
+      } else {
+        throw new Error(data.message || "Failed to initialize payment");
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to connect to payment gateway.");
       setIsPaying(false);
-      setIsCashfreeOpen(true);
-    }, 800);
+    }
   };
 
   const handleCashfreePaymentSuccess = async () => {
