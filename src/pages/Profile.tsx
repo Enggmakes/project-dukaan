@@ -5,6 +5,8 @@ import Layout from "@/components/Layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ProjectCard from "@/components/ProjectCard";
 import { 
   User, 
   ShoppingBag, 
@@ -16,13 +18,15 @@ import {
   Copy, 
   FileText, 
   LogOut, 
-  ChevronRight 
+  ChevronRight,
+  Heart
 } from "lucide-react";
 
 export default function Profile() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
+  const [wishlist, setWishlist] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,6 +54,21 @@ export default function Profile() {
         );
         setOrders(myOrders);
       }
+
+      // Fetch wishlist
+      const { data: wishlistData } = await supabase
+        .from("wishlists")
+        .select(`
+          id,
+          project_id,
+          projects (*)
+        `)
+        .eq('user_id', session.user.id);
+        
+      if (wishlistData) {
+        setWishlist(wishlistData.map((w: any) => w.projects).filter(Boolean));
+      }
+
       setLoading(false);
     };
 
@@ -177,12 +196,18 @@ export default function Profile() {
 
           {/* ACTIVE & COMPLETED PURCHASES SECTION */}
           <div className="space-y-8">
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
-              <h2 className="text-2xl font-bold text-display">My Project Registry</h2>
-              <Badge className="bg-white/5 text-white/70 border-white/10">
-                {orders.length} {orders.length === 1 ? "project" : "projects"} owned
-              </Badge>
-            </div>
+            <Tabs defaultValue="purchases" className="w-full">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+                <h2 className="text-2xl font-bold text-display hidden md:block">My Project Registry</h2>
+                <TabsList className="bg-white/5 border border-white/10 p-1">
+                  <TabsTrigger value="purchases" className="text-white data-[state=active]:bg-primary rounded-md">Purchases ({orders.length})</TabsTrigger>
+                  {user?.email !== import.meta.env.VITE_ADMIN_EMAIL && (
+                    <TabsTrigger value="wishlist" className="text-white data-[state=active]:bg-primary rounded-md">Wishlist ({wishlist.length})</TabsTrigger>
+                  )}
+                </TabsList>
+              </div>
+
+              <TabsContent value="purchases" className="mt-0">
 
             {orders.length === 0 ? (
               /* EMPTY REGISTRY STATE */
@@ -358,6 +383,33 @@ export default function Profile() {
                 })}
               </div>
             )}
+              </TabsContent>
+
+              {user?.email !== import.meta.env.VITE_ADMIN_EMAIL && (
+                <TabsContent value="wishlist" className="mt-0">
+                  {wishlist.length === 0 ? (
+                    <div className="glass-dark rounded-3xl p-12 text-center max-w-xl mx-auto space-y-4">
+                      <div className="w-16 h-16 bg-white/5 rounded-full grid place-items-center mx-auto">
+                        <Heart className="w-8 h-8 text-white/40" />
+                      </div>
+                      <h3 className="text-xl font-semibold">Your wishlist is empty</h3>
+                      <p className="text-white/50 text-sm">Save projects you like by clicking the "Add to wishlist" button on the project details page.</p>
+                      <Button onClick={() => navigate("/marketplace")} className="bg-primary hover:bg-primary/95 text-white rounded-full px-8 mt-2">
+                        Browse Projects
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid md:grid-cols-3 gap-6">
+                      {wishlist.map((project) => (
+                        <div key={project.id} className="relative group">
+                           <ProjectCard project={project} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+              )}
+            </Tabs>
           </div>
 
         </div>

@@ -1,5 +1,5 @@
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot } from "lucide-react";
+import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot, Heart } from "lucide-react";
 import { useState, useEffect } from "react";
 import { load } from '@cashfreepayments/cashfree-js';
 import { Helmet } from 'react-helmet-async';
@@ -25,6 +25,9 @@ export default function ProjectDetails() {
   const [isCashfreeOpen, setIsCashfreeOpen] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
 
   const handlePurchaseClick = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -163,6 +166,7 @@ export default function ProjectDetails() {
   };
 
   const handleDownload = () => {
+    // ... logic remains
     if (project?.github_url) {
       let finalUrl = project.github_url;
       // Auto-format standard github repo link to a ZIP download
@@ -182,6 +186,55 @@ export default function ProjectDetails() {
       toast.success("Project downloading successfully! Thank you.");
     } else {
       toast.error("This project doesn't have a download link attached. Please contact support.");
+    }
+  };
+
+  useEffect(() => {
+    if (!project) return;
+    const checkWishlist = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data } = await supabase
+          .from('wishlists')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .eq('project_id', project.id)
+          .single();
+        if (data) setIsWishlisted(true);
+      }
+    };
+    checkWishlist();
+  }, [project]);
+
+  const toggleWishlist = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast.error("Please sign in to add to wishlist");
+      navigate(`/login?redirect=/project/${id}`);
+      return;
+    }
+    
+    setIsWishlistLoading(true);
+    try {
+      if (isWishlisted) {
+        await supabase
+          .from('wishlists')
+          .delete()
+          .eq('user_id', session.user.id)
+          .eq('project_id', project.id);
+        setIsWishlisted(false);
+        toast.success("Removed from wishlist");
+      } else {
+        await supabase
+          .from('wishlists')
+          .insert({ user_id: session.user.id, project_id: project.id });
+        setIsWishlisted(true);
+        toast.success("Added to wishlist");
+      }
+    } catch (err) {
+      toast.error("Failed to update wishlist");
+    } finally {
+      setIsWishlistLoading(false);
     }
   };
 
@@ -306,7 +359,15 @@ export default function ProjectDetails() {
                     </>
                   )}
                 </Button>
-                <Button variant="outline" className="w-full rounded-full h-12 mt-2">Add to wishlist</Button>
+                <Button 
+                  variant="outline" 
+                  className={`w-full rounded-full h-12 mt-2 flex items-center justify-center gap-2 transition-all ${isWishlisted ? "bg-rose-50 text-rose-500 border-rose-200 hover:bg-rose-100" : ""}`}
+                  onClick={toggleWishlist}
+                  disabled={isWishlistLoading}
+                >
+                  <Heart className={`w-4 h-4 ${isWishlisted ? "fill-rose-500" : ""}`} /> 
+                  {isWishlisted ? "Saved to Wishlist" : "Add to wishlist"}
+                </Button>
                 <div className="mt-5 pt-5 border-t border-border">
                   <h4 className="font-medium text-navy mb-3 text-sm">What's included</h4>
                   <ul className="space-y-2">
