@@ -18,6 +18,7 @@ import { HelmetProvider } from 'react-helmet-async';
 
 const queryClient = new QueryClient();
 
+// Premium App router and state provider configuration
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
