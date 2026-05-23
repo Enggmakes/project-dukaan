@@ -248,7 +248,10 @@ export default function AdminDashboard() {
 
   const filtered = leads.filter(l =>
     (status === "all" || l.status === status) &&
-    (q === "" || (l.name + l.project + l.id).toLowerCase().includes(q.  return (
+    (q === "" || (l.name + l.project + l.id).toLowerCase().includes(q.toLowerCase()))
+  );
+
+  return (
     <Layout>
       <section className="container-px py-8">
         <div className="max-w-7xl mx-auto bg-chocolate rounded-[2rem] p-4 sm:p-6 md:p-10 shadow-chocolate border border-[#fefaf0]/10 relative overflow-hidden">
