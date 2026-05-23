@@ -109,18 +109,18 @@ export default function Home() {
       {/* DASHBOARD MOCKUP */}
       <section className="container-px -mt-8 mb-32 relative z-10">
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="max-w-6xl mx-auto bg-chocolate rounded-[2rem] p-6 md:p-10 shadow-chocolate border border-[#fefaf0]/10 overflow-hidden relative">
-          <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#eb6e5b]/20 blur-3xl" />
-          <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-[#b07d64]/20 blur-3xl" />
+          className="max-w-6xl mx-auto bg-chocolate rounded-[2rem] p-6 md:p-10 shadow-chocolate border border-white/10 overflow-hidden relative">
+          <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#6E5BFF]/15 blur-3xl" />
+          <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-[#8B5CF6]/15 blur-3xl" />
           <div className="relative">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <div className="text-[#fefaf0]/50 text-xs uppercase tracking-widest">Live insights</div>
-                <h3 className="text-[#fefaf0] text-2xl font-semibold mt-1">Our Project Dashboard</h3>
+                <div className="text-white/50 text-xs uppercase tracking-widest">Live insights</div>
+                <h3 className="text-white text-2xl font-semibold mt-1">Our Project Dashboard</h3>
               </div>
               <div className="hidden md:flex gap-2">
                 {["Overview", "Downloads", "Builds", "Reviews"].map((t, i) => (
-                  <span key={t} className={`px-3 py-1.5 rounded-full text-xs transition-colors cursor-pointer ${i === 0 ? "bg-[#eb6e5b] text-white font-semibold shadow-[0_0_15px_rgba(235,110,91,0.3)]" : "text-[#fefaf0]/70 bg-[#fefaf0]/5 hover:bg-[#fefaf0]/10"}`}>{t}</span>
+                  <span key={t} className={`px-3 py-1.5 rounded-full text-xs transition-all cursor-pointer ${i === 0 ? "bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white font-semibold shadow-[0_10px_30px_rgba(110,91,255,0.25)] border-0" : "text-white/70 bg-white/5 hover:bg-white/10"}`}>{t}</span>
                 ))}
               </div>
             </div>
@@ -133,11 +133,11 @@ export default function Home() {
               ].map((s) => (
                 <div key={s.label} className="glass-chocolate rounded-2xl p-5">
                   <div className="flex items-center justify-between">
-                    <s.icon className="w-4 h-4 text-[#eb6e5b]" />
+                    <s.icon className="w-4 h-4 text-[#8B5CF6]" />
                     <span className="text-xs text-emerald-400">{s.delta}</span>
                   </div>
-                  <div className="text-[#fefaf0] text-3xl font-semibold mt-3">{s.value}</div>
-                  <div className="text-[#fefaf0]/60 text-xs mt-1">{s.label}</div>
+                  <div className="text-white text-3xl font-semibold mt-3">{s.value}</div>
+                  <div className="text-white/60 text-xs mt-1">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -147,10 +147,10 @@ export default function Home() {
               <div className="flex items-end gap-2 h-32">
                 {Array.from({ length: 28 }).map((_, i) => {
                   const h = 20 + Math.abs(Math.sin(i * 0.7)) * 80;
-                  return <div key={i} className="flex-1 rounded-t-md bg-gradient-to-t from-[#eb6e5b] to-[#b07d64]" style={{ height: `${h}%`, opacity: 0.5 + (i / 56) }} />;
+                  return <div key={i} className="flex-1 rounded-t-md bg-gradient-to-t from-[#6E5BFF] to-[#8B5CF6]" style={{ height: `${h}%`, opacity: 0.5 + (i / 56) }} />;
                 })}
               </div>
-              <div className="flex justify-between text-[10px] text-[#fefaf0]/40 mt-2"><span>Apr 1</span><span>Apr 14</span><span>Apr 28</span></div>
+              <div className="flex justify-between text-[10px] text-white/40 mt-2"><span>Apr 1</span><span>Apr 14</span><span>Apr 28</span></div>
             </div>
           </div>
         </motion.div>

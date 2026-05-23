@@ -67,22 +67,23 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <img src="/logo.png" alt="ProjectDukaan" className="w-9 h-9 object-contain brightness-0 invert" />
-              <span className="font-semibold text-[#fefaf0]">Project<span className="text-[#eb6e5b]">Dukaan</span></span>
+              <span className="font-semibold text-white">Project<span className="text-[#8B5CF6]">Dukaan</span></span>
             </div>
-            <p className="text-sm max-w-sm text-[#fefaf0]/60 mb-6">Build faster. Learn smarter. Ship real projects. The premium marketplace for engineering, AI & final-year projects.</p>
+            <p className="text-sm max-w-sm text-white/60 mb-6">Build faster. Learn smarter. Ship real projects. The premium marketplace for engineering, AI & final-year projects.</p>
             <form onSubmit={submit} className="flex gap-2 max-w-sm">
               <Input
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@university.edu"
-                className="rounded-full bg-[#fefaf0]/5 border-[#fefaf0]/15 text-[#fefaf0] placeholder:text-[#fefaf0]/40 focus-visible:ring-1 focus-visible:ring-[#eb6e5b]/40 focus-visible:border-[#eb6e5b]/50"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                className="rounded-full text-white placeholder:text-white/40 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50"
                 disabled={isLoading}
               />
-              <Button type="submit" disabled={isLoading} className="rounded-full bg-[#eb6e5b] hover:bg-[#f38c7b] text-white hover:text-white shadow-[0_0_20px_rgba(235,110,91,0.2)] font-semibold transition-all shrink-0 px-6 border-0">
+              <Button type="submit" disabled={isLoading} className="rounded-full bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white hover:text-white shadow-[0_10px_30px_rgba(110,91,255,0.25)] font-semibold transition-all shrink-0 px-6 border-0">
                 {isLoading ? "Wait..." : "Subscribe"}
               </Button>
             </form>
-            <p className="text-[11px] text-[#fefaf0]/40 mt-2 ml-2">We will notify you when new premium projects are added. Yes!</p>
+            <p className="text-[11px] text-white/40 mt-2 ml-2">We will notify you when new premium projects are added. Yes!</p>
           </div>
 
           <FooterCol title="Product" items={productItems} />
