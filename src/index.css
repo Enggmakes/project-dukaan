@@ -52,13 +52,22 @@
                      radial-gradient(at 5% 95%, hsl(350 75% 75%) 0px, transparent 50%);
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
     --gradient-navy: linear-gradient(160deg, hsl(210 65% 14%), hsl(220 60% 9%));
+    --gradient-chocolate: linear-gradient(135deg, #b07d64 0%, #85523b 50%, #59311e 100%);
 
     --shadow-soft: 0 1px 2px hsl(210 40% 20% / 0.04), 0 4px 16px hsl(210 40% 20% / 0.06);
     --shadow-elegant: 0 8px 40px -8px hsl(245 80% 50% / 0.18);
     --shadow-glow: 0 0 60px hsl(245 97% 70% / 0.4);
     --shadow-navy: 0 30px 80px -20px hsl(210 65% 14% / 0.35);
+    --shadow-chocolate: 0 30px 80px -20px rgba(133, 82, 59, 0.35);
 
     --radius: 1rem;
+    --chocolate-light-start: 19 34% 54%;
+    --chocolate-light-mid: 18 39% 38%;
+    --chocolate-light-end: 18 49% 23%;
+    --coral-accent: 8 79% 64%;
+    --coral-hover: 8 83% 72%;
+    --cream-warm: 40 45% 91%;
+    --ivory-white: 40 60% 97%;
   }
 
   .dark {
@@ -125,6 +134,14 @@
     background: hsl(210 65% 14% / 0.6);
     backdrop-filter: blur(20px);
     border: 1px solid hsl(0 0% 100% / 0.08);
+  }
+  .bg-chocolate { background: var(--gradient-chocolate); }
+  .shadow-chocolate { box-shadow: var(--shadow-chocolate); }
+  .glass-chocolate {
+    background: rgba(133, 82, 59, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(254, 250, 240, 0.12);
   }
   .pill { @apply rounded-full; }
   .container-px { @apply px-6 md:px-10 lg:px-16; }

@@ -61,28 +61,28 @@ export default function Footer() {
   }
 
   return (
-    <footer className="bg-navy text-white/80 mt-24">
+    <footer className="bg-chocolate text-[#fefaf0]/90 mt-24 shadow-chocolate border-t border-[#fefaf0]/10">
       <div className="container-px py-16">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-5 gap-10">
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <img src="/logo.png" alt="ProjectDukaan" className="w-9 h-9 object-contain brightness-0 invert" />
-              <span className="font-semibold text-white">Project<span className="text-primary-glow">Dukaan</span></span>
+              <span className="font-semibold text-[#fefaf0]">Project<span className="text-[#eb6e5b]">Dukaan</span></span>
             </div>
-            <p className="text-sm max-w-sm text-white/60 mb-6">Build faster. Learn smarter. Ship real projects. The premium marketplace for engineering, AI & final-year projects.</p>
+            <p className="text-sm max-w-sm text-[#fefaf0]/60 mb-6">Build faster. Learn smarter. Ship real projects. The premium marketplace for engineering, AI & final-year projects.</p>
             <form onSubmit={submit} className="flex gap-2 max-w-sm">
               <Input
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@university.edu"
-                className="rounded-full bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                className="rounded-full bg-[#fefaf0]/5 border-[#fefaf0]/15 text-[#fefaf0] placeholder:text-[#fefaf0]/40 focus-visible:ring-1 focus-visible:ring-[#eb6e5b]/40 focus-visible:border-[#eb6e5b]/50"
                 disabled={isLoading}
               />
-              <Button type="submit" disabled={isLoading} className="rounded-full bg-primary hover:bg-primary/90 px-6">
+              <Button type="submit" disabled={isLoading} className="rounded-full bg-[#eb6e5b] hover:bg-[#f38c7b] text-white hover:text-white shadow-[0_0_20px_rgba(235,110,91,0.2)] font-semibold transition-all shrink-0 px-6 border-0">
                 {isLoading ? "Wait..." : "Subscribe"}
               </Button>
             </form>
-            <p className="text-[11px] text-white/40 mt-2 ml-2">We will notify you when new premium projects are added. Yes!</p>
+            <p className="text-[11px] text-[#fefaf0]/40 mt-2 ml-2">We will notify you when new premium projects are added. Yes!</p>
           </div>
 
           <FooterCol title="Product" items={productItems} />
@@ -90,12 +90,12 @@ export default function Footer() {
           <FooterCol title="Legal" items={[["Privacy", "#"], ["Terms", "#"], ["Refunds", "#"]]} />
         </div>
 
-        <div className="max-w-6xl mx-auto mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/50">© {new Date().getFullYear()} ProjectDukaan. Crafted for builders.</p>
+        <div className="max-w-6xl mx-auto mt-12 pt-6 border-t border-[#fefaf0]/10 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-[#fefaf0]/50">© {new Date().getFullYear()} ProjectDukaan. Crafted for builders.</p>
           <div className="flex gap-3">
-            <a href="#" className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 grid place-items-center"><Twitter className="w-4 h-4" /></a>
-            <a href="#" className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 grid place-items-center"><Github className="w-4 h-4" /></a>
-            <a href="#" className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 grid place-items-center"><Linkedin className="w-4 h-4" /></a>
+            <a href="#" className="w-9 h-9 rounded-full bg-[#fefaf0]/5 hover:bg-[#fefaf0]/15 grid place-items-center"><Twitter className="w-4 h-4 text-[#fefaf0]/80 hover:text-white" /></a>
+            <a href="#" className="w-9 h-9 rounded-full bg-[#fefaf0]/5 hover:bg-[#fefaf0]/15 grid place-items-center"><Github className="w-4 h-4 text-[#fefaf0]/80 hover:text-white" /></a>
+            <a href="#" className="w-9 h-9 rounded-full bg-[#fefaf0]/5 hover:bg-[#fefaf0]/15 grid place-items-center"><Linkedin className="w-4 h-4 text-[#fefaf0]/80 hover:text-white" /></a>
           </div>
         </div>
       </div>
