@@ -24,6 +24,26 @@ export default function GlobalTechParticles() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Polyfill roundRect for browsers that don't support it (e.g. Safari < 15.4)
+    if (typeof (ctx as any).roundRect !== "function") {
+      (CanvasRenderingContext2D.prototype as any).roundRect = function (
+        x: number, y: number, w: number, h: number, r: number
+      ) {
+        const radius = Math.min(r, w / 2, h / 2);
+        this.beginPath();
+        this.moveTo(x + radius, y);
+        this.lineTo(x + w - radius, y);
+        this.quadraticCurveTo(x + w, y, x + w, y + radius);
+        this.lineTo(x + w, y + h - radius);
+        this.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+        this.lineTo(x + radius, y + h);
+        this.quadraticCurveTo(x, y + h, x, y + h - radius);
+        this.lineTo(x, y + radius);
+        this.quadraticCurveTo(x, y, x + radius, y);
+        this.closePath();
+      };
+    }
+
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
@@ -361,30 +381,38 @@ export default function GlobalTechParticles() {
     let animationId: number;
 
     const render = () => {
-      ctx.clearRect(0, 0, width, height);
+      try {
+        ctx.clearRect(0, 0, width, height);
 
-      particles = particles.filter(p => {
-        p.life -= p.decay;
-        if (p.life <= 0) return false;
+        particles = particles.filter(p => {
+          p.life -= p.decay;
+          if (p.life <= 0) return false;
 
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vx *= 0.97;
-        p.vy *= 0.97;
-        p.rotation += p.spin;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vx *= 0.97;
+          p.vy *= 0.97;
+          p.rotation += p.spin;
 
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rotation);
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rotation);
 
-        // Apply alpha fade based on remaining particle life
-        ctx.globalAlpha = p.life * 0.85;
+          // Apply alpha fade based on remaining particle life
+          ctx.globalAlpha = p.life * 0.85;
 
-        drawDetailedComponent(ctx, p.type, p.size, p.colorTheme);
-        ctx.restore();
+          try {
+            drawDetailedComponent(ctx, p.type, p.size, p.colorTheme);
+          } catch {
+            // Skip this particle silently if drawing fails
+          }
+          ctx.restore();
 
-        return true;
-      });
+          return true;
+        });
+      } catch {
+        // silently ignore render errors — never crash the page
+      }
 
       animationId = requestAnimationFrame(render);
     };
