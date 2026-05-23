@@ -57,7 +57,7 @@ export default function Terms() {
           <div className="mt-16 p-8 bg-secondary rounded-3xl border border-border">
             <h4 className="text-lg font-semibold text-navy mb-2">Need clarification on licensing?</h4>
             <p className="text-sm text-muted-foreground">
-              If you have any questions regarding intellectual property rights, custom milestone contracts, or download limitations, please contact our legal desk at <a href="mailto:legal@projectdukaan.com" className="text-primary hover:underline font-medium">legal@projectdukaan.com</a>.
+              If you have any questions regarding intellectual property rights, custom milestone contracts, or download limitations, please reach out via our <a href="/contact" className="text-primary hover:underline font-medium">Contact Form</a>.
             </p>
           </div>
         </div>
