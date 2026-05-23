@@ -28,33 +28,36 @@ export default function Home() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
   const [projects, setProjects] = useState<Project[]>([]);
-  const [liveStats, setLiveStats] = useState<{ projects: number | null; orders: number | null; rating: number | null }>({ projects: null, orders: null, rating: null });
+  const [liveStats, setLiveStats] = useState<{
+    projects: number | null;
+    orders: number | null;
+    avgRating: number | null;
+  }>({ projects: null, orders: null, avgRating: null });
 
   useEffect(() => {
-    // Load featured projects
     supabase.from("projects").select("*").order("created_at", { ascending: false }).limit(6).then(({ data }) => {
       const dbProjects = (data || []) as Project[];
       setProjects([...dbProjects, ...PROJECTS].slice(0, 6));
     });
 
-    // Real stat: total projects listed
+    // Real project count
     supabase.from('projects').select('id', { count: 'exact', head: true }).then(({ count }) => {
       setLiveStats(prev => ({ ...prev, projects: count ?? 0 }));
     });
 
-    // Real stat: total orders placed (= students served)
+    // Real orders count (students served)
     supabase.from('orders').select('id', { count: 'exact', head: true }).then(({ count }) => {
       setLiveStats(prev => ({ ...prev, orders: count ?? 0 }));
     });
 
-    // Real stat: average rating across all projects
+    // Real average rating from projects table
     supabase.from('projects').select('rating').then(({ data }) => {
       if (data && data.length > 0) {
-        const rated = data.filter((p: any) => p.rating != null);
-        const avg = rated.length > 0 ? rated.reduce((sum: number, p: any) => sum + Number(p.rating), 0) / rated.length : null;
-        setLiveStats(prev => ({ ...prev, rating: avg }));
-      } else {
-        setLiveStats(prev => ({ ...prev, rating: null }));
+        const ratings = data.map((p: any) => Number(p.rating)).filter((r: number) => !isNaN(r) && r > 0);
+        if (ratings.length > 0) {
+          const avg = ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length;
+          setLiveStats(prev => ({ ...prev, avgRating: Math.round(avg * 10) / 10 }));
+        }
       }
     });
   }, []);
@@ -212,50 +215,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* STATS — live from Supabase */}
+      {/* STATS — live data from Supabase */}
       <section className="container-px py-16">
         <MeshGradient className="max-w-6xl mx-auto rounded-[2rem] p-10 md:p-14 border border-border">
           <div className="grid md:grid-cols-3 gap-8 text-center">
-            {/* Projects listed */}
             <div>
               <div className="text-display text-5xl text-navy">
-                {liveStats.projects === null ? (
-                  <span className="inline-block w-20 h-10 rounded-lg bg-navy/10 animate-pulse" />
-                ) : liveStats.projects > 0 ? (
-                  `${liveStats.projects}+`
-                ) : (
-                  "—"
-                )}
+                {liveStats.projects === null ? "—" : liveStats.projects === 0 ? "Coming soon" : `${liveStats.projects}+`}
               </div>
               <div className="text-sm text-navy/60 mt-2">Projects listed</div>
             </div>
-
-            {/* Students served */}
             <div>
               <div className="text-display text-5xl text-navy">
-                {liveStats.orders === null ? (
-                  <span className="inline-block w-20 h-10 rounded-lg bg-navy/10 animate-pulse" />
-                ) : liveStats.orders > 0 ? (
-                  `${liveStats.orders}+`
-                ) : (
-                  "—"
-                )}
+                {liveStats.orders === null ? "—" : liveStats.orders === 0 ? "0" : `${liveStats.orders}+`}
               </div>
-              <div className="text-sm text-navy/60 mt-2">Students served</div>
+              <div className="text-sm text-navy/60 mt-2">Orders placed</div>
             </div>
-
-            {/* Avg rating */}
             <div>
               <div className="text-display text-5xl text-navy">
-                {liveStats.rating === null ? (
-                  <span className="inline-block w-20 h-10 rounded-lg bg-navy/10 animate-pulse" />
-                ) : liveStats.rating > 0 ? (
-                  `${liveStats.rating.toFixed(1)}★`
-                ) : (
-                  "—"
-                )}
+                {liveStats.avgRating === null ? "—" : liveStats.avgRating === 0 ? "—" : `${liveStats.avgRating}★`}
               </div>
-              <div className="text-sm text-navy/60 mt-2">Avg. rating</div>
+              <div className="text-sm text-navy/60 mt-2">Avg. project rating</div>
             </div>
           </div>
         </MeshGradient>
