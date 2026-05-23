@@ -7,9 +7,9 @@ interface TechParticle {
   vy: number;
   rotation: number;
   spin: number;
-  type: number; // 0 = IC, 1 = LED, 2 = Resistor, 3 = Gear, 4 = Code brackets
-  color: string;
+  type: number; // 0 = Arduino, 1 = HC-SR04, 2 = CPU, 3 = LED, 4 = Resistor
   size: number;
+  colorTheme: string; // Used to color LEDs or highlights
   life: number;     // 1.0 down to 0.0
   decay: number;    // how fast it fades
 }
@@ -28,36 +28,30 @@ export default function GlobalTechParticles() {
     let height = (canvas.height = window.innerHeight);
 
     let particles: TechParticle[] = [];
-    const maxParticles = 50; // Cap to maintain high framerate (60fps)
+    const maxParticles = 40; // Maintain performance on heavy details
 
-    // Brand color options for the floating tech symbols
-    const colors = [
-      "rgba(139, 92, 246, ",  // Primary Purple/Indigo
-      "rgba(219, 39, 119, ",  // Accent Pink/Magenta
-      "rgba(99, 102, 241, ",  // Indigo
-      "rgba(236, 72, 153, ",  // Rose
-    ];
+    const themes = ["#ef4444", "#10b981", "#3b82f6", "#f59e0b"]; // Red, Green, Blue, Amber
 
     const spawnParticle = (x: number, y: number) => {
       if (particles.length >= maxParticles) {
         particles.shift();
       }
 
-      const size = Math.random() * 8 + 10; // 10px to 18px (delicate, elegant size)
-      const color = colors[Math.floor(Math.random() * colors.length)];
+      const size = Math.random() * 10 + 20; // Slightly larger (20px to 30px) to see the high details!
+      const colorTheme = themes[Math.floor(Math.random() * themes.length)];
 
       particles.push({
         x,
         y,
-        vx: (Math.random() - 0.5) * 1.6, // gentle drift
-        vy: -Math.random() * 1.4 - 0.5,   // float upwards (anti-gravity effect)
+        vx: (Math.random() - 0.5) * 1.5, // gentle drift
+        vy: -Math.random() * 1.2 - 0.4,   // float upwards gently (anti-gravity effect)
         rotation: Math.random() * Math.PI * 2,
-        spin: (Math.random() - 0.5) * 0.04, // slow spin
+        spin: (Math.random() - 0.5) * 0.035, // slow spin
         type: Math.floor(Math.random() * 5),
-        color,
         size,
+        colorTheme,
         life: 1.0,
-        decay: Math.random() * 0.018 + 0.012 // gradual fadeout
+        decay: Math.random() * 0.014 + 0.008 // slower fadeout to admire details
       });
     };
 
@@ -65,16 +59,14 @@ export default function GlobalTechParticles() {
     let lastY = 0;
 
     const handleMouseMove = (e: MouseEvent) => {
-      // Since canvas is fixed viewport, we use clientX and clientY directly!
       const x = e.clientX;
       const y = e.clientY;
 
-      // Throttle spawning by distance to keep it clean and performant
       const dx = x - lastX;
       const dy = y - lastY;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
-      if (dist > 18) {
+      if (dist > 22) { // Spacing out the drops
         spawnParticle(x, y);
         lastX = x;
         lastY = y;
@@ -89,69 +81,281 @@ export default function GlobalTechParticles() {
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("resize", handleResize);
 
-    const drawIcon = (c: CanvasRenderingContext2D, type: number, size: number) => {
-      c.beginPath();
+    const drawDetailedComponent = (c: CanvasRenderingContext2D, type: number, s: number, themeColor: string) => {
+      c.lineCap = "round";
+      c.lineJoin = "round";
+
       switch (type) {
-        case 0: // Microchip / IC
-          c.rect(-size/2, -size/2, size, size);
-          const legOffset = size / 4;
-          for (let offset of [-legOffset, 0, legOffset]) {
-            // Left legs
-            c.moveTo(-size/2 - 2.5, offset);
-            c.lineTo(-size/2, offset);
-            // Right legs
-            c.moveTo(size/2, offset);
-            c.lineTo(size/2 + 2.5, offset);
-            // Top legs
-            c.moveTo(offset, -size/2 - 2.5);
-            c.lineTo(offset, -size/2);
-            // Bottom legs
-            c.moveTo(offset, size/2);
-            c.lineTo(offset, size/2 + 2.5);
+        case 0: { // 1. Detailed Arduino Uno Board
+          const w = s * 1.4;
+          const h = s;
+          
+          // Draw Deep Blue PCB board base
+          c.fillStyle = "#005f73";
+          c.strokeStyle = "#0a9396";
+          c.lineWidth = 1;
+          c.beginPath();
+          c.roundRect(-w/2, -h/2, w, h, 3);
+          c.fill();
+          c.stroke();
+
+          // Silver USB Port (top-left)
+          c.fillStyle = "#ced4da";
+          c.beginPath();
+          c.rect(-w/2 - 1, -h/4 - 1, w/4, h/3);
+          c.fill();
+          c.strokeStyle = "#6c757d";
+          c.lineWidth = 0.5;
+          c.stroke();
+
+          // Black Power Jack (bottom-left)
+          c.fillStyle = "#212529";
+          c.beginPath();
+          c.rect(-w/2 + 2, h/6, w/5, h/4);
+          c.fill();
+
+          // Black ATmega328P Microchip (center)
+          c.fillStyle = "#343a40";
+          c.beginPath();
+          c.rect(-w/6, -h/6, w/3, h/3);
+          c.fill();
+          // Chip leg pins (copper lines)
+          c.strokeStyle = "#e9d8a6";
+          c.lineWidth = 0.5;
+          for (let offset = -w/8; offset <= w/8; offset += w/12) {
+            c.beginPath();
+            c.moveTo(offset, -h/6 - 1.5); c.lineTo(offset, -h/6);
+            c.moveTo(offset, h/6); c.lineTo(offset, h/6 + 1.5);
+            c.stroke();
+          }
+
+          // Header Pins (Top and Bottom edges)
+          c.fillStyle = "#1a1a1a";
+          c.beginPath();
+          c.rect(-w/3, -h/2 + 1, w*2/3, 2.5); // top header
+          c.rect(-w/4, h/2 - 3.5, w*2/3, 2.5); // bottom header
+          c.fill();
+          
+          // Tiny gold header contacts
+          c.fillStyle = "#ee9b00";
+          for (let offset = -w/3 + 2; offset < w/3; offset += 3.5) {
+            c.beginPath();
+            c.arc(offset, -h/2 + 2.2, 0.4, 0, Math.PI * 2);
+            c.arc(offset + 2, h/2 - 2.2, 0.4, 0, Math.PI * 2);
+            c.fill();
+          }
+
+          // Glowing LED indicators (yellow/green indicator)
+          c.shadowBlur = 6;
+          c.shadowColor = "#e9d8a6";
+          c.fillStyle = "#94d2bd";
+          c.beginPath();
+          c.arc(w/4, -h/4, 1.2, 0, Math.PI*2);
+          c.fill();
+          c.shadowBlur = 0;
+          break;
+        }
+
+        case 1: { // 2. Detailed HC-SR04 Ultrasonic Sensor ("Sensor Eyes")
+          const w = s * 1.5;
+          const h = s * 0.85;
+
+          // Blue PCB Board
+          c.fillStyle = "#0077b6";
+          c.strokeStyle = "#0096c7";
+          c.lineWidth = 1;
+          c.beginPath();
+          c.roundRect(-w/2, -h/2, w, h, 2.5);
+          c.fill();
+          c.stroke();
+
+          // Silver Transmitters (The Eyes)
+          c.fillStyle = "#adb5bd";
+          c.strokeStyle = "#495057";
+          c.lineWidth = 0.8;
+          const r = h * 0.35;
+          
+          // Left Eye
+          c.beginPath();
+          c.arc(-w/4, 0, r, 0, Math.PI * 2);
+          c.fill();
+          c.stroke();
+          // Left Eye inner mesh core
+          c.fillStyle = "#343a40";
+          c.beginPath();
+          c.arc(-w/4, 0, r * 0.7, 0, Math.PI * 2);
+          c.fill();
+
+          // Right Eye
+          c.beginPath();
+          c.arc(w/4, 0, r, 0, Math.PI * 2);
+          c.fill();
+          c.stroke();
+          // Right Eye inner mesh core
+          c.fillStyle = "#343a40";
+          c.beginPath();
+          c.arc(w/4, 0, r * 0.7, 0, Math.PI * 2);
+          c.fill();
+
+          // Tiny circuit details (SMD capacitors)
+          c.fillStyle = "#e9d8a6"; // capacitor gold/brown
+          c.beginPath();
+          c.rect(-2, -h/3, 4, 2);
+          c.fill();
+
+          // Header connection pins on bottom
+          c.strokeStyle = "#ced4da";
+          c.lineWidth = 0.8;
+          for (let offset = -6; offset <= 6; offset += 4) {
+            c.beginPath();
+            c.moveTo(offset, h/2);
+            c.lineTo(offset, h/2 + 4);
+            c.stroke();
           }
           break;
-        case 1: // LED
-          c.arc(0, -size/6, size/3, Math.PI, 0);
-          c.rect(-size/3, -size/6, size*2/3, size/3);
-          c.moveTo(-size/3 - 1, size/6);
-          c.lineTo(size/3 + 1, size/6);
-          c.moveTo(-size/6, size/6);
-          c.lineTo(-size/6, size*2/3);
-          c.moveTo(size/6, size/6);
-          c.lineTo(size/6, size*4/5);
-          break;
-        case 2: // Resistor
-          c.rect(-size/2, -size/4, size, size/2);
-          c.moveTo(-size*4/5, 0);
-          c.lineTo(-size/2, 0);
-          c.moveTo(size/2, 0);
-          c.lineTo(size*4/5, 0);
-          c.moveTo(-size/4, -size/4); c.lineTo(-size/4, size/4);
-          c.moveTo(0, -size/4); c.lineTo(0, size/4);
-          c.moveTo(size/4, -size/4); c.lineTo(size/4, size/4);
-          break;
-        case 3: // Gear
-          c.arc(0, 0, size/3, 0, Math.PI * 2);
-          for (let i = 0; i < 8; i++) {
-            const angle = (i * Math.PI) / 4;
-            c.moveTo(Math.cos(angle) * (size/3), Math.sin(angle) * (size/3));
-            c.lineTo(Math.cos(angle) * (size/2), Math.sin(angle) * (size/2));
+        }
+
+        case 2: { // 3. Core CPU Processor Chip
+          const size = s;
+
+          // Green PCB substrate
+          c.fillStyle = "#2d6a4f";
+          c.strokeStyle = "#40916c";
+          c.lineWidth = 1;
+          c.beginPath();
+          c.roundRect(-size/2, -size/2, size, size, 2);
+          c.fill();
+          c.stroke();
+
+          // Metal lid (Heat spreader)
+          c.fillStyle = "#e9ecef";
+          c.strokeStyle = "#adb5bd";
+          c.lineWidth = 0.8;
+          c.beginPath();
+          c.roundRect(-size/3, -size/3, size*2/3, size*2/3, 1.5);
+          c.fill();
+          c.stroke();
+
+          // Gold corner triangle marker
+          c.fillStyle = "#ffb703";
+          c.beginPath();
+          c.moveTo(-size/2, -size/2);
+          c.lineTo(-size/2 + 4, -size/2);
+          c.lineTo(-size/2, -size/2 + 4);
+          c.closePath();
+          c.fill();
+
+          // Silicon Core engraving markings
+          c.strokeStyle = "#ced4da";
+          c.lineWidth = 0.5;
+          c.beginPath();
+          c.moveTo(-size/5, -size/6); c.lineTo(size/5, -size/6);
+          c.moveTo(-size/6, 0); c.lineTo(size/6, 0);
+          c.stroke();
+
+          // Bottom pins gold dots (copper pads)
+          c.fillStyle = "#f7a072";
+          for (let offset = -size/2 + 2; offset <= size/2 - 2; offset += 3.5) {
+            c.beginPath();
+            c.arc(offset, -size/2 + 2, 0.4, 0, Math.PI * 2);
+            c.arc(offset, size/2 - 2, 0.4, 0, Math.PI * 2);
+            c.arc(-size/2 + 2, offset, 0.4, 0, Math.PI * 2);
+            c.arc(size/2 - 2, offset, 0.4, 0, Math.PI * 2);
+            c.fill();
           }
           break;
-        case 4: // Code Brackets < >
-          c.moveTo(-size/4, -size/3);
-          c.lineTo(-size/2, 0);
-          c.lineTo(-size/4, size/3);
+        }
+
+        case 3: { // 4. Shaded Translucent LED Bulb
+          const legHeight = s * 0.6;
+          const bulbSize = s * 0.5;
+
+          // 1. Draw silver leads (the two legs)
+          c.strokeStyle = "#adb5bd";
+          c.lineWidth = 0.8;
+          c.beginPath();
+          // Short Cathode Leg
+          c.moveTo(-bulbSize/3, bulbSize/3);
+          c.lineTo(-bulbSize/3, bulbSize/3 + legHeight);
+          // Long Anode Leg
+          c.moveTo(bulbSize/3, bulbSize/3);
+          c.lineTo(bulbSize/3, bulbSize/3 + legHeight * 1.15);
+          c.stroke();
+
+          // 2. Draw interior wires (anode/cathode frames inside dome)
+          c.strokeStyle = "#ced4da";
+          c.lineWidth = 0.5;
+          c.beginPath();
+          c.moveTo(-bulbSize/3, bulbSize/3);
+          c.lineTo(-bulbSize/4, -bulbSize/8);
+          c.lineTo(-bulbSize/2, -bulbSize/4); // wider flag
+          c.moveTo(bulbSize/3, bulbSize/3);
+          c.lineTo(bulbSize/4, -bulbSize/6);
+          c.stroke();
+
+          // 3. Draw glowing translucent dome
+          c.fillStyle = themeColor;
+          c.shadowBlur = 10;
+          c.shadowColor = themeColor;
           
-          c.moveTo(size/4, -size/3);
-          c.lineTo(size/2, 0);
-          c.lineTo(size/4, size/3);
-          
-          c.moveTo(size/8, -size/2);
-          c.lineTo(-size/8, size/2);
+          c.beginPath();
+          // Rounded Dome Top
+          c.arc(0, -bulbSize/4, bulbSize/2, Math.PI, 0);
+          // Base Cylinder
+          c.rect(-bulbSize/2, -bulbSize/4, bulbSize, bulbSize/2 + bulbSize/12);
+          c.fill();
+
+          // Reset shadow
+          c.shadowBlur = 0;
+
+          // 4. Solid bottom base rim
+          c.fillStyle = themeColor; // opaque bottom rim
+          c.beginPath();
+          c.rect(-bulbSize/2 - 1, bulbSize/3, bulbSize + 2, 1.5);
+          c.fill();
           break;
+        }
+
+        case 4: { // 5. Detailed Shaded Ceramic Resistor
+          const w = s * 1.2;
+          const h = s * 0.4;
+
+          // Lead wires passing through the core
+          c.strokeStyle = "#adb5bd";
+          c.lineWidth = 0.8;
+          c.beginPath();
+          c.moveTo(-w*0.8, 0);
+          c.lineTo(w*0.8, 0);
+          c.stroke();
+
+          // Shaded Ceramic Tan Body
+          c.fillStyle = "#f4f1de";
+          c.strokeStyle = "#e0dbcd";
+          c.lineWidth = 0.6;
+          c.beginPath();
+          c.roundRect(-w/2, -h/2, w, h, 2);
+          c.fill();
+          c.stroke();
+
+          // Color Ring Bands (Standard Resistor values)
+          // Band 1: Red (Value 2)
+          c.fillStyle = "#e63946";
+          c.fillRect(-w/3, -h/2 + 0.3, w/10, h - 0.6);
+
+          // Band 2: Purple (Value 7)
+          c.fillStyle = "#8338ec";
+          c.fillRect(-w/10, -h/2 + 0.3, w/10, h - 0.6);
+
+          // Band 3: Black (Multiplier 1)
+          c.fillStyle = "#212529";
+          c.fillRect(w/10, -h/2 + 0.3, w/10, h - 0.6);
+
+          // Band 4: Gold (Tolerance 5%)
+          c.fillStyle = "#e5c583";
+          c.fillRect(w/3, -h/2 + 0.3, w/10, h - 0.6);
+          break;
+        }
       }
-      c.stroke();
     };
 
     let animationId: number;
@@ -173,15 +377,10 @@ export default function GlobalTechParticles() {
         ctx.translate(p.x, p.y);
         ctx.rotate(p.rotation);
 
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = p.color + "0.45)";
+        // Apply alpha fade based on remaining particle life
+        ctx.globalAlpha = p.life * 0.85;
 
-        ctx.strokeStyle = p.color + `${p.life * 0.75})`;
-        ctx.lineWidth = 1.2;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-
-        drawIcon(ctx, p.type, p.size);
+        drawDetailedComponent(ctx, p.type, p.size, p.colorTheme);
         ctx.restore();
 
         return true;
@@ -202,7 +401,8 @@ export default function GlobalTechParticles() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full pointer-events-none z-[9999] opacity-70"
+      className="fixed inset-0 w-full h-full pointer-events-none z-[9999]"
+      style={{ opacity: 0.85 }}
     />
   );
 }
