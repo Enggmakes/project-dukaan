@@ -87,7 +87,7 @@ export default function Footer() {
 
           <FooterCol title="Product" items={productItems} />
           <FooterCol title="Company" items={[["About", "/about"], ["Contact", "/contact"], ["Pricing", "/marketplace"]]} />
-          <FooterCol title="Legal" items={[["Privacy", "#"], ["Terms", "#"], ["Refunds", "#"]]} />
+          <FooterCol title="Legal" items={[["Privacy", "/privacy"], ["Terms", "/terms"], ["Refunds", "#"]]} />
         </div>
 
         <div className="max-w-6xl mx-auto mt-12 pt-6 border-t border-[#fefaf0]/10 flex flex-col md:flex-row items-center justify-between gap-4">
