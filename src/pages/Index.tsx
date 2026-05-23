@@ -137,9 +137,9 @@ export default function Home() {
 
             <div className="grid md:grid-cols-3 gap-4">
               {[
-                { icon: Zap, label: "Active project blueprints", value: statsData.projectsCount.toString(), delta: "+15%" },
-                { icon: Users, label: "Custom requests processed", value: statsData.leadsCount.toString(), delta: "+24%" },
-                { icon: Star, label: "Average client rating", value: "4.9 / 5.0", delta: "Excellent" },
+                { icon: Zap, label: "Active project blueprints", value: liveStats.projects === null ? "—" : String(liveStats.projects), delta: "+15%" },
+                { icon: Users, label: "Orders placed", value: liveStats.orders === null ? "—" : String(liveStats.orders), delta: "+24%" },
+                { icon: Star, label: "Average project rating", value: liveStats.avgRating === null ? "—" : `${liveStats.avgRating} / 5.0`, delta: "Excellent" },
               ].map((s) => (
                 <div key={s.label} className="glass-chocolate rounded-2xl p-5">
                   <div className="flex items-center justify-between">
