@@ -222,47 +222,47 @@
 }
 
 .bg-mesh-blob-interactive {
-  background-color: hsl(270 70% 82%); /* Interactive Soft Lavender/Blue */
-  width: 50%;
-  height: 50%;
-  top: -25%;
-  left: -25%;
+  background: radial-gradient(circle, hsl(var(--primary-glow) / 0.45) 0%, hsl(var(--accent) / 0.25) 45%, transparent 70%);
+  width: 60%;
+  height: 60%;
+  top: -30%;
+  left: -30%;
   transform: translate3d(var(--mouse-x, 50%), var(--mouse-y, 50%), 0);
-  opacity: 0.75;
-  transition: transform 0.2s cubic-bezier(0.1, 0.8, 0.25, 1);
+  opacity: 0.85;
+  transition: transform 0.2s cubic-bezier(0.1, 0.8, 0.22, 1);
   will-change: transform;
 }
 
 @keyframes blob-float-1 {
   0%, 100% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(8%, -12%) scale(1.08); }
-  66% { transform: translate(-4%, 6%) scale(0.96); }
+  33% { transform: translate(14vw, -8vh) scale(1.15); }
+  66% { transform: translate(-8vw, 10vh) scale(0.9); }
 }
 
 @keyframes blob-float-2 {
   0%, 100% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(-10%, 8%) scale(0.92); }
-  66% { transform: translate(6%, -6%) scale(1.08); }
+  33% { transform: translate(-15vw, 12vh) scale(0.9); }
+  66% { transform: translate(12vw, -10vh) scale(1.15); }
 }
 
 @keyframes blob-float-3 {
   0%, 100% { transform: translate(0px, 0px) scale(1); }
-  50% { transform: translate(12%, -8%) scale(1.04); }
+  50% { transform: translate(18vw, -12vh) scale(1.1); }
 }
 
 @keyframes blob-float-4 {
   0%, 100% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(-6%, -10%) scale(1.08); }
-  66% { transform: translate(10%, 6%) scale(0.96); }
+  33% { transform: translate(-12vw, -16vh) scale(1.18); }
+  66% { transform: translate(15vw, 8vh) scale(0.9); }
 }
 
 @keyframes blob-float-5 {
   0%, 100% { transform: translate(0px, 0px) scale(1); }
-  50% { transform: translate(-8%, 10%) scale(1.08); }
+  50% { transform: translate(-14vw, 12vh) scale(1.12); }
 }
 
 @keyframes blob-float-6 {
   0%, 100% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(6%, 8%) scale(0.92); }
-  66% { transform: translate(-10%, -6%) scale(1.04); }
+  33% { transform: translate(10vw, 8vh) scale(0.9); }
+  66% { transform: translate(-15vw, -8vh) scale(1.1); }
 }
