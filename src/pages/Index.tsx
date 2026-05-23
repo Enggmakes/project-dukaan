@@ -10,7 +10,7 @@ import Layout from "@/components/Layout";
 import ProjectCard from "@/components/ProjectCard";
 import MeshGradient from "@/components/MeshGradient";
 import React, { useEffect } from "react";
-import { CATEGORIES, CATEGORY_META, STATS, TESTIMONIALS, FAQS, Project, PROJECTS } from "@/lib/mockData";
+import { CATEGORIES, CATEGORY_META, TESTIMONIALS, FAQS, Project, PROJECTS } from "@/lib/mockData";
 import { supabase } from "@/lib/supabase";
 
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {error: Error | null}> {
@@ -28,26 +28,33 @@ export default function Home() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
   const [projects, setProjects] = useState<Project[]>([]);
-  const [statsData, setStatsData] = useState({
-    projectsCount: 0,
-    leadsCount: 0,
-  });
+  const [liveStats, setLiveStats] = useState<{ projects: number | null; orders: number | null; rating: number | null }>({ projects: null, orders: null, rating: null });
 
   useEffect(() => {
+    // Load featured projects
     supabase.from("projects").select("*").order("created_at", { ascending: false }).limit(6).then(({ data }) => {
       const dbProjects = (data || []) as Project[];
       setProjects([...dbProjects, ...PROJECTS].slice(0, 6));
     });
 
+    // Real stat: total projects listed
     supabase.from('projects').select('id', { count: 'exact', head: true }).then(({ count }) => {
-      if (count !== null) {
-        setStatsData(prev => ({ ...prev, projectsCount: count }));
-      }
+      setLiveStats(prev => ({ ...prev, projects: count ?? 0 }));
     });
 
-    supabase.from('custom_requests').select('id', { count: 'exact', head: true }).then(({ count }) => {
-      if (count !== null) {
-        setStatsData(prev => ({ ...prev, leadsCount: count }));
+    // Real stat: total orders placed (= students served)
+    supabase.from('orders').select('id', { count: 'exact', head: true }).then(({ count }) => {
+      setLiveStats(prev => ({ ...prev, orders: count ?? 0 }));
+    });
+
+    // Real stat: average rating across all projects
+    supabase.from('projects').select('rating').then(({ data }) => {
+      if (data && data.length > 0) {
+        const rated = data.filter((p: any) => p.rating != null);
+        const avg = rated.length > 0 ? rated.reduce((sum: number, p: any) => sum + Number(p.rating), 0) / rated.length : null;
+        setLiveStats(prev => ({ ...prev, rating: avg }));
+      } else {
+        setLiveStats(prev => ({ ...prev, rating: null }));
       }
     });
   }, []);
@@ -205,16 +212,51 @@ export default function Home() {
         </div>
       </section>
 
-      {/* STATS */}
+      {/* STATS — live from Supabase */}
       <section className="container-px py-16">
         <MeshGradient className="max-w-6xl mx-auto rounded-[2rem] p-10 md:p-14 border border-border">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
-            {STATS.map(s => (
-              <div key={s.label}>
-                <div className="text-display text-5xl text-navy">{s.value}</div>
-                <div className="text-sm text-navy/60 mt-2">{s.label}</div>
+          <div className="grid md:grid-cols-3 gap-8 text-center">
+            {/* Projects listed */}
+            <div>
+              <div className="text-display text-5xl text-navy">
+                {liveStats.projects === null ? (
+                  <span className="inline-block w-20 h-10 rounded-lg bg-navy/10 animate-pulse" />
+                ) : liveStats.projects > 0 ? (
+                  `${liveStats.projects}+`
+                ) : (
+                  "—"
+                )}
               </div>
-            ))}
+              <div className="text-sm text-navy/60 mt-2">Projects listed</div>
+            </div>
+
+            {/* Students served */}
+            <div>
+              <div className="text-display text-5xl text-navy">
+                {liveStats.orders === null ? (
+                  <span className="inline-block w-20 h-10 rounded-lg bg-navy/10 animate-pulse" />
+                ) : liveStats.orders > 0 ? (
+                  `${liveStats.orders}+`
+                ) : (
+                  "—"
+                )}
+              </div>
+              <div className="text-sm text-navy/60 mt-2">Students served</div>
+            </div>
+
+            {/* Avg rating */}
+            <div>
+              <div className="text-display text-5xl text-navy">
+                {liveStats.rating === null ? (
+                  <span className="inline-block w-20 h-10 rounded-lg bg-navy/10 animate-pulse" />
+                ) : liveStats.rating > 0 ? (
+                  `${liveStats.rating.toFixed(1)}★`
+                ) : (
+                  "—"
+                )}
+              </div>
+              <div className="text-sm text-navy/60 mt-2">Avg. rating</div>
+            </div>
           </div>
         </MeshGradient>
       </section>
