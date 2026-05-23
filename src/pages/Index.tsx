@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Layout from "@/components/Layout";
 import ProjectCard from "@/components/ProjectCard";
+import MeshGradient from "@/components/MeshGradient";
 import React, { useEffect } from "react";
 import { CATEGORIES, CATEGORY_META, STATS, TESTIMONIALS, FAQS, Project, PROJECTS } from "@/lib/mockData";
 import { supabase } from "@/lib/supabase";
@@ -56,7 +57,7 @@ export default function Home() {
     <Layout>
       {/* HERO */}
       <section className="relative overflow-hidden -mt-24 pt-32 pb-24">
-        <div className="absolute inset-0 bg-mesh animate-mesh" />
+        <MeshGradient className="absolute inset-0" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-white" />
         <div className="relative container-px">
           <div className="max-w-5xl mx-auto text-center">
@@ -206,7 +207,7 @@ export default function Home() {
 
       {/* STATS */}
       <section className="container-px py-16">
-        <div className="max-w-6xl mx-auto bg-mesh rounded-[2rem] p-10 md:p-14 border border-border">
+        <MeshGradient className="max-w-6xl mx-auto rounded-[2rem] p-10 md:p-14 border border-border">
           <div className="grid md:grid-cols-4 gap-8 text-center">
             {STATS.map(s => (
               <div key={s.label}>
@@ -215,7 +216,7 @@ export default function Home() {
               </div>
             ))}
           </div>
-        </div>
+        </MeshGradient>
       </section>
 
       {/* TESTIMONIALS */}
@@ -264,7 +265,7 @@ export default function Home() {
       {/* CTA */}
       <section className="container-px py-16">
         <div className="max-w-5xl mx-auto bg-navy rounded-[2rem] p-10 md:p-16 text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-mesh opacity-20" />
+          <MeshGradient className="absolute inset-0 opacity-20" />
           <div className="relative">
             <h2 className="text-display text-4xl md:text-5xl text-white">Can't find your project?</h2>
             <p className="text-white/70 mt-4 max-w-xl mx-auto">Tell us what you need. Our team will scope it, quote it and ship it — typically within 7 days.</p>

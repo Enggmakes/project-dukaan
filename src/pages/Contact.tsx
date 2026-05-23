@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import Layout from "@/components/Layout";
+import MeshGradient from "@/components/MeshGradient";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -47,12 +48,12 @@ export default function Contact() {
 
   return (
     <Layout>
-      <section className="bg-mesh py-20">
+      <MeshGradient className="py-20">
         <div className="container-px max-w-3xl mx-auto text-center">
           <h1 className="text-display text-5xl md:text-6xl text-navy">Get in touch</h1>
           <p className="text-navy/70 mt-4 text-lg">Sales, support, partnerships — we read every message.</p>
         </div>
-      </section>
+      </MeshGradient>
 
       <section className="container-px py-16">
         <div className="max-w-5xl mx-auto grid lg:grid-cols-[1fr_360px] gap-8">

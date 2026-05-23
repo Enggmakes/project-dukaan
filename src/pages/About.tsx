@@ -1,5 +1,6 @@
 import { Rocket, Heart, Users, Target } from "lucide-react";
 import Layout from "@/components/Layout";
+import MeshGradient from "@/components/MeshGradient";
 
 export default function About() {
   const values = [
@@ -10,12 +11,12 @@ export default function About() {
   ];
   return (
     <Layout>
-      <section className="bg-mesh py-24">
+      <MeshGradient className="py-24">
         <div className="container-px max-w-4xl mx-auto text-center">
           <h1 className="text-display text-5xl md:text-7xl text-navy">We help builders ship.</h1>
           <p className="text-navy/70 mt-6 text-lg max-w-2xl mx-auto">ProjectDukaan is a curated marketplace and custom build studio for the engineers, students and founders who'd rather ship than scaffold.</p>
         </div>
-      </section>
+      </MeshGradient>
 
       <section className="container-px py-20">
         <div className="max-w-5xl mx-auto grid sm:grid-cols-2 gap-5">

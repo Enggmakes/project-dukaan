@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, Upload, Sparkles } from "lucide-react";
 import Layout from "@/components/Layout";
+import MeshGradient from "@/components/MeshGradient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -210,7 +211,7 @@ export default function CustomRequest() {
 
   return (
     <Layout>
-      <section className="bg-mesh py-16">
+      <MeshGradient className="py-16">
         <div className="container-px max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm text-navy mb-6">
             <Sparkles className="w-3.5 h-3.5 text-primary" /> Custom builds
@@ -218,7 +219,7 @@ export default function CustomRequest() {
           <h1 className="text-display text-5xl md:text-6xl text-navy">Request a custom project</h1>
           <p className="text-navy/60 mt-3 text-lg">Tell us what you need — we'll design, build & deliver.</p>
         </div>
-      </section>
+      </MeshGradient>
 
       <section className="container-px py-12">
         <div className="max-w-3xl mx-auto">

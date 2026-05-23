@@ -1,6 +1,7 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
+import MeshGradient from "@/components/MeshGradient";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,7 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
-      <div className="hidden lg:block relative bg-mesh">
+      <MeshGradient className="hidden lg:block relative">
         <div className="absolute inset-0 bg-gradient-to-br from-transparent to-white/20" />
         <Link to="/" className="absolute top-8 left-8 flex items-center gap-2">
           <img src="/logo.png" alt="ProjectDukaan" className="w-9 h-9 object-contain" />
@@ -76,7 +77,7 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
           <h2 className="text-display text-4xl text-navy">Build faster.<br />Ship real projects.</h2>
           <p className="text-navy/60 mt-3">Join 38,000+ builders shipping with ProjectDukaan.</p>
         </div>
-      </div>
+      </MeshGradient>
 
       <div className="flex items-center justify-center p-8 lg:p-16">
         <div className="w-full max-w-md">

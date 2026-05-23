@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { LayoutGrid, List, SlidersHorizontal, Search } from "lucide-react";
 import Layout from "@/components/Layout";
 import ProjectCard from "@/components/ProjectCard";
+import MeshGradient from "@/components/MeshGradient";
 import { CATEGORIES, PROJECTS, Project } from "@/lib/mockData";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
@@ -62,12 +63,12 @@ export default function Marketplace() {
 
   return (
     <Layout>
-      <section className="bg-mesh py-16">
+      <MeshGradient className="py-16">
         <div className="container-px max-w-6xl mx-auto">
           <h1 className="text-display text-5xl md:text-6xl text-navy">Marketplace</h1>
           <p className="text-navy/60 mt-3 text-lg">{projects.length}+ production-ready projects, instant download.</p>
         </div>
-      </section>
+      </MeshGradient>
 
       <section className="container-px py-10">
         <div className="max-w-6xl mx-auto">
