@@ -94,6 +94,9 @@
     -webkit-font-smoothing: antialiased;
     cursor: url('/custom-cursor.cur'), auto;
   }
+  a, button, select, input[type="submit"], input[type="button"], [role="button"], .cursor-pointer {
+    cursor: url('/cusotm-pointer.cur'), pointer;
+  }
   h1, h2, h3, h4 {
     font-feature-settings: 'ss01';
     letter-spacing: -0.03em;
