@@ -11,25 +11,25 @@ export default function Layout({ children }: { children: ReactNode }) {
       <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
         {/* Upper Left - Tiny Floating Blurred Purple Orb */}
         <div 
-          className="absolute top-[22%] left-[4%] w-32 h-32 rounded-full blur-[50px] animate-drift-1"
+          className="absolute top-[22%] -left-[5%] w-56 h-56 rounded-full blur-[45px] animate-drift-1"
           style={{ 
-            backgroundColor: "rgba(110, 91, 255, 0.16)"
+            backgroundColor: "rgba(110, 91, 255, 0.24)"
           }}
         />
         
         {/* Middle Right - Tiny Floating Faint Pink Radial */}
         <div 
-          className="absolute top-[44%] right-[6%] w-40 h-40 rounded-full blur-[60px] animate-drift-2"
+          className="absolute top-[44%] -right-[5%] w-64 h-64 rounded-full blur-[55px] animate-drift-2"
           style={{ 
-            backgroundColor: "rgba(244, 63, 94, 0.14)"
+            backgroundColor: "rgba(244, 63, 94, 0.18)"
           }}
         />
         
         {/* Lower Left - Tiny Floating Subtle Mesh Glow */}
         <div 
-          className="absolute top-[76%] left-[5%] w-36 h-36 rounded-full blur-[55px] animate-drift-3"
+          className="absolute top-[76%] -left-[5%] w-60 h-60 rounded-full blur-[50px] animate-drift-3"
           style={{ 
-            backgroundColor: "rgba(139, 92, 246, 0.13)"
+            backgroundColor: "rgba(139, 92, 246, 0.2)"
           }}
         />
       </div>
