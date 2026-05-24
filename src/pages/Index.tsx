@@ -286,12 +286,70 @@ export default function Home() {
 
       {/* CTA */}
       <section className="container-px py-16">
-        <div className="max-w-5xl mx-auto bg-navy rounded-[2rem] p-10 md:p-16 text-center relative overflow-hidden">
-          <MeshGradient className="absolute inset-0 opacity-20" />
-          <div className="relative">
+        <div className="max-w-5xl mx-auto bg-navy rounded-[2rem] p-10 md:p-16 text-center relative overflow-hidden border border-white/5 hover:border-white/10 hover:shadow-[0_20px_50px_rgba(110,91,255,0.15)] transition-all duration-500 group">
+          <MeshGradient className="absolute inset-0 opacity-25" />
+          
+          {/* Subtle Glow Orbs & Gradient Blur */}
+          <div className="absolute -top-24 -left-20 w-80 h-80 rounded-full bg-[#6E5BFF]/20 blur-[100px] pointer-events-none animate-float" style={{ animationDuration: '8s' }} />
+          <div className="absolute -bottom-36 -right-24 w-96 h-96 rounded-full bg-[#8B5CF6]/25 blur-[120px] pointer-events-none animate-float" style={{ animationDuration: '12s' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] rounded-full bg-indigo-500/10 blur-[130px] pointer-events-none" />
+
+          {/* Faint Tech Grid */}
+          <div 
+            className="absolute inset-0 opacity-15 pointer-events-none" 
+            style={{
+              backgroundImage: `
+                radial-gradient(circle at 50% 50%, transparent 20%, hsl(210 65% 14%) 85%),
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)
+              `,
+              backgroundSize: '100% 100%, 20px 20px, 20px 20px',
+            }}
+          />
+
+          {/* Shimmer sweep animation */}
+          <div 
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.03) 50%, transparent 60%)',
+              backgroundSize: '200% 100%',
+              animation: 'shimmer 8s infinite linear',
+            }}
+          />
+
+          {/* Floating tiny particles */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {[...Array(15)].map((_, i) => {
+              const size = Math.random() * 4 + 2; // 2px to 6px
+              const left = Math.random() * 100; // 0% to 100%
+              const bottom = Math.random() * 20 - 10; // -10px to 10px
+              const delay = Math.random() * 10; // 0s to 10s
+              const duration = Math.random() * 15 + 10; // 10s to 25s
+              return (
+                <div
+                  key={i}
+                  className="absolute rounded-full bg-white/20 animate-particle-rise"
+                  style={{
+                    left: `${left}%`,
+                    bottom: `${bottom}px`,
+                    width: `${size}px`,
+                    height: `${size}px`,
+                    animationDelay: `${delay}s`,
+                    animationDuration: `${duration}s`,
+                  }}
+                />
+              );
+            })}
+          </div>
+
+          <div className="relative z-10">
             <h2 className="text-display text-4xl md:text-5xl text-white">Can't find your project?</h2>
             <p className="text-white/70 mt-4 max-w-xl mx-auto">Tell us what you need. Our team will scope it, quote it and ship it — typically within 7 days.</p>
-            <Link to="/custom-request"><Button size="lg" className="rounded-full bg-white text-navy hover:bg-white/90 px-7 h-12 mt-8">Request a custom project <ArrowRight className="ml-1.5 w-4 h-4" /></Button></Link>
+            <Link to="/custom-request">
+              <Button size="lg" className="rounded-full bg-white text-navy hover:bg-white/90 px-7 h-12 mt-8 shadow-[0_10px_30px_rgba(255,255,255,0.1)] hover:shadow-[0_10px_30px_rgba(110,91,255,0.3)] transition-all duration-300">
+                Request a custom project <ArrowRight className="ml-1.5 w-4 h-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

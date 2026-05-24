@@ -283,3 +283,33 @@
   33% { transform: translate(10vw, 8vh) scale(0.9); }
   66% { transform: translate(-15vw, -8vh) scale(1.1); }
 }
+
+@keyframes particle-rise {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.6;
+  }
+  85% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-220px) scale(0.4);
+    opacity: 0;
+  }
+}
+.animate-particle-rise {
+  animation: particle-rise 15s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
