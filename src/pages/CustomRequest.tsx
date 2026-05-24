@@ -224,23 +224,31 @@ export default function CustomRequest() {
       <section className="container-px py-12">
         <div className="max-w-3xl mx-auto">
           {/* Stepper */}
-          <div className="flex items-center justify-between mb-8">
-            {steps.map((s, i) => (
-              <div key={s} className="flex items-center flex-1">
-                <div className={`flex flex-col items-center ${i === 0 ? "" : "flex-1"}`}>
-                  {i > 0 && <div className={`h-0.5 w-full ${i <= step ? "bg-primary" : "bg-border"} -mb-4`} />}
-                </div>
-                <div className="flex flex-col items-center gap-2 px-1">
+          <div className="relative mb-8">
+            {/* Progress Lines Container */}
+            <div className="absolute left-[18px] right-[18px] h-0.5 -translate-y-1/2 z-0" style={{ top: "18px" }}>
+              {/* Background Line */}
+              <div className="absolute inset-0 bg-border" />
+              {/* Active Progress Line */}
+              <div 
+                className="absolute left-0 top-0 bottom-0 bg-primary transition-all duration-500 ease-in-out"
+                style={{ width: `${(step / (steps.length - 1)) * 100}%` }}
+              />
+            </div>
+
+            {/* Step Circles */}
+            <div className="flex items-center justify-between relative z-10">
+              {steps.map((s, i) => (
+                <div key={s} className="flex flex-col items-center gap-2">
                   <div className={`w-9 h-9 rounded-full grid place-items-center text-sm font-medium transition-all ${
                     i < step ? "bg-primary text-white" : i === step ? "bg-navy text-white scale-110" : "bg-secondary text-muted-foreground"
                   }`}>
                     {i < step ? <Check className="w-4 h-4" /> : i + 1}
                   </div>
-                  <span className="text-xs text-navy hidden sm:block">{s}</span>
+                  <span className="text-xs text-navy hidden sm:block font-medium">{s}</span>
                 </div>
-                {i < steps.length - 1 && <div className={`h-0.5 flex-1 ${i < step ? "bg-primary" : "bg-border"}`} />}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           <div className="bg-white rounded-3xl p-8 md:p-10 border border-border shadow-elegant">
