@@ -1,6 +1,7 @@
 import Layout from "@/components/Layout";
 import MeshGradient from "@/components/MeshGradient";
 import { FileText, Award, AlertTriangle, Scale } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 
 export default function Terms() {
   const sections = [
@@ -28,6 +29,10 @@ export default function Terms() {
 
   return (
     <Layout>
+      <Helmet>
+        <title>Terms of Service - ProjectDukaan</title>
+        <meta name="description" content="Understand the licensing rules, single-use educational limits, download boundaries, and terms of service for purchasing premium engineering blueprints on ProjectDukaan." />
+      </Helmet>
       <MeshGradient className="py-24">
         <div className="container-px max-w-4xl mx-auto text-center">
           <span className="text-sm font-semibold text-primary uppercase tracking-widest bg-primary/10 px-3 py-1 rounded-full">Rules</span>

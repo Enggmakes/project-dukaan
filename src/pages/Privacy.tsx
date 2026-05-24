@@ -1,6 +1,7 @@
 import Layout from "@/components/Layout";
 import MeshGradient from "@/components/MeshGradient";
 import { Shield, Eye, Lock, Globe } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 
 export default function Privacy() {
   const sections = [
@@ -28,6 +29,10 @@ export default function Privacy() {
 
   return (
     <Layout>
+      <Helmet>
+        <title>Privacy Policy - ProjectDukaan</title>
+        <meta name="description" content="Read the Privacy Policy of ProjectDukaan. Learn how we handle, secure, and protect your digital library assets and personal registry." />
+      </Helmet>
       <MeshGradient className="py-24">
         <div className="container-px max-w-4xl mx-auto text-center">
           <span className="text-sm font-semibold text-primary uppercase tracking-widest bg-primary/10 px-3 py-1 rounded-full">Legal</span>
