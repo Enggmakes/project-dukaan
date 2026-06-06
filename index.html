@@ -15,6 +15,8 @@
     <link rel="icon" type="image/png" href="/logo-white.png" media="(prefers-color-scheme: dark)" />
     <link rel="apple-touch-icon" sizes="180x180" href="/logo.png" />
 
+    <meta property="og:site_name" content="ProjectDukaan" />
+    <meta property="og:url" content="https://projectdukaan.vercel.app/" />
     <meta property="og:title" content="ProjectDukaan — Build Faster. Ship Real Projects." />
     <meta property="og:description" content="Premium marketplace for AI, ML, IoT and engineering projects." />
     <meta property="og:type" content="website" />
@@ -22,7 +24,26 @@
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@ProjectDukaan" />
+    <meta name="twitter:title" content="ProjectDukaan — Build Faster. Ship Real Projects." />
+    <meta name="twitter:description" content="Premium marketplace for AI, ML, IoT and engineering projects." />
     <meta name="twitter:image" content="https://projectdukaan.vercel.app/logo.png" />
+
+    <!-- JSON-LD: tells Google the site name explicitly -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "ProjectDukaan",
+      "alternateName": "Project Dukaan",
+      "url": "https://projectdukaan.vercel.app/",
+      "description": "Premium marketplace for AI, ML, IoT, robotics and final-year engineering projects.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://projectdukaan.vercel.app/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
   </head>
 
   <body>
