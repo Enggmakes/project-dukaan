@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { LayoutGrid, List, SlidersHorizontal, Search } from "lucide-react";
 import Layout from "@/components/Layout";
+import { Helmet } from "react-helmet-async";
 import ProjectCard from "@/components/ProjectCard";
 import MeshGradient from "@/components/MeshGradient";
 import { CATEGORIES, PROJECTS, Project } from "@/lib/mockData";
@@ -63,6 +64,12 @@ export default function Marketplace() {
 
   return (
     <Layout>
+      <Helmet>
+        <title>Project Marketplace | Buy Ready-made AI, ML, IoT Projects — ProjectDukaan</title>
+        <meta name="description" content="Explore our vast collection of AI, Machine Learning, IoT, and Robotics engineering projects. Filter by tech stack, difficulty, and price to find your next blueprint." />
+        <meta name="keywords" content="AI project marketplace, ML projects download, buy IoT blueprints, robotics final year projects, engineering code marketplace" />
+        <link rel="canonical" href="https://projectdukaan.vercel.app/marketplace" />
+      </Helmet>
       <MeshGradient className="py-16">
         <div className="container-px max-w-6xl mx-auto">
           <h1 className="text-display text-5xl md:text-6xl text-navy">Marketplace</h1>

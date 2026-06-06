@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import Layout from "@/components/Layout";
 import MeshGradient from "@/components/MeshGradient";
+import { Helmet } from "react-helmet-async";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,12 @@ export default function Contact() {
 
   return (
     <Layout>
+      <Helmet>
+        <title>Contact Us | ProjectDukaan</title>
+        <meta name="description" content="Get in touch with the ProjectDukaan team. For sales queries, support, or partnership proposals, we respond within 24 hours." />
+        <meta name="keywords" content="contact projectdukaan, project support, final year project help, sales contact" />
+        <link rel="canonical" href="https://projectdukaan.vercel.app/contact" />
+      </Helmet>
       <MeshGradient className="py-20">
         <div className="container-px max-w-3xl mx-auto text-center">
           <h1 className="text-display text-5xl md:text-6xl text-navy">Get in touch</h1>

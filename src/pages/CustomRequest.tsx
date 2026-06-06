@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, Upload, Sparkles } from "lucide-react";
 import Layout from "@/components/Layout";
 import MeshGradient from "@/components/MeshGradient";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -211,6 +212,12 @@ export default function CustomRequest() {
 
   return (
     <Layout>
+      <Helmet>
+        <title>Request Custom AI, ML, IoT Project | ProjectDukaan</title>
+        <meta name="description" content="Can't find the project blueprint you need? Request a custom build from ProjectDukaan. Our team designs, builds, and delivers within 7 days." />
+        <meta name="keywords" content="request custom project, custom AI development, custom ML development, IoT prototype build, robotics custom project, engineering support" />
+        <link rel="canonical" href="https://projectdukaan.vercel.app/custom-request" />
+      </Helmet>
       <MeshGradient className="py-16">
         <div className="container-px max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm text-navy mb-6">

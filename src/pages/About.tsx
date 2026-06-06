@@ -1,6 +1,7 @@
 import { Rocket, Heart, Users, Target } from "lucide-react";
 import Layout from "@/components/Layout";
 import MeshGradient from "@/components/MeshGradient";
+import { Helmet } from "react-helmet-async";
 
 export default function About() {
   const values = [
@@ -11,6 +12,12 @@ export default function About() {
   ];
   return (
     <Layout>
+      <Helmet>
+        <title>About Us | ProjectDukaan</title>
+        <meta name="description" content="Learn more about ProjectDukaan - a premium marketplace and custom project studio built to help engineering students, developers, and founders ship real projects." />
+        <meta name="keywords" content="about projectdukaan, final year projects marketplace, engineering project team, ready-made code downloads" />
+        <link rel="canonical" href="https://projectdukaan.vercel.app/about" />
+      </Helmet>
       <MeshGradient className="py-24">
         <div className="container-px max-w-4xl mx-auto text-center">
           <h1 className="text-display text-5xl md:text-7xl text-navy">We help builders ship.</h1>

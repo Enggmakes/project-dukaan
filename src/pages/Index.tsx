@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Layout from "@/components/Layout";
+import { Helmet } from "react-helmet-async";
 import ProjectCard from "@/components/ProjectCard";
 import MeshGradient from "@/components/MeshGradient";
 import React, { useEffect } from "react";
@@ -65,6 +66,12 @@ export default function Home() {
   return (
     <ErrorBoundary>
     <Layout>
+      <Helmet>
+        <title>ProjectDukaan — Build Faster. Ship Real Projects.</title>
+        <meta name="description" content="Premium marketplace for AI, ML, IoT, robotics & final-year engineering projects. Download production-ready code with polished documentation instantly." />
+        <meta name="keywords" content="AI final year projects, machine learning projects, IoT projects, robotics projects, engineering projects, computer science project download, ProjectDukaan" />
+        <link rel="canonical" href="https://projectdukaan.vercel.app/" />
+      </Helmet>
       {/* HERO */}
       <section className="relative overflow-hidden -mt-24 pt-32 pb-24">
         <MeshGradient className="absolute inset-0" />
