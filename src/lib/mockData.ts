@@ -1,10 +1,10 @@
 export type Category =
   | "AI & Machine Learning" | "Deep Learning" | "Computer Vision" | "Robotics"
-  | "IoT" | "Web Development" | "Blockchain" | "Cybersecurity";
+  | "IoT" | "Web Development" | "Mobile Apps" | "Blockchain" | "Cybersecurity";
 
 export const CATEGORIES: Category[] = [
   "AI & Machine Learning", "Deep Learning", "Computer Vision", "Robotics",
-  "IoT", "Web Development", "Blockchain", "Cybersecurity",
+  "IoT", "Web Development", "Mobile Apps", "Blockchain", "Cybersecurity",
 ];
 
 export const CATEGORY_META: Record<Category, { icon: string; gradient: string; desc: string }> = {
@@ -14,6 +14,7 @@ export const CATEGORY_META: Record<Category, { icon: string; gradient: string; d
   "Robotics":               { icon: "Bot", gradient: "from-emerald-400 to-teal-500", desc: "Autonomous systems & embedded control" },
   "IoT":                    { icon: "Cpu", gradient: "from-amber-400 to-orange-500", desc: "Sensors, edge devices & telemetry" },
   "Web Development":        { icon: "Globe", gradient: "from-sky-400 to-indigo-500", desc: "Full-stack production-grade apps" },
+  "Mobile Apps":            { icon: "Smartphone", gradient: "from-violet-400 to-indigo-500", desc: "Cross-platform iOS & Android" },
   "Blockchain":             { icon: "Link2", gradient: "from-yellow-400 to-amber-500", desc: "Smart contracts & DeFi protocols" },
   "Cybersecurity":          { icon: "Shield", gradient: "from-rose-400 to-red-500", desc: "Pen-testing, detection & defense" },
 };
