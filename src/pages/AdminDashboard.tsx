@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, TrendingUp, Users, IndianRupee, Activity, MoreHorizontal, Bell, ChevronDown, Plus, Image as ImageIcon, Mail, Trash2, CheckCircle, LogOut, Globe, ShoppingBag, Truck, Download } from "lucide-react";
+import { Search, TrendingUp, Users, IndianRupee, Activity, MoreHorizontal, Bell, ChevronDown, Plus, Image as ImageIcon, Mail, Trash2, CheckCircle, LogOut, Globe, ShoppingBag, Truck, Download, Pencil, ExternalLink, RefreshCw, Layers, Edit3 } from "lucide-react";
 import Layout from "@/components/Layout";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
@@ -97,7 +97,135 @@ export default function AdminDashboard() {
     supabase.from('orders').select('*').order('created_at', { ascending: false }).then(({ data }) => {
       if (data) setOrders(data);
     });
+
+    fetchDbProjects();
   }, []);
+
+  const [dbProjects, setDbProjects] = useState<any[]>([]);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
+  const [projectSubTab, setProjectSubTab] = useState<"list" | "add">("list");
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [editingProject, setEditingProject] = useState<any>(null);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    category: "AI & Machine Learning",
+    price: "",
+    difficulty: "Beginner",
+    delivery_type: "digital",
+    tech: "",
+    features: "",
+    includes: "",
+    github_url: "",
+    image: null as File | null,
+    video: null as File | null,
+  });
+
+  const fetchDbProjects = async () => {
+    setIsLoadingProjects(true);
+    const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+    if (!error && data) {
+      setDbProjects(data);
+    }
+    setIsLoadingProjects(false);
+  };
+
+  const openEditModal = (p: any) => {
+    setEditingProject(p);
+    setEditForm({
+      title: p.title || "",
+      description: p.description || "",
+      category: p.category || "AI & Machine Learning",
+      price: String(p.price || ""),
+      difficulty: p.difficulty || "Beginner",
+      delivery_type: p.delivery_type || "digital",
+      tech: Array.isArray(p.tech) ? p.tech.join(', ') : (p.tech || ""),
+      features: Array.isArray(p.features) ? p.features.join('\n') : (p.features || ""),
+      includes: Array.isArray(p.includes) ? p.includes.join('\n') : (p.includes || ""),
+      github_url: p.github_url || "",
+      image: null,
+      video: null,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProject) return;
+
+    setIsUpdating(true);
+    const toastId = toast.loading("Saving changes...");
+
+    try {
+      let thumbUrl = editingProject.thumb;
+      if (editForm.image) {
+        const fileExt = editForm.image.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const { error: imgError } = await supabase.storage
+          .from('project-images')
+          .upload(fileName, editForm.image);
+        if (imgError) throw new Error("Image upload failed: " + imgError.message);
+        const { data: publicUrlData } = supabase.storage
+          .from('project-images')
+          .getPublicUrl(fileName);
+        thumbUrl = publicUrlData.publicUrl;
+      }
+
+      let videoUrl = editingProject.video_url;
+      if (editForm.video) {
+        const fileExt = editForm.video.name.split('.').pop();
+        const fileName = `video-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const { error: vidError } = await supabase.storage
+          .from('project-images')
+          .upload(fileName, editForm.video);
+        if (vidError) throw new Error("Video upload failed: " + vidError.message);
+        const { data: vidUrlData } = supabase.storage
+          .from('project-images')
+          .getPublicUrl(fileName);
+        videoUrl = vidUrlData.publicUrl;
+      }
+
+      const { error: updateError } = await supabase.from('projects').update({
+        title: editForm.title,
+        description: editForm.description,
+        category: editForm.category,
+        difficulty: editForm.difficulty,
+        price: Number(editForm.price),
+        delivery_type: editForm.delivery_type,
+        tech: editForm.tech.split(',').map(t => t.trim()).filter(Boolean),
+        features: editForm.features.split('\n').map(t => t.trim()).filter(Boolean),
+        includes: editForm.includes.split('\n').map(t => t.trim()).filter(Boolean),
+        github_url: editForm.github_url.trim() || null,
+        thumb: thumbUrl,
+        video_url: videoUrl,
+      }).eq('id', editingProject.id);
+
+      if (updateError) throw new Error("Update error: " + updateError.message);
+
+      toast.success("Project updated successfully!", { id: toastId });
+      setIsEditDialogOpen(false);
+      setEditingProject(null);
+      fetchDbProjects();
+    } catch (err: any) {
+      toast.error(err.message, { id: toastId });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string, projectTitle: string) => {
+    if (!confirm(`Are you sure you want to delete "${projectTitle}" from the marketplace? This cannot be undone.`)) return;
+
+    const toastId = toast.loading("Deleting project...");
+    const { error } = await supabase.from('projects').delete().eq('id', projectId);
+    if (error) {
+      toast.error("Failed to delete project: " + error.message, { id: toastId });
+      return;
+    }
+    toast.success("Project deleted from marketplace", { id: toastId });
+    setDbProjects(prev => prev.filter(p => p.id !== projectId));
+  };
 
   const updateOrderStatus = async (orderId: string, newStatus: string, trackingId?: string) => {
     const payload: any = { status: newStatus };
@@ -239,6 +367,8 @@ export default function AdminDashboard() {
 
       toast.success("Project published successfully!", { id: toastId });
       setNewProject({ title: "", description: "", category: "AI & Machine Learning", price: "", difficulty: "Beginner", delivery_type: "digital", tech: "", features: "", includes: "", github_url: "", image: null, video: null, screenshots: null });
+      fetchDbProjects();
+      setProjectSubTab("list");
     } catch (err: any) {
       toast.error(err.message, { id: toastId });
     } finally {
@@ -464,118 +594,320 @@ export default function AdminDashboard() {
               </TabsContent>
 
               <TabsContent value="projects" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                <div className="glass-chocolate rounded-2xl p-6 md:p-8 shadow-chocolate">
-                  <div className="flex items-center justify-between mb-8">
-                    <h3 className="text-white text-xl font-medium">Add New Project to Marketplace</h3>
+                <div className="space-y-6">
+                  {/* Sub navigation between Added Projects and Upload New */}
+                  <div className="flex items-center justify-between flex-wrap gap-4 bg-white/5 border border-white/10 rounded-2xl p-2.5">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setProjectSubTab("list")}
+                        className={`rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                          projectSubTab === "list"
+                            ? "bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white shadow-md"
+                            : "text-white/70 hover:text-white hover:bg-white/10"
+                        }`}
+                      >
+                        <Layers className="w-3.5 h-3.5" />
+                        Added Projects ({dbProjects.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setProjectSubTab("add")}
+                        className={`rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                          projectSubTab === "add"
+                            ? "bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white shadow-md"
+                            : "text-white/70 hover:text-white hover:bg-white/10"
+                        }`}
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Add New Project
+                      </button>
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={fetchDbProjects}
+                      disabled={isLoadingProjects}
+                      className="text-white/60 hover:text-white hover:bg-white/10 h-8 px-3 text-xs rounded-xl border-0"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isLoadingProjects ? "animate-spin" : ""}`} />
+                      Refresh
+                    </Button>
                   </div>
 
-                  <form onSubmit={handleAddProject} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label className="text-white/80">Project Title</Label>
-                        <Input required value={newProject.title} onChange={e => setNewProject({ ...newProject, title: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="e.g. AI Support Bot" />
+                  {projectSubTab === "list" ? (
+                    <div className="glass-chocolate rounded-2xl p-5 md:p-8 shadow-chocolate">
+                      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                        <div>
+                          <h3 className="text-white text-xl font-medium">Your Published Projects</h3>
+                          <p className="text-white/50 text-xs mt-1">Preview your uploaded projects and make instant changes or rewrites.</p>
+                        </div>
+                        <Button
+                          onClick={() => setProjectSubTab("add")}
+                          className="bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white h-9 px-4 rounded-xl text-xs font-semibold shadow-sm border-0"
+                        >
+                          <Plus className="w-3.5 h-3.5 mr-1.5" /> Add Project
+                        </Button>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-white/80">Category</Label>
-                        <Select value={newProject.category} onValueChange={v => setNewProject({ ...newProject, category: v })}>
-                          <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus:ring-1 focus:ring-[#6E5BFF]/40"><SelectValue /></SelectTrigger>
-                          <SelectContent className="bg-[#241B38] border-white/10 text-white">
-                            {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-white/80">Price (₹)</Label>
-                        <Input required type="number" value={newProject.price} onChange={e => setNewProject({ ...newProject, price: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="4900" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-white/80">Difficulty</Label>
-                        <Select value={newProject.difficulty} onValueChange={v => setNewProject({ ...newProject, difficulty: v })}>
-                          <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus:ring-1 focus:ring-[#6E5BFF]/40"><SelectValue /></SelectTrigger>
-                          <SelectContent className="bg-[#241B38] border-white/10 text-white">
-                            <SelectItem value="Beginner">Beginner</SelectItem>
-                            <SelectItem value="Intermediate">Intermediate</SelectItem>
-                            <SelectItem value="Advanced">Advanced</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-white/80">Delivery Type</Label>
-                        <Select value={newProject.delivery_type} onValueChange={v => setNewProject({ ...newProject, delivery_type: v })}>
-                          <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus:ring-1 focus:ring-[#6E5BFF]/40"><SelectValue /></SelectTrigger>
-                          <SelectContent className="bg-[#241B38] border-white/10 text-white">
-                            <SelectItem value="digital">Digital (Instant Download)</SelectItem>
-                            <SelectItem value="physical">Physical (Hardware/Robotics Kit Shipping)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2 md:col-span-2">
-                        <Label className="text-white/80">Description</Label>
-                        <Textarea required value={newProject.description} onChange={e => setNewProject({ ...newProject, description: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white resize-none focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="Short description of the project..." rows={3} />
-                      </div>
-                      <div className="space-y-2 md:col-span-2">
-                        <Label className="text-white/80">Technologies (comma separated)</Label>
-                        <Input required value={newProject.tech} onChange={e => setNewProject({ ...newProject, tech: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="React, Node.js, Python" />
-                      </div>
-                      <div className="space-y-2 md:col-span-1">
-                        <Label className="text-white/80">Features (one per line)</Label>
-                        <Textarea value={newProject.features} onChange={e => setNewProject({ ...newProject, features: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white resize-none focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="- Admin Dashboard&#10;- Authentication&#10;- Dark Mode" rows={4} />
-                      </div>
-                      <div className="space-y-2 md:col-span-1">
-                        <Label className="text-white/80">What's Included (one per line)</Label>
-                        <Textarea value={newProject.includes} onChange={e => setNewProject({ ...newProject, includes: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white resize-none focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="Source Code (.zip)&#10;Documentation (PDF)" rows={4} />
-                      </div>
-                      <div className="space-y-2 md:col-span-1">
-                        <Label className="text-white/80">Cover Image</Label>
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          required
-                          onChange={e => setNewProject({ ...newProject, image: e.target.files?.[0] || null })}
-                          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                          className="text-white h-11 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-4 file:mr-4 file:rounded-md hover:file:bg-white/20"
-                        />
-                      </div>
-                      <div className="space-y-2 md:col-span-1">
-                        <Label className="text-white/80">Screenshots (Multiple)</Label>
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={e => setNewProject({ ...newProject, screenshots: e.target.files })}
-                          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                          className="text-white h-11 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-4 file:mr-4 file:rounded-md hover:file:bg-white/20"
-                        />
-                      </div>
-                      <div className="space-y-2 md:col-span-1">
-                        <Label className="text-white/80">Demo Video (Optional)</Label>
-                        <Input
-                          type="file"
-                          accept="video/*"
-                          onChange={e => setNewProject({ ...newProject, video: e.target.files?.[0] || null })}
-                          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                          className="text-white h-11 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-4 file:mr-4 file:rounded-md hover:file:bg-white/20"
-                        />
-                      </div>
-                      <div className="space-y-2 md:col-span-1">
-                        <Label className="text-white/80">GitHub Repository ZIP Link (Optional)</Label>
-                        <Input
-                          type="url"
-                          value={newProject.github_url}
-                          onChange={e => setNewProject({ ...newProject, github_url: e.target.value })}
-                          placeholder="https://github.com/username/repo/archive/refs/heads/main.zip"
-                          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                          className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50"
-                        />
-                      </div>
-                    </div>
 
-                    <div className="pt-6 flex justify-end">
-                      <Button disabled={isUploading} type="submit" className="bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white px-8 h-12 rounded-full text-base font-semibold shadow-[0_10px_30px_rgba(110,91,255,0.25)] disabled:opacity-50 border-0 transition-all hover:opacity-90">
-                        <Plus className="w-4 h-4 mr-2" /> {isUploading ? "Publishing..." : "Publish Project"}
-                      </Button>
+                      {isLoadingProjects ? (
+                        <div className="py-16 text-center text-white/50 text-sm">
+                          <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-[#8B5CF6]" />
+                          Loading marketplace projects...
+                        </div>
+                      ) : dbProjects.length === 0 ? (
+                        <div className="py-16 text-center border border-dashed border-white/10 rounded-2xl p-8">
+                          <div className="w-12 h-12 rounded-full bg-white/5 grid place-items-center mx-auto mb-3 text-white/40">
+                            <Layers className="w-6 h-6" />
+                          </div>
+                          <h4 className="text-white font-medium mb-1">No Custom Projects Uploaded Yet</h4>
+                          <p className="text-white/50 text-sm max-w-sm mx-auto mb-5">
+                            You haven't added any projects to Supabase yet. Use the Add Project form to publish one.
+                          </p>
+                          <Button
+                            onClick={() => setProjectSubTab("add")}
+                            className="bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white rounded-full px-6 h-10 text-sm"
+                          >
+                            <Plus className="w-4 h-4 mr-2" /> Upload First Project
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                          {dbProjects.map((p) => (
+                            <div
+                              key={p.id}
+                              className="bg-white/5 border border-white/10 hover:border-white/20 rounded-2xl overflow-hidden flex flex-col justify-between transition-all group hover:shadow-lg"
+                            >
+                              {/* Small Version Card Preview */}
+                              <div className="relative aspect-[16/9] bg-black/40 overflow-hidden">
+                                {p.thumb ? (
+                                  <img
+                                    src={p.thumb}
+                                    alt={p.title}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full grid place-items-center text-white/30">
+                                    <ImageIcon className="w-8 h-8" />
+                                  </div>
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                                <Badge className="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md text-white text-[10px] border-0 font-medium">
+                                  {p.category}
+                                </Badge>
+                                <Badge className="absolute top-2.5 right-2.5 bg-[#6E5BFF]/80 backdrop-blur-md text-white text-[10px] border-0">
+                                  {p.difficulty || "Beginner"}
+                                </Badge>
+                                <div className="absolute bottom-2 left-2.5 text-xs font-bold text-emerald-400">
+                                  ₹{Number(p.price).toLocaleString()}
+                                </div>
+                                <div className="absolute bottom-2 right-2.5">
+                                  <Badge className="bg-white/20 backdrop-blur-md text-white text-[10px] border-0">
+                                    {p.delivery_type === "physical" ? "Physical Kit" : "Digital"}
+                                  </Badge>
+                                </div>
+                              </div>
+
+                              {/* Card Content */}
+                              <div className="p-4 flex-1 flex flex-col justify-between">
+                                <div>
+                                  <h4 className="text-white font-semibold text-base line-clamp-1 group-hover:text-[#a78bfa] transition-colors" title={p.title}>
+                                    {p.title}
+                                  </h4>
+                                  <p className="text-white/60 text-xs line-clamp-2 mt-1.5 leading-relaxed">
+                                    {p.description}
+                                  </p>
+
+                                  {/* Tech tags */}
+                                  {Array.isArray(p.tech) && p.tech.length > 0 && (
+                                    <div className="flex gap-1.5 flex-wrap mt-3">
+                                      {p.tech.slice(0, 3).map((t: string) => (
+                                        <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/80 font-mono">
+                                          {t}
+                                        </span>
+                                      ))}
+                                      {p.tech.length > 3 && (
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/5 text-white/40">
+                                          +{p.tech.length - 3}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Action Buttons: Make Changes / Rewrite / View / Delete */}
+                                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-white/10">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={() => openEditModal(p)}
+                                    className="flex-1 bg-gradient-to-r from-[#6E5BFF]/30 to-[#8B5CF6]/30 hover:from-[#6E5BFF]/50 hover:to-[#8B5CF6]/50 text-white border border-[#6E5BFF]/40 h-8 rounded-xl text-xs font-semibold transition-all"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5 mr-1.5 text-[#c4b5fd]" />
+                                    Make Changes
+                                  </Button>
+
+                                  <a
+                                    href={`/project/${p.id}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white grid place-items-center transition-colors shrink-0"
+                                    title="View on Website"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                  </a>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteProject(p.id, p.title)}
+                                    className="w-8 h-8 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 grid place-items-center transition-colors shrink-0 cursor-pointer"
+                                    title="Delete Project"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </form>
+                  ) : (
+                    /* ADD NEW PROJECT FORM */
+                    <div className="glass-chocolate rounded-2xl p-6 md:p-8 shadow-chocolate">
+                      <div className="flex items-center justify-between mb-8">
+                        <div>
+                          <h3 className="text-white text-xl font-medium">Add New Project to Marketplace</h3>
+                          <p className="text-white/50 text-xs mt-1">Publish full code, documentation, and pricing to the store.</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          onClick={() => setProjectSubTab("list")}
+                          className="text-white/70 hover:text-white hover:bg-white/10 text-xs h-8 rounded-xl"
+                        >
+                          ← Back to Added Projects
+                        </Button>
+                      </div>
+
+                      <form onSubmit={handleAddProject} className="space-y-6">
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <Label className="text-white/80">Project Title</Label>
+                            <Input required value={newProject.title} onChange={e => setNewProject({ ...newProject, title: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="e.g. AI Support Bot" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white/80">Category</Label>
+                            <Select value={newProject.category} onValueChange={v => setNewProject({ ...newProject, category: v })}>
+                              <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus:ring-1 focus:ring-[#6E5BFF]/40"><SelectValue /></SelectTrigger>
+                              <SelectContent className="bg-[#241B38] border-white/10 text-white">
+                                {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white/80">Price (₹)</Label>
+                            <Input required type="number" value={newProject.price} onChange={e => setNewProject({ ...newProject, price: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="4900" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white/80">Difficulty</Label>
+                            <Select value={newProject.difficulty} onValueChange={v => setNewProject({ ...newProject, difficulty: v })}>
+                              <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus:ring-1 focus:ring-[#6E5BFF]/40"><SelectValue /></SelectTrigger>
+                              <SelectContent className="bg-[#241B38] border-white/10 text-white">
+                                <SelectItem value="Beginner">Beginner</SelectItem>
+                                <SelectItem value="Intermediate">Intermediate</SelectItem>
+                                <SelectItem value="Advanced">Advanced</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white/80">Delivery Type</Label>
+                            <Select value={newProject.delivery_type} onValueChange={v => setNewProject({ ...newProject, delivery_type: v })}>
+                              <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus:ring-1 focus:ring-[#6E5BFF]/40"><SelectValue /></SelectTrigger>
+                              <SelectContent className="bg-[#241B38] border-white/10 text-white">
+                                <SelectItem value="digital">Digital (Instant Download)</SelectItem>
+                                <SelectItem value="physical">Physical (Hardware/Robotics Kit Shipping)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <Label className="text-white/80">Description</Label>
+                            <Textarea required value={newProject.description} onChange={e => setNewProject({ ...newProject, description: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white resize-none focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="Short description of the project..." rows={3} />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <Label className="text-white/80">Technologies (comma separated)</Label>
+                            <Input required value={newProject.tech} onChange={e => setNewProject({ ...newProject, tech: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="React, Node.js, Python" />
+                          </div>
+                          <div className="space-y-2 md:col-span-1">
+                            <Label className="text-white/80">Features (one per line)</Label>
+                            <Textarea value={newProject.features} onChange={e => setNewProject({ ...newProject, features: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white resize-none focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="- Admin Dashboard&#10;- Authentication&#10;- Dark Mode" rows={4} />
+                          </div>
+                          <div className="space-y-2 md:col-span-1">
+                            <Label className="text-white/80">What's Included (one per line)</Label>
+                            <Textarea value={newProject.includes} onChange={e => setNewProject({ ...newProject, includes: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white resize-none focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="Source Code (.zip)&#10;Documentation (PDF)" rows={4} />
+                          </div>
+                          <div className="space-y-2 md:col-span-1">
+                            <Label className="text-white/80">Cover Image</Label>
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              required
+                              onChange={e => setNewProject({ ...newProject, image: e.target.files?.[0] || null })}
+                              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                              className="text-white h-11 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-4 file:mr-4 file:rounded-md hover:file:bg-white/20"
+                            />
+                          </div>
+                          <div className="space-y-2 md:col-span-1">
+                            <Label className="text-white/80">Screenshots (Multiple)</Label>
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={e => setNewProject({ ...newProject, screenshots: e.target.files })}
+                              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                              className="text-white h-11 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-4 file:mr-4 file:rounded-md hover:file:bg-white/20"
+                            />
+                          </div>
+                          <div className="space-y-2 md:col-span-1">
+                            <Label className="text-white/80">Demo Video (Optional)</Label>
+                            <Input
+                              type="file"
+                              accept="video/*"
+                              onChange={e => setNewProject({ ...newProject, video: e.target.files?.[0] || null })}
+                              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                              className="text-white h-11 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-4 file:mr-4 file:rounded-md hover:file:bg-white/20"
+                            />
+                          </div>
+                          <div className="space-y-2 md:col-span-1">
+                            <Label className="text-white/80">GitHub Repository ZIP Link (Optional)</Label>
+                            <Input
+                              type="url"
+                              value={newProject.github_url}
+                              onChange={e => setNewProject({ ...newProject, github_url: e.target.value })}
+                              placeholder="https://github.com/username/repo/archive/refs/heads/main.zip"
+                              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                              className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="pt-6 flex justify-end gap-3">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => setProjectSubTab("list")}
+                            className="text-white/70 hover:text-white hover:bg-white/10 border-0"
+                          >
+                            Cancel
+                          </Button>
+                          <Button disabled={isUploading} type="submit" className="bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white px-8 h-12 rounded-full text-base font-semibold shadow-[0_10px_30px_rgba(110,91,255,0.25)] disabled:opacity-50 border-0 transition-all hover:opacity-90">
+                            <Plus className="w-4 h-4 mr-2" /> {isUploading ? "Publishing..." : "Publish Project"}
+                          </Button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
                 </div>
               </TabsContent>
               <TabsContent value="messages" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -770,6 +1102,175 @@ export default function AdminDashboard() {
           </div>
         </div>
       </section>
+
+      {/* Edit / Make Changes Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="bg-[#241B38] border border-white/10 text-white sm:max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar shadow-chocolate">
+          <DialogHeader>
+            <DialogTitle className="text-white text-xl flex items-center gap-2">
+              <Pencil className="w-5 h-5 text-[#8B5CF6]" />
+              Edit / Make Changes to Project
+            </DialogTitle>
+            <DialogDescription className="text-white/60">
+              Update project details, code links, pricing, or description. Changes reflect immediately across the store.
+            </DialogDescription>
+          </DialogHeader>
+
+          {editingProject && (
+            <form onSubmit={handleUpdateProject} className="space-y-4 py-2">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-1.5 md:col-span-2">
+                  <Label className="text-white/80 text-xs">Project Title</Label>
+                  <Input
+                    required
+                    value={editForm.title}
+                    onChange={e => setEditForm({ ...editForm, title: e.target.value })}
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    className="text-white h-10 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-white/80 text-xs">Category</Label>
+                  <Select value={editForm.category} onValueChange={v => setEditForm({ ...editForm, category: v })}>
+                    <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#241B38] border-white/10 text-white">
+                      {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-white/80 text-xs">Price (₹)</Label>
+                  <Input
+                    required
+                    type="number"
+                    value={editForm.price}
+                    onChange={e => setEditForm({ ...editForm, price: e.target.value })}
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    className="text-white h-10 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-white/80 text-xs">Difficulty</Label>
+                  <Select value={editForm.difficulty} onValueChange={v => setEditForm({ ...editForm, difficulty: v })}>
+                    <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#241B38] border-white/10 text-white">
+                      <SelectItem value="Beginner">Beginner</SelectItem>
+                      <SelectItem value="Intermediate">Intermediate</SelectItem>
+                      <SelectItem value="Advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-white/80 text-xs">Delivery Type</Label>
+                  <Select value={editForm.delivery_type} onValueChange={v => setEditForm({ ...editForm, delivery_type: v })}>
+                    <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#241B38] border-white/10 text-white">
+                      <SelectItem value="digital">Digital (Instant Download)</SelectItem>
+                      <SelectItem value="physical">Physical (Hardware Shipping)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <Label className="text-white/80 text-xs">Technologies (comma separated)</Label>
+                  <Input
+                    required
+                    value={editForm.tech}
+                    onChange={e => setEditForm({ ...editForm, tech: e.target.value })}
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    className="text-white h-10 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40"
+                  />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <Label className="text-white/80 text-xs">Description</Label>
+                  <Textarea
+                    required
+                    value={editForm.description}
+                    onChange={e => setEditForm({ ...editForm, description: e.target.value })}
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    className="text-white resize-none focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 text-xs"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-1">
+                  <Label className="text-white/80 text-xs">Features (one per line)</Label>
+                  <Textarea
+                    value={editForm.features}
+                    onChange={e => setEditForm({ ...editForm, features: e.target.value })}
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    className="text-white resize-none focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 text-xs"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-1">
+                  <Label className="text-white/80 text-xs">What's Included (one per line)</Label>
+                  <Textarea
+                    value={editForm.includes}
+                    onChange={e => setEditForm({ ...editForm, includes: e.target.value })}
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    className="text-white resize-none focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 text-xs"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <Label className="text-white/80 text-xs">GitHub Repository ZIP Link (Optional)</Label>
+                  <Input
+                    type="url"
+                    value={editForm.github_url}
+                    onChange={e => setEditForm({ ...editForm, github_url: e.target.value })}
+                    placeholder="https://github.com/username/repo/archive/refs/heads/main.zip"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    className="text-white h-10 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40"
+                  />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <Label className="text-white/80 text-xs">Replace Cover Image (Optional)</Label>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={e => setEditForm({ ...editForm, image: e.target.files?.[0] || null })}
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    className="text-white h-10 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-3 file:mr-3 file:rounded-md hover:file:bg-white/20 text-xs"
+                  />
+                </div>
+              </div>
+
+              <DialogFooter className="flex gap-2 sm:justify-end pt-4 border-t border-white/10">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setIsEditDialogOpen(false)}
+                  className="text-white/70 hover:text-white hover:bg-white/10 border-0"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white px-6 h-10 rounded-full font-semibold shadow-md disabled:opacity-50 border-0 hover:opacity-90"
+                >
+                  {isUpdating ? "Saving..." : "Save Project Changes"}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Tracking ID Dialog */}
       <Dialog open={isTrackingDialogOpen} onOpenChange={setIsTrackingDialogOpen}>
