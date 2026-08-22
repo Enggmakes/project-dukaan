@@ -118,6 +118,7 @@ export default function AdminDashboard() {
     features: "",
     includes: "",
     github_url: "",
+    price_note: "",
     image: null as File | null,
     video: null as File | null,
   });
@@ -144,6 +145,7 @@ export default function AdminDashboard() {
       features: Array.isArray(p.features) ? p.features.join('\n') : (p.features || ""),
       includes: Array.isArray(p.includes) ? p.includes.join('\n') : (p.includes || ""),
       github_url: p.github_url || "",
+      price_note: p.price_note || "",
       image: null,
       video: null,
     });
@@ -197,6 +199,7 @@ export default function AdminDashboard() {
         features: editForm.features.split('\n').map(t => t.trim()).filter(Boolean),
         includes: editForm.includes.split('\n').map(t => t.trim()).filter(Boolean),
         github_url: editForm.github_url.trim() || null,
+        price_note: editForm.price_note.trim() || null,
         thumb: thumbUrl,
         video_url: videoUrl,
       }).eq('id', editingProject.id);
@@ -293,6 +296,7 @@ export default function AdminDashboard() {
     features: "",
     includes: "",
     github_url: "",
+    price_note: "",
     image: null as File | null,
     video: null as File | null,
     screenshots: null as FileList | null
@@ -358,6 +362,7 @@ export default function AdminDashboard() {
         features: newProject.features.split('\n').map(t => t.trim()).filter(Boolean),
         includes: newProject.includes.split('\n').map(t => t.trim()).filter(Boolean),
         github_url: newProject.github_url.trim() || null,
+        price_note: newProject.price_note.trim() || null,
         screenshots: screenshotUrls,
         video_url: videoUrl,
         thumb: publicUrlData.publicUrl
@@ -366,7 +371,7 @@ export default function AdminDashboard() {
       if (dbError) throw new Error("Database error: " + dbError.message);
 
       toast.success("Project published successfully!", { id: toastId });
-      setNewProject({ title: "", description: "", category: "AI & Machine Learning", price: "", difficulty: "Beginner", delivery_type: "digital", tech: "", features: "", includes: "", github_url: "", image: null, video: null, screenshots: null });
+      setNewProject({ title: "", description: "", category: "AI & Machine Learning", price: "", difficulty: "Beginner", delivery_type: "digital", tech: "", features: "", includes: "", github_url: "", price_note: "", image: null, video: null, screenshots: null });
       fetchDbProjects();
       setProjectSubTab("list");
     } catch (err: any) {
@@ -890,6 +895,19 @@ export default function AdminDashboard() {
                               className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50"
                             />
                           </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <Label className="text-white/80 flex items-center gap-2">
+                              <span>Price Note / Extra Cost Note (Optional)</span>
+                              <span className="text-[11px] text-rose-400 font-normal">(Shown in red smallest font above Tech Stack)</span>
+                            </Label>
+                            <Input
+                              value={newProject.price_note}
+                              onChange={e => setNewProject({ ...newProject, price_note: e.target.value })}
+                              placeholder="e.g. * Extra ₹500 for deployment support, or base price includes basic setup only"
+                              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                              className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50 text-xs"
+                            />
+                          </div>
                         </div>
 
                         <div className="pt-6 flex justify-end gap-3">
@@ -1235,6 +1253,20 @@ export default function AdminDashboard() {
                     placeholder="https://github.com/username/repo/archive/refs/heads/main.zip"
                     style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
                     className="text-white h-10 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40"
+                  />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <Label className="text-white/80 text-xs flex items-center gap-2">
+                    <span>Price Note / Extra Cost Note (Optional)</span>
+                    <span className="text-[10px] text-rose-400 font-normal">(Shown in red smallest font above Tech Stack)</span>
+                  </Label>
+                  <Input
+                    value={editForm.price_note}
+                    onChange={e => setEditForm({ ...editForm, price_note: e.target.value })}
+                    placeholder="e.g. * Extra ₹500 for deployment support, or base price includes basic setup only"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    className="text-white h-10 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 text-xs"
                   />
                 </div>
 

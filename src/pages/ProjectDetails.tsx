@@ -296,6 +296,17 @@ export default function ProjectDetails() {
                 <p className="text-navy/70 mt-5 text-lg leading-relaxed">{project.description}</p>
               </div>
 
+              {project.price_note && (
+                <div className="mt-6 flex items-start gap-2 text-rose-600 font-medium">
+                  <span className="font-bold text-rose-700 uppercase tracking-wider text-[10px] shrink-0 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">
+                    Note
+                  </span>
+                  <span className="leading-snug text-[11px] sm:text-xs text-rose-600">
+                    {project.price_note}
+                  </span>
+                </div>
+              )}
+
               <div className="mt-8">
                 <h3 className="font-medium text-navy mb-3">Tech stack</h3>
                 <div className="flex flex-wrap gap-2">

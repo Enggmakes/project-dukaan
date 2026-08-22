@@ -37,6 +37,7 @@ export interface Project {
   github_url?: string;
   thumb: string;
   delivery_type?: "digital" | "physical";
+  price_note?: string;
 }
 
 const grad = (a: string, b: string) =>
