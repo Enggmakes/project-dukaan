@@ -121,6 +121,7 @@ export default function AdminDashboard() {
     price_note: "",
     image: null as File | null,
     video: null as File | null,
+    screenshots: null as FileList | null,
   });
 
   const fetchDbProjects = async () => {
@@ -148,6 +149,7 @@ export default function AdminDashboard() {
       price_note: p.price_note || "",
       image: null,
       video: null,
+      screenshots: null,
     });
     setIsEditDialogOpen(true);
   };
@@ -172,6 +174,21 @@ export default function AdminDashboard() {
           .from('project-images')
           .getPublicUrl(fileName);
         thumbUrl = publicUrlData.publicUrl;
+      }
+
+      let screenshotUrls: string[] = Array.isArray(editingProject.screenshots) ? editingProject.screenshots : [];
+      if (editForm.screenshots && editForm.screenshots.length > 0) {
+        let newUrls: string[] = [];
+        for (let i = 0; i < editForm.screenshots.length; i++) {
+          const file = editForm.screenshots[i];
+          const fileExt = file.name.split('.').pop();
+          const fileName = `screenshot-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+          const { error: ssError } = await supabase.storage.from('project-images').upload(fileName, file);
+          if (ssError) throw new Error("Screenshot upload failed: " + ssError.message);
+          const { data: ssUrlData } = supabase.storage.from('project-images').getPublicUrl(fileName);
+          newUrls.push(ssUrlData.publicUrl);
+        }
+        screenshotUrls = newUrls;
       }
 
       let videoUrl = editingProject.video_url;
@@ -201,6 +218,7 @@ export default function AdminDashboard() {
         github_url: editForm.github_url.trim() || null,
         price_note: editForm.price_note.trim() || null,
         thumb: thumbUrl,
+        screenshots: screenshotUrls,
         video_url: videoUrl,
       }).eq('id', editingProject.id);
 
@@ -1123,14 +1141,14 @@ export default function AdminDashboard() {
 
       {/* Edit / Make Changes Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-[#241B38] border border-white/10 text-white sm:max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar shadow-chocolate">
+        <DialogContent className="bg-[#241B38] border border-white/10 text-white sm:max-w-4xl max-w-[95vw] max-h-[90vh] overflow-y-auto no-scrollbar shadow-chocolate">
           <DialogHeader>
             <DialogTitle className="text-white text-xl flex items-center gap-2">
               <Pencil className="w-5 h-5 text-[#8B5CF6]" />
               Edit / Make Changes to Project
             </DialogTitle>
             <DialogDescription className="text-white/60">
-              Update project details, code links, pricing, or description. Changes reflect immediately across the store.
+              Update project details, screenshots, demo video, code links, pricing, or description. Changes reflect immediately across the store.
             </DialogDescription>
           </DialogHeader>
 
@@ -1270,12 +1288,35 @@ export default function AdminDashboard() {
                   />
                 </div>
 
-                <div className="space-y-1.5 md:col-span-2">
+                <div className="space-y-1.5 md:col-span-1">
                   <Label className="text-white/80 text-xs">Replace Cover Image (Optional)</Label>
                   <Input
                     type="file"
                     accept="image/*"
                     onChange={e => setEditForm({ ...editForm, image: e.target.files?.[0] || null })}
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    className="text-white h-10 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-3 file:mr-3 file:rounded-md hover:file:bg-white/20 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-1">
+                  <Label className="text-white/80 text-xs">Replace Screenshots (Multiple - Optional)</Label>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={e => setEditForm({ ...editForm, screenshots: e.target.files })}
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    className="text-white h-10 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-3 file:mr-3 file:rounded-md hover:file:bg-white/20 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <Label className="text-white/80 text-xs">Replace Demo Video (Optional)</Label>
+                  <Input
+                    type="file"
+                    accept="video/*"
+                    onChange={e => setEditForm({ ...editForm, video: e.target.files?.[0] || null })}
                     style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
                     className="text-white h-10 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-3 file:mr-3 file:rounded-md hover:file:bg-white/20 text-xs"
                   />
