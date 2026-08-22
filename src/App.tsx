@@ -16,6 +16,7 @@ import Privacy from "./pages/Privacy.tsx";
 import Terms from "./pages/Terms.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
+import { ThemeProvider } from "next-themes";
 import { HelmetProvider } from 'react-helmet-async';
 import GlobalTechParticles from "@/components/GlobalTechParticles";
 
@@ -25,29 +26,31 @@ const queryClient = new QueryClient();
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <GlobalTechParticles />
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/marketplace" element={<Marketplace />} />
-          <Route path="/project/:id" element={<ProjectDetails />} />
-          <Route path="/custom-request" element={<CustomRequest />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/login" element={<Auth mode="login" />} />
-          <Route path="/register" element={<Auth mode="register" />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <TooltipProvider>
+          <GlobalTechParticles />
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/marketplace" element={<Marketplace />} />
+              <Route path="/project/:id" element={<ProjectDetails />} />
+              <Route path="/custom-request" element={<CustomRequest />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/login" element={<Auth mode="login" />} />
+              <Route path="/register" element={<Auth mode="register" />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   </HelmetProvider>
 );
 

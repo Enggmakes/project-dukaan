@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { supabase } from "@/lib/supabase";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import NotificationBell from "@/components/NotificationBell";
+import ThemeToggle from "@/components/ThemeToggle";
 const links = [
   { to: "/marketplace", label: "Marketplace" },
   { to: "/custom-request", label: "Custom Build" },
@@ -85,7 +86,8 @@ export default function Navbar() {
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-1.5">
+            <ThemeToggle />
             <NotificationBell />
             {user ? (
               <DropdownMenu>
@@ -121,9 +123,12 @@ export default function Navbar() {
             )}
           </div>
 
-          <button className="md:hidden p-2" onClick={() => setOpen(!open)} aria-label="Menu">
-            {open ? <X /> : <Menu />}
-          </button>
+          <div className="flex items-center gap-1 md:hidden">
+            <ThemeToggle />
+            <button className="p-2 text-navy dark:text-white" onClick={() => setOpen(!open)} aria-label="Menu">
+              {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </nav>
 
         {open && (
