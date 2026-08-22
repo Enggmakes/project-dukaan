@@ -1,10 +1,10 @@
 export type Category =
   | "AI & Machine Learning" | "Deep Learning" | "Computer Vision" | "Robotics"
-  | "IoT" | "Web Development" | "Mobile Apps" | "Blockchain" | "Cybersecurity";
+  | "IoT" | "Web Development" | "Blockchain" | "Cybersecurity";
 
 export const CATEGORIES: Category[] = [
   "AI & Machine Learning", "Deep Learning", "Computer Vision", "Robotics",
-  "IoT", "Web Development", "Mobile Apps", "Blockchain", "Cybersecurity",
+  "IoT", "Web Development", "Blockchain", "Cybersecurity",
 ];
 
 export const CATEGORY_META: Record<Category, { icon: string; gradient: string; desc: string }> = {
@@ -14,7 +14,6 @@ export const CATEGORY_META: Record<Category, { icon: string; gradient: string; d
   "Robotics":               { icon: "Bot", gradient: "from-emerald-400 to-teal-500", desc: "Autonomous systems & embedded control" },
   "IoT":                    { icon: "Cpu", gradient: "from-amber-400 to-orange-500", desc: "Sensors, edge devices & telemetry" },
   "Web Development":        { icon: "Globe", gradient: "from-sky-400 to-indigo-500", desc: "Full-stack production-grade apps" },
-  "Mobile Apps":            { icon: "Smartphone", gradient: "from-violet-400 to-indigo-500", desc: "Cross-platform iOS & Android" },
   "Blockchain":             { icon: "Link2", gradient: "from-yellow-400 to-amber-500", desc: "Smart contracts & DeFi protocols" },
   "Cybersecurity":          { icon: "Shield", gradient: "from-rose-400 to-red-500", desc: "Pen-testing, detection & defense" },
 };
@@ -61,7 +60,6 @@ const titles: Array<[string, Category, string[], number]> = [
   ["Autonomous Line Follower Bot", "Robotics", ["Arduino", "C++", "IR Sensors"], 2900],
   ["IoT Home Automation Hub", "IoT", ["ESP32", "MQTT", "Node-RED"], 3500],
   ["E-Commerce SaaS Starter", "Web Development", ["Next.js", "Stripe", "Postgres"], 6900],
-  ["Fitness Tracker Mobile App", "Mobile Apps", ["React Native", "Firebase"], 4200],
   ["NFT Marketplace dApp", "Blockchain", ["Solidity", "Hardhat", "Next.js"], 7900],
   ["Intrusion Detection System", "Cybersecurity", ["Python", "Scikit-learn", "Snort"], 5500],
   ["GPT-Powered Customer Support Bot", "AI & Machine Learning", ["LangChain", "OpenAI", "Next.js"], 6500],
@@ -92,13 +90,6 @@ export const PROJECTS: Project[] = titles.map(([title, category, tech, price], i
   thumb: thumbs[i % thumbs.length],
   delivery_type: (category === "Robotics" || category === "IoT") ? "physical" : "digital",
 }));
-
-export const TESTIMONIALS = [
-  { name: "Ananya Sharma", role: "CS Final Year, IIT Delhi", quote: "Submitted my final-year project a month early. The code quality and docs are insanely good.", avatar: "AS" },
-  { name: "Rohan Mehta", role: "ML Engineer, Zylo Labs", quote: "We forked the GPT support bot and shipped it to production in three days. Saved us weeks.", avatar: "RM" },
-  { name: "Priya Iyer", role: "Robotics Lead, Bengaluru", quote: "ProjectDukaan is now our default starting point for IoT prototypes.", avatar: "PI" },
-  { name: "Marco Rossi", role: "Indie Hacker", quote: "The Stripe-grade polish here is rare. Worth every rupee.", avatar: "MR" },
-];
 
 export const STATS = [
   { label: "Projects shipped", value: "12,400+" },

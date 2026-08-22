@@ -11,7 +11,7 @@ import { Helmet } from "react-helmet-async";
 import ProjectCard from "@/components/ProjectCard";
 import MeshGradient from "@/components/MeshGradient";
 import React, { useEffect } from "react";
-import { CATEGORIES, CATEGORY_META, TESTIMONIALS, FAQS, Project, PROJECTS } from "@/lib/mockData";
+import { CATEGORIES, CATEGORY_META, FAQS, Project, PROJECTS } from "@/lib/mockData";
 import { supabase } from "@/lib/supabase";
 
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {error: Error | null}> {
@@ -248,30 +248,6 @@ export default function Home() {
         </MeshGradient>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section className="container-px py-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="text-primary text-sm font-medium">Loved by builders</div>
-            <h2 className="text-display text-4xl md:text-5xl text-navy mt-2">Shipped, not stalled.</h2>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {TESTIMONIALS.map(t => (
-              <div key={t.name} className="bg-white border border-border rounded-3xl p-6 shadow-soft">
-                <div className="flex gap-0.5 mb-3">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />)}</div>
-                <p className="text-navy text-sm leading-relaxed">"{t.quote}"</p>
-                <div className="mt-5 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-primary-gradient grid place-items-center text-white text-xs font-semibold">{t.avatar}</div>
-                  <div>
-                    <div className="text-sm font-medium text-navy">{t.name}</div>
-                    <div className="text-xs text-muted-foreground">{t.role}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* FAQ */}
       <section className="container-px py-16">
