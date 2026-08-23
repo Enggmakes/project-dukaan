@@ -91,33 +91,41 @@ export default function Home() {
             </motion.p>
 
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-              className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link to="/marketplace"><Button size="lg" className="rounded-full bg-primary hover:bg-primary/90 px-7 h-12 text-base shadow-elegant">Explore Projects <ArrowRight className="ml-1.5 w-4 h-4" /></Button></Link>
-              <Link to="/custom-request"><Button size="lg" variant="outline" className="rounded-full px-7 h-12 text-base bg-white/80 backdrop-blur border-navy/10 hover:bg-white">Request Custom Project</Button></Link>
+              className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+              <Link to="/marketplace">
+                <Button size="lg" className="liquid-glass-primary text-white rounded-full px-8 h-12 text-base font-medium shadow-[0_12px_30px_rgba(110,91,255,0.35)]">
+                  Explore Projects <ArrowRight className="ml-1.5 w-4 h-4" />
+                </Button>
+              </Link>
+              <Link to="/custom-request">
+                <Button size="lg" variant="outline" className="liquid-glass-btn text-navy rounded-full px-8 h-12 text-base font-medium">
+                  Request Custom Project
+                </Button>
+              </Link>
             </motion.div>
 
-            {/* Search bar */}
+            {/* Liquid Glass Search bar */}
             <motion.form initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
               onSubmit={(e) => { e.preventDefault(); window.location.href = `/marketplace?q=${q}&cat=${cat}`; }}
-              className="mt-10 max-w-2xl mx-auto glass rounded-full p-2 flex items-center gap-2 shadow-elegant">
+              className="mt-10 max-w-2xl mx-auto liquid-glass rounded-full p-2 flex items-center gap-2 shadow-2xl border-white/80">
               <Search className="w-5 h-5 ml-3 text-muted-foreground shrink-0" />
               <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search 12,000+ projects…"
-                className="border-0 bg-transparent focus-visible:ring-0 text-navy flex-1" />
+                className="border-0 bg-transparent focus-visible:ring-0 text-navy flex-1 placeholder:text-navy/45 text-sm" />
               <Select value={cat} onValueChange={setCat}>
-                <SelectTrigger className="w-40 rounded-full border-0 bg-secondary text-sm shrink-0"><SelectValue /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className="w-40 rounded-full border-0 bg-black/[0.04] text-xs font-medium shrink-0 text-navy h-10"><SelectValue /></SelectTrigger>
+                <SelectContent className="liquid-glass border-white/80 rounded-2xl shadow-xl">
                   <SelectItem value="all">All categories</SelectItem>
                   {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Button type="submit" className="rounded-full bg-navy hover:bg-navy-light px-6 h-10">Search</Button>
+              <Button type="submit" className="rounded-full bg-navy hover:bg-navy-light text-white px-6 h-10 text-xs font-medium shadow-md">Search</Button>
             </motion.form>
 
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-navy/50">
-              <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Code reviewed</span>
-              <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5" /> Instant download</span>
-              <span className="flex items-center gap-1.5"><Rocket className="w-3.5 h-3.5" /> 12mo support</span>
-              <span className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5" /> 4.9 average rating</span>
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3 text-xs text-navy/70">
+              <span className="liquid-glass-pill px-3.5 py-1.5 flex items-center gap-1.5 font-medium"><ShieldCheck className="w-3.5 h-3.5 text-primary" /> Code reviewed</span>
+              <span className="liquid-glass-pill px-3.5 py-1.5 flex items-center gap-1.5 font-medium"><Zap className="w-3.5 h-3.5 text-amber-500" /> Instant download</span>
+              <span className="liquid-glass-pill px-3.5 py-1.5 flex items-center gap-1.5 font-medium"><Rocket className="w-3.5 h-3.5 text-violet-500" /> 12mo support</span>
+              <span className="liquid-glass-pill px-3.5 py-1.5 flex items-center gap-1.5 font-medium"><Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" /> 4.9 average rating</span>
             </div>
           </div>
         </div>
@@ -126,9 +134,9 @@ export default function Home() {
       {/* DASHBOARD MOCKUP */}
       <section className="container-px -mt-8 mb-32 relative z-10">
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          className="max-w-6xl mx-auto bg-chocolate rounded-[2rem] p-6 md:p-10 shadow-chocolate border border-white/10 overflow-hidden relative">
-          <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#6E5BFF]/15 blur-3xl" />
-          <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-[#8B5CF6]/15 blur-3xl" />
+          className="max-w-6xl mx-auto bg-chocolate rounded-[2.5rem] p-6 md:p-10 shadow-chocolate border border-white/15 overflow-hidden relative">
+          <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#6E5BFF]/20 blur-3xl" />
+          <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-[#8B5CF6]/20 blur-3xl" />
           <div className="relative">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -148,10 +156,10 @@ export default function Home() {
                 { icon: Users, label: "Orders placed", value: liveStats.orders === null ? "—" : String(liveStats.orders), delta: "+24%" },
                 { icon: Star, label: "Average project rating", value: liveStats.avgRating === null ? "—" : `${liveStats.avgRating} / 5.0`, delta: "Excellent" },
               ].map((s) => (
-                <div key={s.label} className="glass-chocolate rounded-2xl p-5">
+                <div key={s.label} className="liquid-glass-chocolate rounded-2xl p-5">
                   <div className="flex items-center justify-between">
                     <s.icon className="w-4 h-4 text-[#8B5CF6]" />
-                    <span className="text-xs text-emerald-400">{s.delta}</span>
+                    <span className="text-xs text-emerald-400 font-medium">{s.delta}</span>
                   </div>
                   <div className="text-white text-3xl font-semibold mt-3">{s.value}</div>
                   <div className="text-white/60 text-xs mt-1">{s.label}</div>
@@ -160,7 +168,7 @@ export default function Home() {
             </div>
 
             {/* fake chart */}
-            <div className="glass-chocolate rounded-2xl p-5 mt-4">
+            <div className="liquid-glass-chocolate rounded-2xl p-5 mt-4">
               <div className="flex items-end gap-2 h-32">
                 {Array.from({ length: 28 }).map((_, i) => {
                   const h = 20 + Math.abs(Math.sin(i * 0.7)) * 80;
@@ -190,14 +198,14 @@ export default function Home() {
               const Icon = ICONS[meta.icon as keyof typeof ICONS];
               return (
                 <motion.div key={c} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.04 }}>
-                  <Link to={`/marketplace?cat=${encodeURIComponent(c)}`} className="group block bg-white border border-border rounded-3xl p-6 shadow-soft hover:shadow-elegant transition-all relative overflow-hidden h-full">
+                  <Link to={`/marketplace?cat=${encodeURIComponent(c)}`} className="group block liquid-glass-card rounded-[2rem] p-6 relative overflow-hidden h-full">
                     <div className={`absolute -top-12 -right-12 w-32 h-32 rounded-full bg-gradient-to-br ${meta.gradient} opacity-20 group-hover:opacity-40 group-hover:scale-125 transition-all`} />
                     <div className={`relative w-12 h-12 rounded-2xl bg-gradient-to-br ${meta.gradient} grid place-items-center text-white shadow-elegant`}>
                       <Icon className="w-5 h-5" />
                     </div>
                     <h3 className="font-semibold text-navy mt-5 text-lg">{c}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{meta.desc}</p>
-                    <div className="text-sm text-primary mt-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Explore →</div>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{meta.desc}</p>
+                    <div className="text-sm text-primary mt-4 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Explore Blueprints →</div>
                   </Link>
                 </motion.div>
               );

@@ -384,11 +384,11 @@ export default function ProjectDetails() {
 
             {/* Sidebar */}
             <aside className="lg:sticky lg:top-28 self-start">
-              <div className="bg-white rounded-3xl p-6 border border-border shadow-elegant">
-                <div className="text-4xl font-semibold text-navy">₹{project.price.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">One-time purchase · lifetime access</div>
+              <div className="liquid-glass-card rounded-[2.5rem] p-7 border-white/80 shadow-2xl">
+                <div className="text-4xl font-bold text-navy">₹{project.price.toLocaleString()}</div>
+                <div className="text-xs text-muted-foreground mt-1 font-medium">One-time purchase · Lifetime access & updates</div>
                 <Button 
-                  className="w-full rounded-full bg-primary hover:bg-primary/90 h-12 mt-5 text-sm font-semibold flex items-center justify-center gap-2 shadow-elegant" 
+                  className="w-full rounded-full liquid-glass-primary text-white h-12 mt-6 text-sm font-semibold flex items-center justify-center gap-2 shadow-[0_12px_28px_rgba(110,91,255,0.35)]" 
                   onClick={handlePurchaseClick}
                 >
                   {project.delivery_type === "physical" ? (
@@ -405,28 +405,30 @@ export default function ProjectDetails() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className={`w-full rounded-full h-12 mt-2 flex items-center justify-center gap-2 transition-all ${isWishlisted ? "bg-rose-50 text-rose-500 border-rose-200 hover:bg-rose-100" : ""}`}
+                  className={`w-full rounded-full h-11 mt-2.5 flex items-center justify-center gap-2 transition-all text-xs font-semibold ${isWishlisted ? "bg-rose-50 text-rose-500 border-rose-200 hover:bg-rose-100" : "liquid-glass-btn text-navy/80 hover:text-navy"}`}
                   onClick={toggleWishlist}
                   disabled={isWishlistLoading}
                 >
                   <Heart className={`w-4 h-4 ${isWishlisted ? "fill-rose-500" : ""}`} /> 
                   {isWishlisted ? "Saved to Wishlist" : "Add to wishlist"}
                 </Button>
-                <div className="mt-5 pt-5 border-t border-border">
-                  <h4 className="font-medium text-navy mb-3 text-sm">What's included</h4>
+                <div className="mt-6 pt-5 border-t border-black/5">
+                  <h4 className="font-semibold text-navy mb-3 text-xs uppercase tracking-wider">What's included</h4>
                   <ul className="space-y-2.5">
                     {(project.includes || []).length > 0 ? (project.includes || []).map(i => {
                       const Icon = getIncludeIcon(i);
                       return (
-                        <li key={i} className="flex items-center gap-2.5 text-sm text-navy/85">
-                          <Icon className="w-4 h-4 text-primary shrink-0" />
+                        <li key={i} className="flex items-center gap-2.5 text-xs font-medium text-navy/80">
+                          <div className="w-6 h-6 rounded-full bg-primary/10 grid place-items-center shrink-0">
+                            <Icon className="w-3.5 h-3.5 text-primary" />
+                          </div>
                           <span>{i}</span>
                         </li>
                       );
-                    }) : <li className="text-sm text-navy/60">Source code included</li>}
+                    }) : <li className="text-xs text-navy/60">Source code included</li>}
                   </ul>
                 </div>
-                <div className="mt-5 pt-5 border-t border-border flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="mt-6 pt-5 border-t border-black/5 flex items-center gap-2 text-xs font-medium text-muted-foreground">
                   <ShieldCheck className="w-4 h-4 text-emerald-500" /> 7-day money-back guarantee
                 </div>
               </div>

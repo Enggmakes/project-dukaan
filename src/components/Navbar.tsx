@@ -58,26 +58,28 @@ export default function Navbar() {
   return (
     <header className={cn(
       "fixed top-0 inset-x-0 z-50 transition-all duration-300",
-      scrolled ? "py-3" : "py-5"
+      scrolled ? "py-2.5" : "py-4"
     )}>
       <div className="container-px">
         <nav className={cn(
-          "mx-auto max-w-6xl flex items-center justify-between rounded-full px-4 md:px-6 py-2.5 transition-all",
-          scrolled ? "glass shadow-soft" : "bg-transparent"
+          "mx-auto max-w-6xl flex items-center justify-between rounded-full px-4 md:px-6 py-2 transition-all",
+          scrolled ? "liquid-glass shadow-elegant" : "bg-white/45 backdrop-blur-xl border border-white/60 shadow-[inset_0_1px_2px_rgba(255,255,255,0.8),0_4px_20px_rgba(0,0,0,0.03)]"
         )}>
-          <Link to="/" className="flex items-center gap-2 pl-2">
-            <img src="/logo.png" alt="ProjectDukaan" className="w-9 h-9 object-contain" />
-            <span className="font-semibold text-navy tracking-tight">Project<span className="text-primary">Dukaan</span></span>
+          <Link to="/" className="flex items-center gap-2 pl-2 group">
+            <img src="/logo.png" alt="ProjectDukaan" className="w-9 h-9 object-contain transition-transform duration-300 group-hover:scale-105" />
+            <span className="font-semibold text-navy tracking-tight text-base">Project<span className="text-primary">Dukaan</span></span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1.5 p-1 rounded-full bg-black/[0.03] border border-white/40">
             {visibleLinks.map(l => (
               <NavLink
                 key={l.to}
                 to={l.to}
                 className={({ isActive }) => cn(
-                  "px-3 py-1.5 text-sm rounded-full transition-colors",
-                  isActive ? "text-navy bg-secondary" : "text-muted-foreground hover:text-navy"
+                  "px-3.5 py-1.5 text-xs font-medium rounded-full transition-all duration-200",
+                  isActive 
+                    ? "text-primary bg-white shadow-[inset_0_1px_1px_rgba(255,255,255,1),0_2px_8px_rgba(110,91,255,0.12)] border border-white/80" 
+                    : "text-navy/70 hover:text-navy hover:bg-white/50"
                 )}
               >
                 {l.label}
@@ -90,25 +92,25 @@ export default function Navbar() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="rounded-full flex items-center gap-2 px-3 h-10 hover:bg-transparent">
-                    <div className="w-8 h-8 rounded-full bg-primary-gradient grid place-items-center text-white text-xs font-medium shadow-sm">
+                  <Button variant="ghost" className="rounded-full flex items-center gap-2 p-1 h-9 hover:bg-transparent">
+                    <div className="w-8 h-8 rounded-full bg-primary-gradient grid place-items-center text-white text-xs font-medium shadow-sm transition-transform hover:scale-105">
                       <User className="w-4 h-4" />
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 bg-white/90 backdrop-blur-xl border-border rounded-2xl shadow-elegant p-2">
-                  <div className="px-2 py-1.5 text-xs text-muted-foreground truncate mb-1">
+                <DropdownMenuContent align="end" className="w-52 liquid-glass border-white/80 rounded-2xl shadow-2xl p-2 animate-in fade-in zoom-in-95">
+                  <div className="px-2.5 py-1.5 text-xs text-muted-foreground truncate mb-1 border-b border-black/5 pb-2">
                     {user.email}
                   </div>
-                  <DropdownMenuItem className="rounded-xl cursor-pointer py-2 mb-1" onClick={() => navigate("/profile")}>
-                    <User className="w-4 h-4 mr-2" /> My Profile
+                  <DropdownMenuItem className="rounded-xl cursor-pointer py-2 mb-1 hover:bg-white/80 text-navy font-medium text-xs" onClick={() => navigate("/profile")}>
+                    <User className="w-4 h-4 mr-2 text-primary" /> My Profile
                   </DropdownMenuItem>
                   {isAdmin && (
-                    <DropdownMenuItem className="rounded-xl cursor-pointer py-2 mb-1" onClick={() => navigate("/admin")}>
-                      <User className="w-4 h-4 mr-2" /> Admin Dashboard
+                    <DropdownMenuItem className="rounded-xl cursor-pointer py-2 mb-1 hover:bg-white/80 text-navy font-medium text-xs" onClick={() => navigate("/admin")}>
+                      <User className="w-4 h-4 mr-2 text-primary" /> Admin Dashboard
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-500 rounded-xl cursor-pointer py-2 focus:text-red-600 focus:bg-red-50">
+                  <DropdownMenuItem onClick={handleLogout} className="text-rose-500 rounded-xl cursor-pointer py-2 hover:bg-rose-50 font-medium text-xs">
                     <LogOut className="w-4 h-4 mr-2" /> Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>

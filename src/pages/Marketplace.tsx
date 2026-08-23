@@ -79,11 +79,11 @@ export default function Marketplace() {
 
       <section className="container-px py-10">
         <div className="max-w-6xl mx-auto">
-          <div className="bg-white rounded-[2rem] md:rounded-full shadow-soft border border-border p-3 md:p-3.5 flex flex-col md:flex-row gap-2.5 items-stretch md:items-center sticky top-20 md:top-24 z-30">
+          <div className="liquid-glass rounded-[2rem] md:rounded-full shadow-2xl border-white/80 p-3 md:p-3 flex flex-col md:flex-row gap-2.5 items-stretch md:items-center sticky top-20 md:top-24 z-30">
             {/* Search Input - Spans full width on mobile, flexible on desktop */}
-            <div className="flex-1 flex items-center gap-2 px-4 py-1 md:py-0 bg-secondary rounded-full">
+            <div className="flex-1 flex items-center gap-2 px-4 py-1 md:py-0 bg-black/[0.04] rounded-full border border-white/50">
               <Search className="w-4 h-4 text-muted-foreground shrink-0" />
-              <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search projects…" className="border-0 bg-transparent focus-visible:ring-0 h-9" />
+              <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search projects…" className="border-0 bg-transparent focus-visible:ring-0 h-9 text-navy placeholder:text-navy/45 text-sm" />
             </div>
 
             {/* Selects & Controls Container - Elegant wrap flow */}
@@ -92,8 +92,8 @@ export default function Marketplace() {
                 {/* Category Select */}
                 <div className="flex-1 sm:flex-none">
                   <Select value={cat} onValueChange={setCat}>
-                    <SelectTrigger className="w-full sm:w-44 rounded-full bg-white border-border"><SelectValue /></SelectTrigger>
-                    <SelectContent>
+                    <SelectTrigger className="w-full sm:w-44 rounded-full bg-white/70 backdrop-blur-md border-white/80 text-xs font-medium text-navy shadow-sm"><SelectValue /></SelectTrigger>
+                    <SelectContent className="liquid-glass border-white/80 rounded-2xl shadow-xl">
                       <SelectItem value="all">All categories</SelectItem>
                       {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                     </SelectContent>
@@ -103,8 +103,8 @@ export default function Marketplace() {
                 {/* Sort Select */}
                 <div className="flex-1 sm:flex-none">
                   <Select value={sort} onValueChange={setSort}>
-                    <SelectTrigger className="w-full sm:w-40 rounded-full bg-white border-border"><SelectValue /></SelectTrigger>
-                    <SelectContent>
+                    <SelectTrigger className="w-full sm:w-40 rounded-full bg-white/70 backdrop-blur-md border-white/80 text-xs font-medium text-navy shadow-sm"><SelectValue /></SelectTrigger>
+                    <SelectContent className="liquid-glass border-white/80 rounded-2xl shadow-xl">
                       <SelectItem value="latest">Latest</SelectItem>
                       <SelectItem value="popular">Most popular</SelectItem>
                       <SelectItem value="rating">Highest rated</SelectItem>
@@ -117,13 +117,13 @@ export default function Marketplace() {
 
               {/* Filters Trigger & Grid/List View switcher */}
               <div className="flex items-center gap-2">
-                <Button variant="outline" className="flex-1 sm:flex-none rounded-full h-10 border-border bg-white" onClick={() => setShowFilters(!showFilters)}>
-                  <SlidersHorizontal className="w-4 h-4 mr-1.5" /> Filters
+                <Button variant="outline" className="flex-1 sm:flex-none rounded-full h-10 border-white/80 bg-white/70 backdrop-blur-md text-xs font-medium text-navy shadow-sm hover:bg-white" onClick={() => setShowFilters(!showFilters)}>
+                  <SlidersHorizontal className="w-4 h-4 mr-1.5 text-primary" /> Filters
                 </Button>
                 
-                <div className="flex bg-secondary rounded-full p-1 h-10 shrink-0">
-                  <button onClick={() => setView("grid")} className={`p-1.5 px-2.5 rounded-full ${view === "grid" ? "bg-white shadow-soft" : ""}`}><LayoutGrid className="w-4 h-4" /></button>
-                  <button onClick={() => setView("list")} className={`p-1.5 px-2.5 rounded-full ${view === "list" ? "bg-white shadow-soft" : ""}`}><List className="w-4 h-4" /></button>
+                <div className="flex bg-black/[0.04] border border-white/50 rounded-full p-1 h-10 shrink-0">
+                  <button onClick={() => setView("grid")} className={`p-1.5 px-2.5 rounded-full transition-all ${view === "grid" ? "bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] text-primary" : "text-navy/60"}`}><LayoutGrid className="w-4 h-4" /></button>
+                  <button onClick={() => setView("list")} className={`p-1.5 px-2.5 rounded-full transition-all ${view === "list" ? "bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] text-primary" : "text-navy/60"}`}><List className="w-4 h-4" /></button>
                 </div>
               </div>
             </div>
@@ -131,27 +131,27 @@ export default function Marketplace() {
 
           <div className="grid lg:grid-cols-[260px_1fr] gap-8 mt-8">
             <aside className={`${showFilters ? "block" : "hidden lg:block"} space-y-6`}>
-              <div className="bg-white rounded-3xl p-5 border border-border shadow-soft">
-                <h4 className="font-medium text-navy mb-3">Price range</h4>
+              <div className="liquid-glass-card rounded-[2rem] p-5">
+                <h4 className="font-medium text-navy mb-3 text-sm">Price range</h4>
                 <Slider value={price} onValueChange={setPrice} max={100000} step={500} />
-                <div className="flex justify-between text-xs text-muted-foreground mt-3"><span>₹{price[0].toLocaleString()}</span><span>₹{price[1].toLocaleString()}</span></div>
+                <div className="flex justify-between text-xs text-muted-foreground mt-3 font-mono"><span>₹{price[0].toLocaleString()}</span><span>₹{price[1].toLocaleString()}</span></div>
               </div>
-              <div className="bg-white rounded-3xl p-5 border border-border shadow-soft">
-                <h4 className="font-medium text-navy mb-3">Difficulty</h4>
-                <div className="space-y-2">
+              <div className="liquid-glass-card rounded-[2rem] p-5">
+                <h4 className="font-medium text-navy mb-3 text-sm">Difficulty</h4>
+                <div className="space-y-2.5">
                   {DIFFICULTIES.map(d => (
-                    <label key={d} className="flex items-center gap-2 text-sm text-navy cursor-pointer">
+                    <label key={d} className="flex items-center gap-2.5 text-sm text-navy cursor-pointer hover:text-primary transition-colors">
                       <Checkbox checked={diffs.includes(d)} onCheckedChange={() => toggle(diffs, d, setDiffs)} />{d}
                     </label>
                   ))}
                 </div>
               </div>
-              <div className="bg-white rounded-3xl p-5 border border-border shadow-soft">
-                <h4 className="font-medium text-navy mb-3">Technologies</h4>
-                <div className="flex flex-wrap gap-1.5 max-h-48 overflow-auto">
+              <div className="liquid-glass-card rounded-[2rem] p-5">
+                <h4 className="font-medium text-navy mb-3 text-sm">Technologies</h4>
+                <div className="flex flex-wrap gap-1.5 max-h-48 overflow-auto no-scrollbar">
                   {ALL_TECH.map(t => (
                     <Badge key={t} onClick={() => toggle(techs, t, setTechs)}
-                      className={`cursor-pointer rounded-full ${techs.includes(t) ? "bg-primary text-white hover:bg-primary" : "bg-secondary text-navy hover:bg-secondary"}`}>
+                      className={`cursor-pointer rounded-full text-xs transition-all ${techs.includes(t) ? "bg-primary text-white shadow-sm hover:bg-primary" : "bg-black/[0.04] text-navy/80 hover:bg-white/80 border border-white/60"}`}>
                       {t}
                     </Badge>
                   ))}
