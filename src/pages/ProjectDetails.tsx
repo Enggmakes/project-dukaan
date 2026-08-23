@@ -1,5 +1,5 @@
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot, Heart } from "lucide-react";
+import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot, Heart, Headphones, Terminal, Layers, Cpu, Code2, Wrench } from "lucide-react";
 import { useState, useEffect } from "react";
 import { load } from '@cashfreepayments/cashfree-js';
 import { Helmet } from 'react-helmet-async';
@@ -12,7 +12,40 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
-const includeIcons: Record<string, any> = { "Source Code (.zip)": Download, "Documentation (PDF)": FileText, "Dataset": Database, "Demo Video": Video, "Report Template (DOCX)": FileText };
+const getIncludeIcon = (text: string) => {
+  const lower = (text || "").toLowerCase();
+  
+  // Code, Repository, Source, ZIP
+  if (lower.includes("code") || lower.includes("zip") || lower.includes("github") || lower.includes("repo") || lower.includes("source") || lower.includes("blueprint")) {
+    return Download;
+  }
+  // Database, SQL, Schemas, Datasets, CSV, JSON data
+  if (lower.includes("sql") || lower.includes("data") || lower.includes("db") || lower.includes("schema") || lower.includes("dataset") || lower.includes("csv") || lower.includes("supabase")) {
+    return Database;
+  }
+  // Video, Walkthrough, Demo, Recording, Tutorial
+  if (lower.includes("video") || lower.includes("walkthrough") || lower.includes("demo") || lower.includes("recording") || lower.includes("tutorial") || lower.includes("guide") || lower.includes("stream")) {
+    return Video;
+  }
+  // Support, Bug fixes, Maintenance, Consultation, Warranty, Help
+  if (lower.includes("support") || lower.includes("fix") || lower.includes("bug") || lower.includes("maintenance") || lower.includes("consult") || lower.includes("help") || lower.includes("setup")) {
+    return Headphones;
+  }
+  // API, Postman, Endpoint, Terminal, Script, CLI, Webhook
+  if (lower.includes("api") || lower.includes("postman") || lower.includes("script") || lower.includes("endpoint") || lower.includes("webhook") || lower.includes("cli")) {
+    return Terminal;
+  }
+  // UI / UX, Figma, Assets, Design, Wireframe, Icons
+  if (lower.includes("figma") || lower.includes("ui") || lower.includes("ux") || lower.includes("design") || lower.includes("asset") || lower.includes("wireframe") || lower.includes("template")) {
+    return Layers;
+  }
+  // Hardware, Kit, IoT, Sensor, PCB, Robotics, Circuit, BOM
+  if (lower.includes("hardware") || lower.includes("kit") || lower.includes("sensor") || lower.includes("robot") || lower.includes("iot") || lower.includes("circuit") || lower.includes("pcb") || lower.includes("bom")) {
+    return Cpu;
+  }
+  // Documentation, PDF, Reports, Docs
+  return FileText;
+};
 
 export default function ProjectDetails() {
   const { id } = useParams();
@@ -381,10 +414,15 @@ export default function ProjectDetails() {
                 </Button>
                 <div className="mt-5 pt-5 border-t border-border">
                   <h4 className="font-medium text-navy mb-3 text-sm">What's included</h4>
-                  <ul className="space-y-2">
+                  <ul className="space-y-2.5">
                     {(project.includes || []).length > 0 ? (project.includes || []).map(i => {
-                      const Icon = includeIcons[i] ?? FileText;
-                      return <li key={i} className="flex items-center gap-2 text-sm text-navy/80"><Icon className="w-4 h-4 text-primary" />{i}</li>;
+                      const Icon = getIncludeIcon(i);
+                      return (
+                        <li key={i} className="flex items-center gap-2.5 text-sm text-navy/85">
+                          <Icon className="w-4 h-4 text-primary shrink-0" />
+                          <span>{i}</span>
+                        </li>
+                      );
                     }) : <li className="text-sm text-navy/60">Source code included</li>}
                   </ul>
                 </div>
