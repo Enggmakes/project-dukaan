@@ -15,15 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { CATEGORIES } from "@/lib/mockData";
 import { toast } from "sonner";
 
-const LEADS = [
-  { id: "LD-2104", name: "Aarav Khanna", project: "AI Resume Screener", category: "AI & ML", budget: "₹15k–50k", status: "New", date: "2h ago" },
-  { id: "LD-2103", name: "Priya Iyer", project: "Smart Mirror IoT", category: "IoT", budget: "₹5k–15k", status: "Contacted", date: "5h ago" },
-  { id: "LD-2102", name: "Marco Rossi", project: "GPT Support Bot", category: "AI & ML", budget: "₹50k+", status: "Quoted", date: "1d ago" },
-  { id: "LD-2101", name: "Sneha Patil", project: "Lane Detection", category: "Computer Vision", budget: "₹15k–50k", status: "Won", date: "2d ago" },
-  { id: "LD-2100", name: "Rohan Mehta", project: "NFT Marketplace", category: "Blockchain", budget: "₹50k+", status: "New", date: "2d ago" },
-  { id: "LD-2099", name: "Yusuf Ahmed", project: "Crop Detector", category: "Deep Learning", budget: "<₹5k", status: "Lost", date: "3d ago" },
-  { id: "LD-2098", name: "Ananya Sharma", project: "Fitness Tracker App", category: "Mobile", budget: "₹15k–50k", status: "Contacted", date: "4d ago" },
-];
+
 
 const statusColor: Record<string, string> = {
   New: "bg-primary/10 text-primary",
@@ -62,7 +54,7 @@ export default function AdminDashboard() {
 
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
-  const [leads, setLeads] = useState<any[]>(LEADS);
+  const [leads, setLeads] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("leads");
@@ -86,7 +78,7 @@ export default function AdminDashboard() {
           date: new Date(d.created_at).toLocaleDateString(),
           document_url: d.document_url
         }));
-        setLeads([...formattedLeads, ...LEADS]);
+        setLeads(formattedLeads);
       }
     });
 

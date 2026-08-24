@@ -5,7 +5,7 @@ import Layout from "@/components/Layout";
 import { Helmet } from "react-helmet-async";
 import ProjectCard from "@/components/ProjectCard";
 import MeshGradient from "@/components/MeshGradient";
-import { CATEGORIES, PROJECTS, Project } from "@/lib/mockData";
+import { CATEGORIES, Project } from "@/lib/mockData";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -34,9 +34,9 @@ export default function Marketplace() {
   useEffect(() => {
     supabase.from("projects").select("*").order("created_at", { ascending: false }).then(({ data }) => {
       if (data) {
-        setProjects([...(data as Project[]), ...PROJECTS]);
+        setProjects(data as Project[]);
       } else {
-        setProjects([...PROJECTS]);
+        setProjects([]);
       }
       setIsLoading(false);
     });

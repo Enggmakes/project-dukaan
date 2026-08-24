@@ -5,7 +5,7 @@ import { load } from '@cashfreepayments/cashfree-js';
 import { Helmet } from 'react-helmet-async';
 import Layout from "@/components/Layout";
 import ProjectCard from "@/components/ProjectCard";
-import { Project, PROJECTS } from "@/lib/mockData";
+import { Project } from "@/lib/mockData";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -272,19 +272,14 @@ export default function ProjectDetails() {
   };
 
   useEffect(() => {
-    const mockProject = PROJECTS.find(p => p.id === id);
-    if (mockProject) {
-      setProject(mockProject);
-      setRelated(PROJECTS.filter(p => p.category === mockProject.category && p.id !== mockProject.id).slice(0, 3));
-      return;
-    }
-    
     supabase.from("projects").select("*").eq("id", id).single().then(({ data }) => {
       if (data) {
         setProject(data as Project);
         supabase.from("projects").select("*").eq("category", data.category).neq("id", data.id).limit(3).then(({ data: rData }) => {
           if (rData) setRelated(rData as Project[]);
         });
+      } else {
+        setProject(null);
       }
     });
   }, [id]);

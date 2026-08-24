@@ -40,58 +40,7 @@ export interface Project {
   price_note?: string;
 }
 
-const grad = (a: string, b: string) =>
-  `linear-gradient(135deg, ${a}, ${b})`;
-
-const thumbs = [
-  grad("#fef3c7", "#fbbf24"),
-  grad("#e0e7ff", "#6366f1"),
-  grad("#fce7f3", "#ec4899"),
-  grad("#dcfce7", "#10b981"),
-  grad("#fee2e2", "#ef4444"),
-  grad("#ede9fe", "#8b5cf6"),
-  grad("#dbeafe", "#3b82f6"),
-  grad("#ffedd5", "#f97316"),
-  grad("#cffafe", "#06b6d4"),
-];
-
-const titles: Array<[string, Category, string[], number]> = [
-  ["Real-Time Face Recognition Attendance", "Computer Vision", ["Python", "OpenCV", "Flask", "PostgreSQL"], 4900],
-  ["AI-Powered Resume Screener", "AI & Machine Learning", ["Python", "spaCy", "FastAPI", "React"], 3900],
-  ["Smart Crop Disease Detector", "Deep Learning", ["TensorFlow", "Keras", "Streamlit"], 4500],
-  ["Autonomous Line Follower Bot", "Robotics", ["Arduino", "C++", "IR Sensors"], 2900],
-  ["IoT Home Automation Hub", "IoT", ["ESP32", "MQTT", "Node-RED"], 3500],
-  ["E-Commerce SaaS Starter", "Web Development", ["Next.js", "Stripe", "Postgres"], 6900],
-  ["NFT Marketplace dApp", "Blockchain", ["Solidity", "Hardhat", "Next.js"], 7900],
-  ["Intrusion Detection System", "Cybersecurity", ["Python", "Scikit-learn", "Snort"], 5500],
-  ["GPT-Powered Customer Support Bot", "AI & Machine Learning", ["LangChain", "OpenAI", "Next.js"], 6500],
-  ["Lane Detection for Self-Driving", "Computer Vision", ["PyTorch", "OpenCV"], 5200],
-  ["Voice-Controlled Smart Mirror", "IoT", ["Raspberry Pi", "Python", "Snowboy"], 4800],
-];
-
-export const PROJECTS: Project[] = titles.map(([title, category, tech, price], i) => ({
-  id: `prj-${i + 1}`,
-  title,
-  short: `Production-ready ${category.toLowerCase()} project with full source code, documentation, and deployment guide.`,
-  description: `A polished end-to-end ${category} solution engineered for real-world deployment. Includes complete source code, detailed architecture documentation, dataset, training pipeline and a step-by-step setup guide so you can ship in a weekend.`,
-  category,
-  difficulty: (["Beginner", "Intermediate", "Advanced"] as const)[i % 3],
-  price,
-  rating: 4.4 + ((i * 7) % 6) / 10,
-  reviews: 24 + i * 11,
-  tech,
-  features: [
-    "Clean, modular, well-commented source code",
-    "Pre-trained models & sample datasets",
-    "Step-by-step deployment instructions",
-    "Architecture diagrams & flowcharts",
-    "Free updates for 12 months",
-    "Email support from the engineering team",
-  ],
-  includes: ["Source Code (.zip)", "Documentation (PDF)", "Dataset", "Demo Video", "Report Template (DOCX)"],
-  thumb: thumbs[i % thumbs.length],
-  delivery_type: (category === "Robotics" || category === "IoT") ? "physical" : "digital",
-}));
+export const PROJECTS: Project[] = [];
 
 export const STATS = [
   { label: "Projects shipped", value: "12,400+" },

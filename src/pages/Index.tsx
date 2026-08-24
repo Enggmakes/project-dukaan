@@ -11,7 +11,7 @@ import { Helmet } from "react-helmet-async";
 import ProjectCard from "@/components/ProjectCard";
 import MeshGradient from "@/components/MeshGradient";
 import React, { useEffect } from "react";
-import { CATEGORIES, CATEGORY_META, FAQS, Project, PROJECTS } from "@/lib/mockData";
+import { CATEGORIES, CATEGORY_META, FAQS, Project } from "@/lib/mockData";
 import { supabase } from "@/lib/supabase";
 
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {error: Error | null}> {
@@ -37,8 +37,7 @@ export default function Home() {
 
   useEffect(() => {
     supabase.from("projects").select("*").order("created_at", { ascending: false }).limit(6).then(({ data }) => {
-      const dbProjects = (data || []) as Project[];
-      setProjects([...dbProjects, ...PROJECTS].slice(0, 6));
+      setProjects((data || []) as Project[]);
     });
 
     // Real project count
