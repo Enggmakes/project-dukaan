@@ -18,13 +18,13 @@ import { toast } from "sonner";
 
 
 const statusColor: Record<string, string> = {
-  New: "bg-primary/10 text-primary",
-  Reviewing: "bg-sky-100 text-sky-700",
-  Contacted: "bg-amber-100 text-amber-700",
-  Quoted: "bg-violet-100 text-violet-700",
-  "In Progress": "bg-orange-100 text-orange-700",
-  Delivered: "bg-emerald-100 text-emerald-700",
-  Cancelled: "bg-rose-100 text-rose-700",
+  New: "bg-indigo-50 text-indigo-700 border border-indigo-200/80 font-medium",
+  Reviewing: "bg-sky-50 text-sky-700 border border-sky-200/80 font-medium",
+  Contacted: "bg-amber-50 text-amber-700 border border-amber-200/80 font-medium",
+  Quoted: "bg-purple-50 text-purple-700 border border-purple-200/80 font-medium",
+  "In Progress": "bg-blue-50 text-blue-700 border border-blue-200/80 font-medium",
+  Delivered: "bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-medium",
+  Cancelled: "bg-rose-50 text-rose-700 border border-rose-200/80 font-medium",
 };
 
 export default function AdminDashboard() {
@@ -180,7 +180,7 @@ export default function AdminDashboard() {
           const { data: ssUrlData } = supabase.storage.from('project-images').getPublicUrl(fileName);
           newUrls.push(ssUrlData.publicUrl);
         }
-        screenshotUrls = newUrls;
+        screenshotUrls = [...screenshotUrls, ...newUrls];
       }
 
       let videoUrl = editingProject.video_url;
@@ -399,64 +399,61 @@ export default function AdminDashboard() {
   return (
     <Layout>
       <section className="container-px py-8">
-        <div className="max-w-7xl mx-auto bg-chocolate rounded-[2rem] p-4 sm:p-6 md:p-10 shadow-chocolate border border-white/10 relative overflow-hidden">
-          <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#6E5BFF]/15 blur-3xl" />
-          <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-[#8B5CF6]/15 blur-3xl" />
-
-          <div className="relative">
+        <div className="max-w-7xl mx-auto bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.06)] border border-slate-200/80 relative">
+          <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
               <div>
-                <div className="text-white/50 text-xs uppercase tracking-widest">Admin</div>
-                <h1 className="text-display text-3xl md:text-4xl text-white mt-1">Dashboard</h1>
+                <div className="text-indigo-600 font-semibold text-xs uppercase tracking-widest">Management Console</div>
+                <h1 className="text-display text-3xl md:text-4xl text-slate-900 font-bold mt-1">Admin Dashboard</h1>
               </div>
               <div className="flex items-center gap-3 self-start sm:self-auto">
                 {/* Dynamic Notification Bell */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="w-10 h-10 rounded-full glass-chocolate grid place-items-center text-white relative hover:bg-white/10 transition-colors">
+                    <button className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 grid place-items-center text-slate-700 relative hover:bg-slate-200/80 hover:text-slate-900 transition-colors">
                       <Bell className="w-4 h-4" />
                       {(leads.filter(l => l.status === "New" && l.rawId).length + 
                         messages.filter(m => !readMessages.includes(m.id)).length +
                         orders.filter(o => o.status === "Processing").length) > 0 && (
-                        <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#8B5CF6] animate-pulse" />
+                        <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
                       )}
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-72 bg-[#241B38] border-white/10 text-white p-2 shadow-chocolate">
-                    <div className="px-3 py-1.5 text-xs text-white/50 uppercase tracking-wider font-semibold">Notifications</div>
-                    <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuContent align="end" className="w-72 bg-white border-slate-200 text-slate-900 p-2 shadow-xl rounded-2xl">
+                    <div className="px-3 py-1.5 text-xs text-slate-400 uppercase tracking-wider font-semibold">Notifications</div>
+                    <DropdownMenuSeparator className="bg-slate-100" />
                     
                     {orders.filter(o => o.status === "Processing").map(o => (
                       <DropdownMenuItem key={o.id} onClick={() => { setActiveTab("orders"); }}
-                        className="text-sm p-3 hover:bg-white/5 rounded-lg flex flex-col items-start gap-1 cursor-pointer">
-                        <span className="font-semibold text-emerald-450">New Purchase (₹{o.amount})</span>
-                        <span className="text-xs text-white/70">{o.customer_name} bought "{o.project_title}"</span>
-                        <span className="text-[10px] text-white/40">{new Date(o.created_at).toLocaleDateString()}</span>
+                        className="text-sm p-3 hover:bg-slate-50 rounded-lg flex flex-col items-start gap-1 cursor-pointer">
+                        <span className="font-semibold text-emerald-600">New Purchase (₹{o.amount})</span>
+                        <span className="text-xs text-slate-600">{o.customer_name} bought "{o.project_title}"</span>
+                        <span className="text-[10px] text-slate-400">{new Date(o.created_at).toLocaleDateString()}</span>
                       </DropdownMenuItem>
                     ))}
 
                     {leads.filter(l => l.status === "New" && l.rawId).map(l => (
                       <DropdownMenuItem key={l.id} onClick={() => handleNotificationClickLead(l)}
-                        className="text-sm p-3 hover:bg-white/5 rounded-lg flex flex-col items-start gap-1 cursor-pointer">
-                        <span className="font-semibold text-white">New Lead Request</span>
-                        <span className="text-xs text-white/70">{l.name} wants custom "{l.project}"</span>
-                        <span className="text-[10px] text-white/40">{l.date}</span>
+                        className="text-sm p-3 hover:bg-slate-50 rounded-lg flex flex-col items-start gap-1 cursor-pointer">
+                        <span className="font-semibold text-slate-900">New Lead Request</span>
+                        <span className="text-xs text-slate-600">{l.name} wants custom "{l.project}"</span>
+                        <span className="text-[10px] text-slate-400">{l.date}</span>
                       </DropdownMenuItem>
                     ))}
                     
                     {messages.filter(m => !readMessages.includes(m.id)).map(m => (
                       <DropdownMenuItem key={m.id} onClick={() => handleNotificationClickMessage(m.id)}
-                        className="text-sm p-3 hover:bg-white/5 rounded-lg flex flex-col items-start gap-1 cursor-pointer">
-                        <span className="font-semibold text-white">New Support Message</span>
-                        <span className="text-xs text-white/70">From {m.name}: "{m.message}"</span>
-                        <span className="text-[10px] text-white/40">{new Date(m.created_at).toLocaleDateString()}</span>
+                        className="text-sm p-3 hover:bg-slate-50 rounded-lg flex flex-col items-start gap-1 cursor-pointer">
+                        <span className="font-semibold text-slate-900">New Support Message</span>
+                        <span className="text-xs text-slate-600">From {m.name}: "{m.message}"</span>
+                        <span className="text-[10px] text-slate-400">{new Date(m.created_at).toLocaleDateString()}</span>
                       </DropdownMenuItem>
                     ))}
                     
                     {(leads.filter(l => l.status === "New" && l.rawId).length + 
                       messages.filter(m => !readMessages.includes(m.id)).length +
                       orders.filter(o => o.status === "Processing").length) === 0 && (
-                      <div className="py-6 text-center text-xs text-white/40">No new notifications</div>
+                      <div className="py-6 text-center text-xs text-slate-400">No new notifications</div>
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -464,19 +461,19 @@ export default function AdminDashboard() {
                 {/* AD Profile Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-2 glass-chocolate rounded-full px-3 py-1.5 text-white text-sm hover:bg-white/10 transition-colors">
-                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#6E5BFF] to-[#8B5CF6] grid place-items-center text-xs font-semibold text-white">AD</div>
-                      Admin <ChevronDown className="w-3 h-3 text-white/60" />
+                    <button className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-full px-3 py-1.5 text-slate-700 text-sm hover:bg-slate-200/80 hover:text-slate-900 transition-colors">
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 grid place-items-center text-xs font-semibold text-white">AD</div>
+                      Admin <ChevronDown className="w-3 h-3 text-slate-400" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 bg-[#241B38] border-white/10 text-white p-1 shadow-chocolate">
-                    <div className="px-2 py-1 text-xs text-white/40 truncate">workspace7204@gmail.com</div>
-                    <DropdownMenuSeparator className="bg-white/10" />
-                    <DropdownMenuItem onClick={() => navigate("/")} className="flex items-center gap-2 cursor-pointer text-white/80 hover:text-white rounded-md">
+                  <DropdownMenuContent align="end" className="w-48 bg-white border-slate-200 text-slate-900 p-1 shadow-xl rounded-xl">
+                    <div className="px-2 py-1 text-xs text-slate-400 truncate">workspace7204@gmail.com</div>
+                    <DropdownMenuSeparator className="bg-slate-100" />
+                    <DropdownMenuItem onClick={() => navigate("/")} className="flex items-center gap-2 cursor-pointer text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-md">
                       <Globe className="w-4 h-4" /> Go to Website
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-white/10" />
-                    <DropdownMenuItem onClick={async () => { await supabase.auth.signOut(); navigate("/"); }} className="flex items-center gap-2 cursor-pointer text-rose-400 hover:text-rose-300 rounded-md">
+                    <DropdownMenuSeparator className="bg-slate-100" />
+                    <DropdownMenuItem onClick={async () => { await supabase.auth.signOut(); navigate("/"); }} className="flex items-center gap-2 cursor-pointer text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-md">
                       <LogOut className="w-4 h-4" /> Sign Out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -486,45 +483,48 @@ export default function AdminDashboard() {
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:-mx-0 sm:px-0">
-                <TabsList className="mb-8 bg-white/5 border border-white/10 rounded-full px-1 py-1 h-auto flex w-max sm:w-auto min-w-full sm:min-w-0">
-                  <TabsTrigger value="leads" className="text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#6E5BFF] data-[state=active]:to-[#8B5CF6] data-[state=active]:text-white data-[state=active]:shadow-[0_10px_20px_rgba(110,91,255,0.2)] rounded-full px-6 py-2 whitespace-nowrap flex-1 text-center transition-all">Leads</TabsTrigger>
-                  <TabsTrigger value="projects" className="text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#6E5BFF] data-[state=active]:to-[#8B5CF6] data-[state=active]:text-white data-[state=active]:shadow-[0_10px_20px_rgba(110,91,255,0.2)] rounded-full px-6 py-2 whitespace-nowrap flex-1 text-center transition-all">Manage Projects</TabsTrigger>
-                  <TabsTrigger value="orders" className="text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#6E5BFF] data-[state=active]:to-[#8B5CF6] data-[state=active]:text-white data-[state=active]:shadow-[0_10px_20px_rgba(110,91,255,0.2)] rounded-full px-6 py-2 whitespace-nowrap flex-1 text-center transition-all">Orders</TabsTrigger>
-                  <TabsTrigger value="messages" className="text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#6E5BFF] data-[state=active]:to-[#8B5CF6] data-[state=active]:text-white data-[state=active]:shadow-[0_10px_20px_rgba(110,91,255,0.2)] rounded-full px-6 py-2 whitespace-nowrap flex-1 text-center transition-all">Messages</TabsTrigger>
+                <TabsList className="mb-8 bg-slate-100 border border-slate-200/80 rounded-full p-1 h-auto flex w-max sm:w-auto min-w-full sm:min-w-0">
+                  <TabsTrigger value="leads" className="text-slate-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-full px-6 py-2 whitespace-nowrap flex-1 text-center font-medium transition-all">Leads ({leads.length})</TabsTrigger>
+                  <TabsTrigger value="projects" className="text-slate-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-full px-6 py-2 whitespace-nowrap flex-1 text-center font-medium transition-all">Manage Projects ({dbProjects.length})</TabsTrigger>
+                  <TabsTrigger value="orders" className="text-slate-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-full px-6 py-2 whitespace-nowrap flex-1 text-center font-medium transition-all">Orders ({orders.length})</TabsTrigger>
+                  <TabsTrigger value="messages" className="text-slate-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-full px-6 py-2 whitespace-nowrap flex-1 text-center font-medium transition-all">Messages ({messages.length})</TabsTrigger>
                 </TabsList>
               </div>
 
-              <TabsContent value="leads" className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <TabsContent value="leads" className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                   {[
-                    { icon: TrendingUp, label: "New leads (7d)", value: "184", delta: "+22%" },
-                    { icon: Users, label: "Total contacts", value: "2,841", delta: "+8%" },
-                    { icon: IndianRupee, label: "Pipeline value", value: "₹18.4L", delta: "+34%" },
-                    { icon: Activity, label: "Conversion", value: "27.4%", delta: "+3%" },
+                    { icon: TrendingUp, label: "Total Leads", value: String(leads.length), delta: "+12%" },
+                    { icon: Users, label: "Live Projects", value: String(dbProjects.length), delta: "Published" },
+                    { icon: IndianRupee, label: "Orders Placed", value: String(orders.length), delta: "Lifetime" },
+                    { icon: Activity, label: "Inquiries", value: String(messages.length), delta: "Direct" },
                   ].map(s => (
-                    <div key={s.label} className="glass-chocolate rounded-2xl p-5 shadow-chocolate">
+                    <div key={s.label} className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 hover:bg-white hover:border-indigo-200 transition-all">
                       <div className="flex items-center justify-between">
-                        <s.icon className="w-4 h-4 text-[#8B5CF6]" />
-                        <span className="text-xs text-emerald-400">{s.delta}</span>
+                        <s.icon className="w-4 h-4 text-indigo-600" />
+                        <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{s.delta}</span>
                       </div>
-                      <div className="text-white text-3xl font-semibold mt-3">{s.value}</div>
-                      <div className="text-white/60 text-xs mt-1">{s.label}</div>
+                      <div className="text-slate-900 text-3xl font-bold mt-3">{s.value}</div>
+                      <div className="text-slate-500 text-xs mt-1 font-medium">{s.label}</div>
                     </div>
                   ))}
                 </div>
 
-                <div className="glass-chocolate rounded-2xl p-4 sm:p-5 shadow-chocolate">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-5 gap-4">
-                    <h3 className="text-white font-medium">Custom project requests</h3>
+                <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-sm">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                    <div>
+                      <h3 className="text-slate-900 font-semibold text-lg">Custom Project Requests</h3>
+                      <p className="text-slate-500 text-xs mt-0.5">Manage and quote incoming client engineering requests</p>
+                    </div>
                     <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center w-full sm:w-auto">
-                      <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="flex items-center gap-2 rounded-full px-3 w-full sm:w-64">
-                        <Search className="w-4 h-4 text-white/40 shrink-0" />
+                      <div className="flex items-center gap-2 rounded-full px-3 bg-slate-50 border border-slate-200 w-full sm:w-64">
+                        <Search className="w-4 h-4 text-slate-400 shrink-0" />
                         <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search leads…"
-                          className="border-0 bg-transparent text-white placeholder:text-white/40 focus-visible:ring-0 h-9" />
+                          className="border-0 bg-transparent text-slate-900 placeholder:text-slate-400 focus-visible:ring-0 h-9 text-xs" />
                       </div>
                       <Select value={status} onValueChange={setStatus}>
-                        <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="w-full sm:w-36 rounded-full text-white"><SelectValue /></SelectTrigger>
-                        <SelectContent className="bg-[#241B38] border-white/10 text-white">
+                        <SelectTrigger className="w-full sm:w-36 rounded-full bg-slate-50 border-slate-200 text-slate-800 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-xl">
                           <SelectItem value="all">All status</SelectItem>
                           {["New", "Reviewing", "Contacted", "Quoted", "In Progress", "Delivered", "Cancelled"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                         </SelectContent>
@@ -535,63 +535,63 @@ export default function AdminDashboard() {
                   <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:-mx-0 sm:px-0">
                     <table className="w-full text-sm min-w-[800px]">
                       <thead>
-                        <tr className="text-white/50 text-xs uppercase tracking-wider">
+                        <tr className="text-slate-400 text-xs uppercase tracking-wider border-b border-slate-100 bg-slate-50/50">
                           {["ID", "Name", "Project", "Category", "Budget", "Status", "Submitted", ""].map(h => (
-                            <th key={h} className="text-left py-3 px-3 font-normal">{h}</th>
+                            <th key={h} className="text-left py-3 px-3 font-semibold text-[11px]">{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {filtered.map(l => (
-                          <tr key={l.id} className="border-t border-white/5 hover:bg-white/5 transition-colors">
-                            <td className="py-3 px-3 text-white/60 font-mono text-xs">{l.id}</td>
-                            <td className="py-3 px-3 text-white font-medium">{l.name}</td>
-                            <td className="py-3 px-3 text-white/80">{l.project}</td>
-                            <td className="py-3 px-3 text-white/60">{l.category}</td>
-                            <td className="py-3 px-3 text-white/80">{l.budget}</td>
-                            <td className="py-3 px-3"><Badge className={`${statusColor[l.status]} rounded-full border-0`}>{l.status}</Badge></td>
-                            <td className="py-3 px-3 text-white/50">{l.date}</td>
-                            <td className="py-3 px-3">
+                          <tr key={l.id} className="border-t border-slate-100 hover:bg-slate-50/60 transition-colors">
+                            <td className="py-3 px-3 text-slate-500 font-mono text-xs font-semibold">{l.id}</td>
+                            <td className="py-3 px-3 text-slate-900 font-medium">{l.name}</td>
+                            <td className="py-3 px-3 text-slate-700">{l.project}</td>
+                            <td className="py-3 px-3 text-slate-500">{l.category}</td>
+                            <td className="py-3 px-3 text-slate-900 font-semibold">{l.budget}</td>
+                            <td className="py-3 px-3"><Badge className={`${statusColor[l.status] || "bg-slate-100 text-slate-700"} rounded-full text-xs py-0.5`}>{l.status}</Badge></td>
+                            <td className="py-3 px-3 text-slate-500 text-xs">{l.date}</td>
+                            <td className="py-3 px-3 text-right">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <button className="text-white/40 hover:text-white p-1 rounded hover:bg-white/10 transition-colors">
+                                  <button className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
                                     <MoreHorizontal className="w-4 h-4" />
                                   </button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-52 bg-[#241B38] border-white/10 text-white">
+                                <DropdownMenuContent align="end" className="w-52 bg-white border-slate-200 text-slate-900 shadow-xl rounded-xl">
                                   {l.document_url && (
                                     <>
                                       <DropdownMenuItem asChild>
-                                        <a href={l.document_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 cursor-pointer font-medium">
+                                        <a href={l.document_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 cursor-pointer font-medium hover:bg-slate-50">
                                           <Download className="w-4 h-4" /> Download Document
                                         </a>
                                       </DropdownMenuItem>
-                                      <DropdownMenuSeparator className="bg-white/10" />
+                                      <DropdownMenuSeparator className="bg-slate-100" />
                                     </>
                                   )}
                                   {l.email && (
                                     <DropdownMenuItem asChild>
-                                      <a href={`mailto:${l.email}`} className="flex items-center gap-2 text-white/80 hover:text-white cursor-pointer">
+                                      <a href={`mailto:${l.email}`} className="flex items-center gap-2 text-slate-700 hover:text-slate-900 hover:bg-slate-50 cursor-pointer">
                                         <Mail className="w-4 h-4" /> Contact via Email
                                       </a>
                                     </DropdownMenuItem>
                                   )}
-                                  <DropdownMenuSeparator className="bg-white/10" />
-                                  <div className="px-2 py-1 text-white/40 text-xs uppercase tracking-wider">Set Status</div>
+                                  <DropdownMenuSeparator className="bg-slate-100" />
+                                  <div className="px-2 py-1 text-slate-400 text-[10px] uppercase tracking-wider font-semibold">Set Status</div>
                                   {["New", "Reviewing", "Contacted", "Quoted", "In Progress", "Delivered", "Cancelled"].map(s => (
                                     <DropdownMenuItem key={s} onClick={() => updateLeadStatus(l, s)}
-                                      className={`flex items-center gap-2 cursor-pointer ${l.status === s ? "text-[#8B5CF6] font-semibold" : "text-white/80 hover:text-white"
+                                      className={`flex items-center gap-2 cursor-pointer hover:bg-slate-50 ${l.status === s ? "text-indigo-600 font-semibold" : "text-slate-700"
                                         }`}>
-                                      {l.status === s && <CheckCircle className="w-3 h-3 text-[#8B5CF6]" />}
+                                      {l.status === s && <CheckCircle className="w-3 h-3 text-indigo-600" />}
                                       {l.status !== s && <span className="w-3" />}
                                       {s}
                                     </DropdownMenuItem>
                                   ))}
                                   {l.rawId && (
                                     <>
-                                      <DropdownMenuSeparator className="bg-white/10" />
+                                      <DropdownMenuSeparator className="bg-slate-100" />
                                       <DropdownMenuItem onClick={() => deleteLead(l)}
-                                        className="flex items-center gap-2 text-rose-450 hover:text-rose-400 cursor-pointer">
+                                        className="flex items-center gap-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 cursor-pointer">
                                         <Trash2 className="w-4 h-4" /> Delete Lead
                                       </DropdownMenuItem>
                                     </>
@@ -603,23 +603,23 @@ export default function AdminDashboard() {
                         ))}
                       </tbody>
                     </table>
-                    {filtered.length === 0 && <div className="text-center py-10 text-white/50 text-sm">No leads match</div>}
+                    {filtered.length === 0 && <div className="text-center py-12 text-slate-400 text-sm">No custom project requests found</div>}
                   </div>
                 </div>
               </TabsContent>
 
-              <TabsContent value="projects" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <TabsContent value="projects" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <div className="space-y-6">
                   {/* Sub navigation between Added Projects and Upload New */}
-                  <div className="flex items-center justify-between flex-wrap gap-4 bg-white/5 border border-white/10 rounded-2xl p-2.5">
+                  <div className="flex items-center justify-between flex-wrap gap-4 bg-slate-50 border border-slate-200 rounded-2xl p-2">
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setProjectSubTab("list")}
                         className={`rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                           projectSubTab === "list"
-                            ? "bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white shadow-md"
-                            : "text-white/70 hover:text-white hover:bg-white/10"
+                            ? "bg-indigo-600 text-white shadow-sm"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
                         }`}
                       >
                         <Layers className="w-3.5 h-3.5" />
@@ -630,8 +630,8 @@ export default function AdminDashboard() {
                         onClick={() => setProjectSubTab("add")}
                         className={`rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                           projectSubTab === "add"
-                            ? "bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white shadow-md"
-                            : "text-white/70 hover:text-white hover:bg-white/10"
+                            ? "bg-indigo-600 text-white shadow-sm"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
                         }`}
                       >
                         <Plus className="w-3.5 h-3.5" />
@@ -645,7 +645,7 @@ export default function AdminDashboard() {
                       size="sm"
                       onClick={fetchDbProjects}
                       disabled={isLoadingProjects}
-                      className="text-white/60 hover:text-white hover:bg-white/10 h-8 px-3 text-xs rounded-xl border-0"
+                      className="text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 h-8 px-3 text-xs rounded-xl border-0"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isLoadingProjects ? "animate-spin" : ""}`} />
                       Refresh
@@ -653,37 +653,37 @@ export default function AdminDashboard() {
                   </div>
 
                   {projectSubTab === "list" ? (
-                    <div className="glass-chocolate rounded-2xl p-5 md:p-8 shadow-chocolate">
+                    <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-8 shadow-sm">
                       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                         <div>
-                          <h3 className="text-white text-xl font-medium">Your Published Projects</h3>
-                          <p className="text-white/50 text-xs mt-1">Preview your uploaded projects and make instant changes or rewrites.</p>
+                          <h3 className="text-slate-900 text-xl font-bold">Your Published Projects</h3>
+                          <p className="text-slate-500 text-xs mt-1">Preview your uploaded projects and make instant changes or rewrites.</p>
                         </div>
                         <Button
                           onClick={() => setProjectSubTab("add")}
-                          className="bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white h-9 px-4 rounded-xl text-xs font-semibold shadow-sm border-0"
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white h-9 px-4 rounded-xl text-xs font-semibold shadow-sm border-0"
                         >
                           <Plus className="w-3.5 h-3.5 mr-1.5" /> Add Project
                         </Button>
                       </div>
 
                       {isLoadingProjects ? (
-                        <div className="py-16 text-center text-white/50 text-sm">
-                          <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-[#8B5CF6]" />
+                        <div className="py-16 text-center text-slate-500 text-sm">
+                          <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
                           Loading marketplace projects...
                         </div>
                       ) : dbProjects.length === 0 ? (
-                        <div className="py-16 text-center border border-dashed border-white/10 rounded-2xl p-8">
-                          <div className="w-12 h-12 rounded-full bg-white/5 grid place-items-center mx-auto mb-3 text-white/40">
+                        <div className="py-16 text-center border border-dashed border-slate-200 rounded-2xl p-8">
+                          <div className="w-12 h-12 rounded-full bg-slate-100 grid place-items-center mx-auto mb-3 text-slate-400">
                             <Layers className="w-6 h-6" />
                           </div>
-                          <h4 className="text-white font-medium mb-1">No Custom Projects Uploaded Yet</h4>
-                          <p className="text-white/50 text-sm max-w-sm mx-auto mb-5">
+                          <h4 className="text-slate-900 font-semibold mb-1">No Custom Projects Uploaded Yet</h4>
+                          <p className="text-slate-500 text-sm max-w-sm mx-auto mb-5">
                             You haven't added any projects to Supabase yet. Use the Add Project form to publish one.
                           </p>
                           <Button
                             onClick={() => setProjectSubTab("add")}
-                            className="bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white rounded-full px-6 h-10 text-sm"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-6 h-10 text-sm shadow-sm"
                           >
                             <Plus className="w-4 h-4 mr-2" /> Upload First Project
                           </Button>
@@ -693,10 +693,10 @@ export default function AdminDashboard() {
                           {dbProjects.map((p) => (
                             <div
                               key={p.id}
-                              className="bg-white/5 border border-white/10 hover:border-white/20 rounded-2xl overflow-hidden flex flex-col justify-between transition-all group hover:shadow-lg"
+                              className="bg-white border border-slate-200 hover:border-slate-300 rounded-2xl overflow-hidden flex flex-col justify-between transition-all group hover:shadow-md"
                             >
                               {/* Small Version Card Preview */}
-                              <div className="relative aspect-[16/9] bg-black/40 overflow-hidden">
+                              <div className="relative aspect-[16/9] bg-slate-100 overflow-hidden">
                                 {p.thumb ? (
                                   <img
                                     src={p.thumb}
@@ -704,22 +704,22 @@ export default function AdminDashboard() {
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                   />
                                 ) : (
-                                  <div className="w-full h-full grid place-items-center text-white/30">
+                                  <div className="w-full h-full grid place-items-center text-slate-300">
                                     <ImageIcon className="w-8 h-8" />
                                   </div>
                                 )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                                <Badge className="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md text-white text-[10px] border-0 font-medium">
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
+                                <Badge className="absolute top-2.5 left-2.5 bg-white/90 backdrop-blur-md text-slate-900 text-[10px] border border-white/60 font-semibold shadow-sm">
                                   {p.category}
                                 </Badge>
-                                <Badge className="absolute top-2.5 right-2.5 bg-[#6E5BFF]/80 backdrop-blur-md text-white text-[10px] border-0">
+                                <Badge className="absolute top-2.5 right-2.5 bg-slate-900/80 backdrop-blur-md text-white text-[10px] border-0 font-medium">
                                   {p.difficulty || "Beginner"}
                                 </Badge>
-                                <div className="absolute bottom-2 left-2.5 text-xs font-bold text-emerald-400">
+                                <div className="absolute bottom-2 left-2.5 text-xs font-bold text-white">
                                   ₹{Number(p.price).toLocaleString()}
                                 </div>
                                 <div className="absolute bottom-2 right-2.5">
-                                  <Badge className="bg-white/20 backdrop-blur-md text-white text-[10px] border-0">
+                                  <Badge className="bg-white/25 backdrop-blur-md text-white text-[10px] border border-white/20">
                                     {p.delivery_type === "physical" ? "Physical Kit" : "Digital"}
                                   </Badge>
                                 </div>
@@ -728,10 +728,10 @@ export default function AdminDashboard() {
                               {/* Card Content */}
                               <div className="p-4 flex-1 flex flex-col justify-between">
                                 <div>
-                                  <h4 className="text-white font-semibold text-base line-clamp-1 group-hover:text-[#a78bfa] transition-colors" title={p.title}>
+                                  <h4 className="text-slate-900 font-semibold text-base line-clamp-1 group-hover:text-indigo-600 transition-colors" title={p.title}>
                                     {p.title}
                                   </h4>
-                                  <p className="text-white/60 text-xs line-clamp-2 mt-1.5 leading-relaxed">
+                                  <p className="text-slate-600 text-xs line-clamp-2 mt-1.5 leading-relaxed">
                                     {p.description}
                                   </p>
 
@@ -739,12 +739,12 @@ export default function AdminDashboard() {
                                   {Array.isArray(p.tech) && p.tech.length > 0 && (
                                     <div className="flex gap-1.5 flex-wrap mt-3">
                                       {p.tech.slice(0, 3).map((t: string) => (
-                                        <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/80 font-mono">
+                                        <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium border border-slate-200/60">
                                           {t}
                                         </span>
                                       ))}
                                       {p.tech.length > 3 && (
-                                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/5 text-white/40">
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-medium">
                                           +{p.tech.length - 3}
                                         </span>
                                       )}
@@ -753,14 +753,14 @@ export default function AdminDashboard() {
                                 </div>
 
                                 {/* Action Buttons: Make Changes / Rewrite / View / Delete */}
-                                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-white/10">
+                                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100">
                                   <Button
                                     type="button"
                                     size="sm"
                                     onClick={() => openEditModal(p)}
-                                    className="flex-1 bg-gradient-to-r from-[#6E5BFF]/30 to-[#8B5CF6]/30 hover:from-[#6E5BFF]/50 hover:to-[#8B5CF6]/50 text-white border border-[#6E5BFF]/40 h-8 rounded-xl text-xs font-semibold transition-all"
+                                    className="flex-1 bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 hover:border-indigo-200 h-8 rounded-xl text-xs font-semibold transition-all shadow-none"
                                   >
-                                    <Pencil className="w-3.5 h-3.5 mr-1.5 text-[#c4b5fd]" />
+                                    <Pencil className="w-3.5 h-3.5 mr-1.5 text-indigo-600" />
                                     Make Changes
                                   </Button>
 
@@ -768,7 +768,7 @@ export default function AdminDashboard() {
                                     href={`/project/${p.id}`}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white grid place-items-center transition-colors shrink-0"
+                                    className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-600 hover:text-slate-900 grid place-items-center transition-colors shrink-0"
                                     title="View on Website"
                                   >
                                     <ExternalLink className="w-3.5 h-3.5" />
@@ -777,7 +777,7 @@ export default function AdminDashboard() {
                                   <button
                                     type="button"
                                     onClick={() => handleDeleteProject(p.id, p.title)}
-                                    className="w-8 h-8 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 grid place-items-center transition-colors shrink-0 cursor-pointer"
+                                    className="w-8 h-8 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 grid place-items-center transition-colors shrink-0 cursor-pointer"
                                     title="Delete Project"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -791,16 +791,16 @@ export default function AdminDashboard() {
                     </div>
                   ) : (
                     /* ADD NEW PROJECT FORM */
-                    <div className="glass-chocolate rounded-2xl p-6 md:p-8 shadow-chocolate">
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
                       <div className="flex items-center justify-between mb-8">
                         <div>
-                          <h3 className="text-white text-xl font-medium">Add New Project to Marketplace</h3>
-                          <p className="text-white/50 text-xs mt-1">Publish full code, documentation, and pricing to the store.</p>
+                          <h3 className="text-slate-900 text-xl font-bold">Add New Project to Marketplace</h3>
+                          <p className="text-slate-500 text-xs mt-1">Publish full code, documentation, and pricing to the store.</p>
                         </div>
                         <Button
                           variant="ghost"
                           onClick={() => setProjectSubTab("list")}
-                          className="text-white/70 hover:text-white hover:bg-white/10 text-xs h-8 rounded-xl"
+                          className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs h-8 rounded-xl border border-slate-200"
                         >
                           ← Back to Added Projects
                         </Button>
@@ -809,27 +809,27 @@ export default function AdminDashboard() {
                       <form onSubmit={handleAddProject} className="space-y-6">
                         <div className="grid md:grid-cols-2 gap-6">
                           <div className="space-y-2">
-                            <Label className="text-white/80">Project Title</Label>
-                            <Input required value={newProject.title} onChange={e => setNewProject({ ...newProject, title: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="e.g. AI Support Bot" />
+                            <Label className="text-slate-700 font-medium">Project Title</Label>
+                            <Input required value={newProject.title} onChange={e => setNewProject({ ...newProject, title: e.target.value })} className="bg-white border-slate-200 text-slate-900 h-11 focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500" placeholder="e.g. AI Support Bot" />
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-white/80">Category</Label>
+                            <Label className="text-slate-700 font-medium">Category</Label>
                             <Select value={newProject.category} onValueChange={v => setNewProject({ ...newProject, category: v })}>
-                              <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus:ring-1 focus:ring-[#6E5BFF]/40"><SelectValue /></SelectTrigger>
-                              <SelectContent className="bg-[#241B38] border-white/10 text-white">
+                              <SelectTrigger className="bg-white border-slate-200 text-slate-900 h-11 focus:ring-2 focus:ring-indigo-500/20"><SelectValue /></SelectTrigger>
+                              <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-xl">
                                 {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                               </SelectContent>
                             </Select>
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-white/80">Price (₹)</Label>
-                            <Input required type="number" value={newProject.price} onChange={e => setNewProject({ ...newProject, price: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="4900" />
+                            <Label className="text-slate-700 font-medium">Price (₹)</Label>
+                            <Input required type="number" value={newProject.price} onChange={e => setNewProject({ ...newProject, price: e.target.value })} className="bg-white border-slate-200 text-slate-900 h-11 focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500" placeholder="4900" />
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-white/80">Difficulty</Label>
+                            <Label className="text-slate-700 font-medium">Difficulty</Label>
                             <Select value={newProject.difficulty} onValueChange={v => setNewProject({ ...newProject, difficulty: v })}>
-                              <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus:ring-1 focus:ring-[#6E5BFF]/40"><SelectValue /></SelectTrigger>
-                              <SelectContent className="bg-[#241B38] border-white/10 text-white">
+                              <SelectTrigger className="bg-white border-slate-200 text-slate-900 h-11 focus:ring-2 focus:ring-indigo-500/20"><SelectValue /></SelectTrigger>
+                              <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-xl">
                                 <SelectItem value="Beginner">Beginner</SelectItem>
                                 <SelectItem value="Intermediate">Intermediate</SelectItem>
                                 <SelectItem value="Advanced">Advanced</SelectItem>
@@ -837,99 +837,94 @@ export default function AdminDashboard() {
                             </Select>
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-white/80">Delivery Type</Label>
+                            <Label className="text-slate-700 font-medium">Delivery Type</Label>
                             <Select value={newProject.delivery_type} onValueChange={v => setNewProject({ ...newProject, delivery_type: v })}>
-                              <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus:ring-1 focus:ring-[#6E5BFF]/40"><SelectValue /></SelectTrigger>
-                              <SelectContent className="bg-[#241B38] border-white/10 text-white">
+                              <SelectTrigger className="bg-white border-slate-200 text-slate-900 h-11 focus:ring-2 focus:ring-indigo-500/20"><SelectValue /></SelectTrigger>
+                              <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-xl">
                                 <SelectItem value="digital">Digital (Instant Download)</SelectItem>
                                 <SelectItem value="physical">Physical (Hardware/Robotics Kit Shipping)</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div className="space-y-2 md:col-span-2">
-                            <Label className="text-white/80">Description</Label>
-                            <Textarea required value={newProject.description} onChange={e => setNewProject({ ...newProject, description: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white resize-none focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="Short description of the project..." rows={3} />
+                            <Label className="text-slate-700 font-medium">Description</Label>
+                            <Textarea required value={newProject.description} onChange={e => setNewProject({ ...newProject, description: e.target.value })} className="bg-white border-slate-200 text-slate-900 resize-none focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500" placeholder="Short description of the project..." rows={3} />
                           </div>
                           <div className="space-y-2 md:col-span-2">
-                            <Label className="text-white/80">Technologies (comma separated)</Label>
-                            <Input required value={newProject.tech} onChange={e => setNewProject({ ...newProject, tech: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="React, Node.js, Python" />
+                            <Label className="text-slate-700 font-medium">Technologies (comma separated)</Label>
+                            <Input required value={newProject.tech} onChange={e => setNewProject({ ...newProject, tech: e.target.value })} className="bg-white border-slate-200 text-slate-900 h-11 focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500" placeholder="React, Node.js, Python" />
                           </div>
                           <div className="space-y-2 md:col-span-1">
-                            <Label className="text-white/80">Features (one per line)</Label>
-                            <Textarea value={newProject.features} onChange={e => setNewProject({ ...newProject, features: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white resize-none focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="- Admin Dashboard&#10;- Authentication&#10;- Dark Mode" rows={4} />
+                            <Label className="text-slate-700 font-medium">Features (one per line)</Label>
+                            <Textarea value={newProject.features} onChange={e => setNewProject({ ...newProject, features: e.target.value })} className="bg-white border-slate-200 text-slate-900 resize-none focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500" placeholder="- Admin Dashboard&#10;- Authentication&#10;- Dark Mode" rows={4} />
                           </div>
                           <div className="space-y-2 md:col-span-1">
-                            <Label className="text-white/80">What's Included (one per line)</Label>
-                            <Textarea value={newProject.includes} onChange={e => setNewProject({ ...newProject, includes: e.target.value })} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white resize-none focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50" placeholder="Source Code (.zip)&#10;Documentation (PDF)" rows={4} />
+                            <Label className="text-slate-700 font-medium">What's Included (one per line)</Label>
+                            <Textarea value={newProject.includes} onChange={e => setNewProject({ ...newProject, includes: e.target.value })} className="bg-white border-slate-200 text-slate-900 resize-none focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500" placeholder="Source Code (.zip)&#10;Documentation (PDF)" rows={4} />
                           </div>
                           <div className="space-y-2 md:col-span-1">
-                            <Label className="text-white/80">Cover Image</Label>
+                            <Label className="text-slate-700 font-medium">Cover Image</Label>
                             <Input
                               type="file"
                               accept="image/*"
                               required
                               onChange={e => setNewProject({ ...newProject, image: e.target.files?.[0] || null })}
-                              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                              className="text-white h-11 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-4 file:mr-4 file:rounded-md hover:file:bg-white/20"
+                              className="bg-white border-slate-200 text-slate-900 h-11 file:text-slate-700 file:border-0 file:bg-slate-100 file:h-full file:px-4 file:mr-4 file:rounded-md hover:file:bg-slate-200 cursor-pointer"
                             />
                           </div>
                           <div className="space-y-2 md:col-span-1">
-                            <Label className="text-white/80">Screenshots (Multiple)</Label>
+                            <Label className="text-slate-700 font-medium">Screenshots (Multiple)</Label>
                             <Input
                               type="file"
                               accept="image/*"
                               multiple
                               onChange={e => setNewProject({ ...newProject, screenshots: e.target.files })}
-                              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                              className="text-white h-11 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-4 file:mr-4 file:rounded-md hover:file:bg-white/20"
+                              className="bg-white border-slate-200 text-slate-900 h-11 file:text-slate-700 file:border-0 file:bg-slate-100 file:h-full file:px-4 file:mr-4 file:rounded-md hover:file:bg-slate-200 cursor-pointer"
                             />
                           </div>
                           <div className="space-y-2 md:col-span-1">
-                            <Label className="text-white/80">Demo Video (Optional)</Label>
+                            <Label className="text-slate-700 font-medium">Demo Video (Optional)</Label>
                             <Input
                               type="file"
                               accept="video/*"
                               onChange={e => setNewProject({ ...newProject, video: e.target.files?.[0] || null })}
-                              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                              className="text-white h-11 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-4 file:mr-4 file:rounded-md hover:file:bg-white/20"
+                              className="bg-white border-slate-200 text-slate-900 h-11 file:text-slate-700 file:border-0 file:bg-slate-100 file:h-full file:px-4 file:mr-4 file:rounded-md hover:file:bg-slate-200 cursor-pointer"
                             />
                           </div>
                           <div className="space-y-2 md:col-span-1">
-                            <Label className="text-white/80">GitHub Repository ZIP Link (Optional)</Label>
+                            <Label className="text-slate-700 font-medium">GitHub Repository ZIP Link (Optional)</Label>
                             <Input
                               type="url"
                               value={newProject.github_url}
                               onChange={e => setNewProject({ ...newProject, github_url: e.target.value })}
                               placeholder="https://github.com/username/repo/archive/refs/heads/main.zip"
-                              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                              className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50"
+                              className="bg-white border-slate-200 text-slate-900 h-11 focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500"
                             />
                           </div>
                           <div className="space-y-2 md:col-span-2">
-                            <Label className="text-white/80 flex items-center gap-2">
+                            <Label className="text-slate-700 font-medium flex items-center gap-2">
                               <span>Price Note / Extra Cost Note (Optional)</span>
-                              <span className="text-[11px] text-rose-400 font-normal">(Shown in red smallest font above Tech Stack)</span>
+                              <span className="text-[11px] text-rose-500 font-normal">(Shown in red smallest font above Tech Stack)</span>
                             </Label>
                             <Input
                               value={newProject.price_note}
                               onChange={e => setNewProject({ ...newProject, price_note: e.target.value })}
                               placeholder="e.g. * Extra ₹500 for deployment support, or base price includes basic setup only"
-                              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                              className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 focus-visible:border-[#6E5BFF]/50 text-xs"
+                              className="bg-white border-slate-200 text-slate-900 h-11 focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500 text-xs"
                             />
                           </div>
                         </div>
 
-                        <div className="pt-6 flex justify-end gap-3">
+                        <div className="pt-6 flex justify-end gap-3 border-t border-slate-100">
                           <Button
                             type="button"
                             variant="ghost"
                             onClick={() => setProjectSubTab("list")}
-                            className="text-white/70 hover:text-white hover:bg-white/10 border-0"
+                            className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
                           >
                             Cancel
                           </Button>
-                          <Button disabled={isUploading} type="submit" className="bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white px-8 h-12 rounded-full text-base font-semibold shadow-[0_10px_30px_rgba(110,91,255,0.25)] disabled:opacity-50 border-0 transition-all hover:opacity-90">
+                          <Button disabled={isUploading} type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 h-11 rounded-full text-sm font-semibold shadow-sm disabled:opacity-50 border-0 transition-all">
                             <Plus className="w-4 h-4 mr-2" /> {isUploading ? "Publishing..." : "Publish Project"}
                           </Button>
                         </div>
@@ -938,46 +933,50 @@ export default function AdminDashboard() {
                   )}
                 </div>
               </TabsContent>
-              <TabsContent value="messages" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                <div className="glass-chocolate rounded-2xl p-5 shadow-chocolate">
+
+              <TabsContent value="messages" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
                   <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-                    <h3 className="text-white font-medium">Standard Contact Messages</h3>
+                    <div>
+                      <h3 className="text-slate-900 font-semibold text-lg">Standard Contact Messages</h3>
+                      <p className="text-slate-500 text-xs mt-0.5">Inquiries submitted through the contact form</p>
+                    </div>
                   </div>
                   
                   <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:-mx-0 sm:px-0">
                     <table className="w-full text-sm min-w-[700px]">
                       <thead>
-                        <tr className="text-white/50 text-xs uppercase tracking-wider">
-                          <th className="text-left py-3 px-3 font-normal">Sender</th>
-                          <th className="text-left py-3 px-3 font-normal">Email</th>
-                          <th className="text-left py-3 px-3 font-normal">Message</th>
-                          <th className="text-left py-3 px-3 font-normal">Date</th>
-                          <th className="text-left py-3 px-3 font-normal"></th>
+                        <tr className="text-slate-400 text-xs uppercase tracking-wider border-b border-slate-100 bg-slate-50/50">
+                          <th className="text-left py-3 px-3 font-semibold text-[11px]">Sender</th>
+                          <th className="text-left py-3 px-3 font-semibold text-[11px]">Email</th>
+                          <th className="text-left py-3 px-3 font-semibold text-[11px]">Message</th>
+                          <th className="text-left py-3 px-3 font-semibold text-[11px]">Date</th>
+                          <th className="text-left py-3 px-3 font-semibold text-[11px]"></th>
                         </tr>
                       </thead>
                       <tbody>
                         {messages.map(m => (
-                          <tr key={m.id} className="border-t border-white/5 hover:bg-white/5 transition-colors">
-                            <td className="py-4 px-3 text-white font-medium">{m.name}</td>
-                            <td className="py-4 px-3 text-white/70">{m.email}</td>
-                            <td className="py-4 px-3 text-white/60 max-w-xs truncate" title={m.message}>{m.message}</td>
-                            <td className="py-4 px-3 text-white/50">{new Date(m.created_at).toLocaleDateString()}</td>
+                          <tr key={m.id} className="border-t border-slate-100 hover:bg-slate-50/60 transition-colors">
+                            <td className="py-4 px-3 text-slate-900 font-medium">{m.name}</td>
+                            <td className="py-4 px-3 text-slate-600">{m.email}</td>
+                            <td className="py-4 px-3 text-slate-700 max-w-xs truncate" title={m.message}>{m.message}</td>
+                            <td className="py-4 px-3 text-slate-500 text-xs">{new Date(m.created_at).toLocaleDateString()}</td>
                             <td className="py-4 px-3 text-right">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <button className="text-white/40 hover:text-white p-1 rounded hover:bg-white/10 transition-colors">
+                                  <button className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
                                     <MoreHorizontal className="w-4 h-4" />
                                   </button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-52 bg-[#241B38] border-white/10 text-white">
+                                <DropdownMenuContent align="end" className="w-52 bg-white border-slate-200 text-slate-900 shadow-xl rounded-xl">
                                   <DropdownMenuItem asChild>
-                                    <a href={`mailto:${m.email}?subject=Reply to contact request`} className="flex items-center gap-2 text-white/80 hover:text-white cursor-pointer">
+                                    <a href={`mailto:${m.email}?subject=Reply to contact request`} className="flex items-center gap-2 text-slate-700 hover:text-slate-900 hover:bg-slate-50 cursor-pointer">
                                       <Mail className="w-4 h-4" /> Reply via Email
                                     </a>
                                   </DropdownMenuItem>
-                                  <DropdownMenuSeparator className="bg-white/10" />
+                                  <DropdownMenuSeparator className="bg-slate-100" />
                                   <DropdownMenuItem onClick={() => deleteMessage(m.id)}
-                                    className="flex items-center gap-2 text-rose-450 hover:text-rose-400 cursor-pointer">
+                                    className="flex items-center gap-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 cursor-pointer">
                                     <Trash2 className="w-4 h-4" /> Delete Message
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -987,19 +986,22 @@ export default function AdminDashboard() {
                         ))}
                       </tbody>
                     </table>
-                    {messages.length === 0 && <div className="text-center py-10 text-white/50 text-sm">No contact messages yet</div>}
+                    {messages.length === 0 && <div className="text-center py-12 text-slate-400 text-sm">No contact messages yet</div>}
                   </div>
                 </div>
               </TabsContent>
 
-              <TabsContent value="orders" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                <div className="glass-chocolate rounded-2xl p-5 shadow-chocolate">
+              <TabsContent value="orders" className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
                   <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-                    <h3 className="text-white font-medium flex items-center gap-2">
-                      <ShoppingBag className="w-5 h-5 text-[#8B5CF6]" />
-                      Client Order Registry
-                    </h3>
-                    <Badge className="bg-white/10 text-white border border-white/5 rounded-full py-1 px-3">
+                    <div>
+                      <h3 className="text-slate-900 font-semibold text-lg flex items-center gap-2">
+                        <ShoppingBag className="w-5 h-5 text-indigo-600" />
+                        Client Order Registry
+                      </h3>
+                      <p className="text-slate-500 text-xs mt-0.5">Purchases and fulfillment tracking</p>
+                    </div>
+                    <Badge className="bg-slate-100 text-slate-700 border border-slate-200 rounded-full py-1 px-3 font-semibold text-xs">
                       {orders.length} orders total
                     </Badge>
                   </div>
@@ -1007,75 +1009,75 @@ export default function AdminDashboard() {
                   <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:-mx-0 sm:px-0">
                     <table className="w-full text-sm min-w-[900px]">
                       <thead>
-                        <tr className="text-white/50 text-xs uppercase tracking-wider">
-                          <th className="text-left py-3 px-3 font-normal">Order ID</th>
-                          <th className="text-left py-3 px-3 font-normal">Buyer</th>
-                          <th className="text-left py-3 px-3 font-normal">Project Purchased</th>
-                          <th className="text-left py-3 px-3 font-normal">Price</th>
-                          <th className="text-left py-3 px-3 font-normal">Type</th>
-                          <th className="text-left py-3 px-3 font-normal">Shipping Address / Details</th>
-                          <th className="text-left py-3 px-3 font-normal">Status</th>
-                          <th className="text-left py-3 px-3 font-normal">Tracking ID</th>
-                          <th className="text-right py-3 px-3 font-normal"></th>
+                        <tr className="text-slate-400 text-xs uppercase tracking-wider border-b border-slate-100 bg-slate-50/50">
+                          <th className="text-left py-3 px-3 font-semibold text-[11px]">Order ID</th>
+                          <th className="text-left py-3 px-3 font-semibold text-[11px]">Buyer</th>
+                          <th className="text-left py-3 px-3 font-semibold text-[11px]">Project Purchased</th>
+                          <th className="text-left py-3 px-3 font-semibold text-[11px]">Price</th>
+                          <th className="text-left py-3 px-3 font-semibold text-[11px]">Type</th>
+                          <th className="text-left py-3 px-3 font-semibold text-[11px]">Shipping Address / Details</th>
+                          <th className="text-left py-3 px-3 font-semibold text-[11px]">Status</th>
+                          <th className="text-left py-3 px-3 font-semibold text-[11px]">Tracking ID</th>
+                          <th className="text-right py-3 px-3 font-semibold text-[11px]"></th>
                         </tr>
                       </thead>
                       <tbody>
                         {orders.map(o => {
                           const isPhysical = o.delivery_type === "physical";
                           return (
-                            <tr key={o.id} className="border-t border-white/5 hover:bg-white/5 transition-colors">
-                              <td className="py-4 px-3 text-white/50 font-mono text-xs truncate max-w-[80px]" title={o.id}>
+                            <tr key={o.id} className="border-t border-slate-100 hover:bg-slate-50/60 transition-colors">
+                              <td className="py-4 px-3 text-slate-500 font-mono text-xs truncate max-w-[80px]" title={o.id}>
                                 #{o.id.substring(0, 8)}
                               </td>
                               <td className="py-4 px-3">
-                                <div className="text-white font-medium">{o.customer_name}</div>
-                                <div className="text-white/40 text-xs mt-0.5">{o.customer_email}</div>
+                                <div className="text-slate-900 font-medium">{o.customer_name}</div>
+                                <div className="text-slate-500 text-xs mt-0.5">{o.customer_email}</div>
                               </td>
-                              <td className="py-4 px-3 text-white font-medium max-w-[180px] truncate" title={o.project_title}>
+                              <td className="py-4 px-3 text-slate-900 font-medium max-w-[180px] truncate" title={o.project_title}>
                                 {o.project_title}
                               </td>
-                              <td className="py-4 px-3 text-white font-medium">₹{o.amount.toLocaleString()}</td>
+                              <td className="py-4 px-3 text-slate-900 font-bold">₹{o.amount.toLocaleString()}</td>
                               <td className="py-4 px-3">
-                                <Badge className={isPhysical ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20" : "bg-purple-500/10 text-purple-400 border border-purple-500/20"}>
+                                <Badge className={isPhysical ? "bg-sky-50 text-sky-700 border border-sky-200" : "bg-purple-50 text-purple-700 border border-purple-200"}>
                                   {isPhysical ? "Physical Kit" : "Digital ZIP"}
                                 </Badge>
                               </td>
-                              <td className="py-4 px-3 text-white/70 max-w-[200px] truncate text-xs" title={isPhysical ? `${o.shipping_address}, ${o.city}, ${o.state} - ${o.pincode} | Tel: ${o.customer_phone}` : "Instant Digital Download"}>
+                              <td className="py-4 px-3 text-slate-600 max-w-[200px] truncate text-xs" title={isPhysical ? `${o.shipping_address}, ${o.city}, ${o.state} - ${o.pincode} | Tel: ${o.customer_phone}` : "Instant Digital Download"}>
                                 {isPhysical ? (
                                   <>
-                                    <div>{o.shipping_address}, {o.city}</div>
-                                    <div className="text-white/40 text-[10px] mt-0.5">Phone: {o.customer_phone}</div>
+                                    <div className="font-medium text-slate-800">{o.shipping_address}, {o.city}</div>
+                                    <div className="text-slate-400 text-[10px] mt-0.5">Phone: {o.customer_phone}</div>
                                   </>
                                 ) : (
-                                  <span className="text-white/40">Instant Delivery</span>
+                                  <span className="text-slate-400">Instant Delivery</span>
                                 )}
                               </td>
                               <td className="py-4 px-3">
                                 <Badge className={
-                                  o.status === "Delivered" ? "bg-emerald-500/10 text-emerald-450 border border-emerald-500/20" :
-                                  o.status === "Shipped" ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" :
-                                  "bg-amber-500/10 text-amber-450 border border-amber-500/20"
+                                  o.status === "Delivered" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
+                                  o.status === "Shipped" ? "bg-indigo-50 text-indigo-700 border border-indigo-200" :
+                                  "bg-amber-50 text-amber-700 border border-amber-200"
                                 }>
                                   {o.status}
                                 </Badge>
                               </td>
-                              <td className="py-4 px-3 font-mono text-xs text-white/50">
+                              <td className="py-4 px-3 font-mono text-xs text-slate-500">
                                 {o.tracking_id ? (
-                                  <span className="text-white/85 font-semibold">{o.tracking_id}</span>
+                                  <span className="text-slate-900 font-semibold">{o.tracking_id}</span>
                                 ) : (
-                                  <span className="text-white/20">—</span>
+                                  <span className="text-slate-300">—</span>
                                 )}
                               </td>
                               <td className="py-4 px-3 text-right">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <button className="text-white/40 hover:text-white p-1 rounded hover:bg-white/10 transition-colors">
+                                    <button className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
                                       <MoreHorizontal className="w-4 h-4" />
                                     </button>
                                   </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="w-52 bg-[#241B38] border-white/10 text-white p-2">
-                                    <div className="px-2 py-1 text-white/40 text-xs uppercase tracking-wider font-semibold">Set Order Status</div>
-                                    <DropdownMenuSeparator className="bg-white/10" />
+                                  <DropdownMenuContent align="end" className="w-52 bg-white border-slate-200 text-slate-900 p-2 shadow-xl rounded-xl">
+                                    <div className="px-2 py-1 text-slate-400 text-[10px] uppercase tracking-wider font-semibold">Set Order Status</div>
+                                    <DropdownMenuSeparator className="bg-slate-100" />
                                     
                                     {isPhysical && (
                                       <DropdownMenuItem 
@@ -1084,33 +1086,33 @@ export default function AdminDashboard() {
                                           setTrackingIdInput(o.tracking_id || "");
                                           setIsTrackingDialogOpen(true);
                                         }}
-                                        className="flex items-center gap-2 text-white/80 hover:text-white cursor-pointer rounded-md"
+                                        className="flex items-center gap-2 text-slate-700 hover:text-slate-900 hover:bg-slate-50 cursor-pointer rounded-md"
                                       >
-                                        <Truck className="w-4 h-4 text-[#eb6e5b]" /> {o.tracking_id ? "Update Tracking ID" : "Mark as Shipped"}
+                                        <Truck className="w-4 h-4 text-indigo-600" /> {o.tracking_id ? "Update Tracking ID" : "Mark as Shipped"}
                                       </DropdownMenuItem>
                                     )}
                                     
                                     <DropdownMenuItem 
                                       onClick={() => updateOrderStatus(o.id, "Processing")}
-                                      className="flex items-center gap-2 text-white/80 hover:text-white cursor-pointer rounded-md"
+                                      className="flex items-center gap-2 text-slate-700 hover:text-slate-900 hover:bg-slate-50 cursor-pointer rounded-md"
                                     >
-                                      <MoreHorizontal className="w-4 h-4 text-amber-400" /> Mark as Processing
+                                      <MoreHorizontal className="w-4 h-4 text-amber-500" /> Mark as Processing
                                     </DropdownMenuItem>
                                     
                                     <DropdownMenuItem 
                                       onClick={() => updateOrderStatus(o.id, "Delivered")}
-                                      className="flex items-center gap-2 text-white/80 hover:text-white cursor-pointer rounded-md"
+                                      className="flex items-center gap-2 text-slate-700 hover:text-slate-900 hover:bg-slate-50 cursor-pointer rounded-md"
                                     >
-                                      <CheckCircle className="w-4 h-4 text-emerald-450" /> Mark as Delivered
+                                      <CheckCircle className="w-4 h-4 text-emerald-600" /> Mark as Delivered
                                     </DropdownMenuItem>
 
-                                    <DropdownMenuSeparator className="bg-white/10" />
+                                    <DropdownMenuSeparator className="bg-slate-100" />
                                     <DropdownMenuItem 
                                       onClick={async () => {
                                         if (!confirm("Are you sure you want to cancel this order? This cannot be undone.")) return;
                                         updateOrderStatus(o.id, "Cancelled");
                                       }}
-                                      className="flex items-center gap-2 text-rose-455 hover:text-rose-400 cursor-pointer rounded-md"
+                                      className="flex items-center gap-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 cursor-pointer rounded-md"
                                     >
                                       <Trash2 className="w-4 h-4" /> Cancel Order
                                     </DropdownMenuItem>
@@ -1122,7 +1124,7 @@ export default function AdminDashboard() {
                         })}
                       </tbody>
                     </table>
-                    {orders.length === 0 && <div className="text-center py-12 text-white/50 text-sm">No purchases registered yet. Run test checkout inside store!</div>}
+                    {orders.length === 0 && <div className="text-center py-12 text-slate-400 text-sm">No purchases registered yet.</div>}
                   </div>
                 </div>
               </TabsContent>
@@ -1133,13 +1135,13 @@ export default function AdminDashboard() {
 
       {/* Edit / Make Changes Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-[#241B38] border border-white/10 text-white sm:max-w-4xl max-w-[95vw] max-h-[90vh] overflow-y-auto no-scrollbar shadow-chocolate">
+        <DialogContent className="bg-white border border-slate-200 text-slate-900 sm:max-w-4xl max-w-[95vw] max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-white text-xl flex items-center gap-2">
-              <Pencil className="w-5 h-5 text-[#8B5CF6]" />
+            <DialogTitle className="text-slate-900 text-xl font-bold flex items-center gap-2">
+              <Pencil className="w-5 h-5 text-indigo-600" />
               Edit / Make Changes to Project
             </DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogDescription className="text-slate-500">
               Update project details, screenshots, demo video, code links, pricing, or description. Changes reflect immediately across the store.
             </DialogDescription>
           </DialogHeader>
@@ -1148,47 +1150,45 @@ export default function AdminDashboard() {
             <form onSubmit={handleUpdateProject} className="space-y-4 py-2">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-1.5 md:col-span-2">
-                  <Label className="text-white/80 text-xs">Project Title</Label>
+                  <Label className="text-slate-700 text-xs font-semibold">Project Title</Label>
                   <Input
                     required
                     value={editForm.title}
                     onChange={e => setEditForm({ ...editForm, title: e.target.value })}
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                    className="text-white h-10 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40"
+                    className="bg-white border-slate-200 text-slate-900 h-10 focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-white/80 text-xs">Category</Label>
+                  <Label className="text-slate-700 text-xs font-semibold">Category</Label>
                   <Select value={editForm.category} onValueChange={v => setEditForm({ ...editForm, category: v })}>
-                    <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-10">
+                    <SelectTrigger className="bg-white border-slate-200 text-slate-900 h-10">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#241B38] border-white/10 text-white">
+                    <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-xl">
                       {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-white/80 text-xs">Price (₹)</Label>
+                  <Label className="text-slate-700 text-xs font-semibold">Price (₹)</Label>
                   <Input
                     required
                     type="number"
                     value={editForm.price}
                     onChange={e => setEditForm({ ...editForm, price: e.target.value })}
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                    className="text-white h-10 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40"
+                    className="bg-white border-slate-200 text-slate-900 h-10 focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-white/80 text-xs">Difficulty</Label>
+                  <Label className="text-slate-700 text-xs font-semibold">Difficulty</Label>
                   <Select value={editForm.difficulty} onValueChange={v => setEditForm({ ...editForm, difficulty: v })}>
-                    <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-10">
+                    <SelectTrigger className="bg-white border-slate-200 text-slate-900 h-10">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#241B38] border-white/10 text-white">
+                    <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-xl">
                       <SelectItem value="Beginner">Beginner</SelectItem>
                       <SelectItem value="Intermediate">Intermediate</SelectItem>
                       <SelectItem value="Advanced">Advanced</SelectItem>
@@ -1197,12 +1197,12 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-white/80 text-xs">Delivery Type</Label>
+                  <Label className="text-slate-700 text-xs font-semibold">Delivery Type</Label>
                   <Select value={editForm.delivery_type} onValueChange={v => setEditForm({ ...editForm, delivery_type: v })}>
-                    <SelectTrigger style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="text-white h-10">
+                    <SelectTrigger className="bg-white border-slate-200 text-slate-900 h-10">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#241B38] border-white/10 text-white">
+                    <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-xl">
                       <SelectItem value="digital">Digital (Instant Download)</SelectItem>
                       <SelectItem value="physical">Physical (Hardware Shipping)</SelectItem>
                     </SelectContent>
@@ -1210,124 +1210,115 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <Label className="text-white/80 text-xs">Technologies (comma separated)</Label>
+                  <Label className="text-slate-700 text-xs font-semibold">Technologies (comma separated)</Label>
                   <Input
                     required
                     value={editForm.tech}
                     onChange={e => setEditForm({ ...editForm, tech: e.target.value })}
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                    className="text-white h-10 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40"
+                    className="bg-white border-slate-200 text-slate-900 h-10 focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500"
                   />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <Label className="text-white/80 text-xs">Description</Label>
+                  <Label className="text-slate-700 text-xs font-semibold">Description</Label>
                   <Textarea
                     required
                     value={editForm.description}
                     onChange={e => setEditForm({ ...editForm, description: e.target.value })}
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                    className="text-white resize-none focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 text-xs"
+                    className="bg-white border-slate-200 text-slate-900 resize-none focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500 text-xs"
                     rows={3}
                   />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-1">
-                  <Label className="text-white/80 text-xs">Features (one per line)</Label>
+                  <Label className="text-slate-700 text-xs font-semibold">Features (one per line)</Label>
                   <Textarea
                     value={editForm.features}
                     onChange={e => setEditForm({ ...editForm, features: e.target.value })}
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                    className="text-white resize-none focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 text-xs"
+                    className="bg-white border-slate-200 text-slate-900 resize-none focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500 text-xs"
                     rows={3}
                   />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-1">
-                  <Label className="text-white/80 text-xs">What's Included (one per line)</Label>
+                  <Label className="text-slate-700 text-xs font-semibold">What's Included (one per line)</Label>
                   <Textarea
                     value={editForm.includes}
                     onChange={e => setEditForm({ ...editForm, includes: e.target.value })}
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                    className="text-white resize-none focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 text-xs"
+                    className="bg-white border-slate-200 text-slate-900 resize-none focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500 text-xs"
                     rows={3}
                   />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <Label className="text-white/80 text-xs">GitHub Repository ZIP Link (Optional)</Label>
+                  <Label className="text-slate-700 text-xs font-semibold">GitHub Repository ZIP Link (Optional)</Label>
                   <Input
                     type="url"
                     value={editForm.github_url}
                     onChange={e => setEditForm({ ...editForm, github_url: e.target.value })}
                     placeholder="https://github.com/username/repo/archive/refs/heads/main.zip"
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                    className="text-white h-10 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40"
+                    className="bg-white border-slate-200 text-slate-900 h-10 focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500"
                   />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <Label className="text-white/80 text-xs flex items-center gap-2">
+                  <Label className="text-slate-700 text-xs font-semibold flex items-center gap-2">
                     <span>Price Note / Extra Cost Note (Optional)</span>
-                    <span className="text-[10px] text-rose-400 font-normal">(Shown in red smallest font above Tech Stack)</span>
+                    <span className="text-[10px] text-rose-500 font-normal">(Shown in red smallest font above Tech Stack)</span>
                   </Label>
                   <Input
                     value={editForm.price_note}
                     onChange={e => setEditForm({ ...editForm, price_note: e.target.value })}
                     placeholder="e.g. * Extra ₹500 for deployment support, or base price includes basic setup only"
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                    className="text-white h-10 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/40 text-xs"
+                    className="bg-white border-slate-200 text-slate-900 h-10 focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500 text-xs"
                   />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-1">
-                  <Label className="text-white/80 text-xs">Replace Cover Image (Optional)</Label>
+                  <Label className="text-slate-700 text-xs font-semibold">Replace Cover Image (Optional)</Label>
                   <Input
                     type="file"
                     accept="image/*"
                     onChange={e => setEditForm({ ...editForm, image: e.target.files?.[0] || null })}
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                    className="text-white h-10 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-3 file:mr-3 file:rounded-md hover:file:bg-white/20 text-xs"
+                    className="bg-white border-slate-200 text-slate-900 h-10 file:text-slate-700 file:border-0 file:bg-slate-100 file:h-full file:px-3 file:mr-3 file:rounded-md hover:file:bg-slate-200 text-xs cursor-pointer"
                   />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-1">
-                  <Label className="text-white/80 text-xs">Replace Screenshots (Multiple - Optional)</Label>
+                  <Label className="text-slate-700 text-xs font-semibold">Replace Screenshots (Multiple - Optional)</Label>
                   <Input
                     type="file"
                     accept="image/*"
                     multiple
                     onChange={e => setEditForm({ ...editForm, screenshots: e.target.files })}
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                    className="text-white h-10 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-3 file:mr-3 file:rounded-md hover:file:bg-white/20 text-xs"
+                    className="bg-white border-slate-200 text-slate-900 h-10 file:text-slate-700 file:border-0 file:bg-slate-100 file:h-full file:px-3 file:mr-3 file:rounded-md hover:file:bg-slate-200 text-xs cursor-pointer"
                   />
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <Label className="text-white/80 text-xs">Replace Demo Video (Optional)</Label>
+                  <Label className="text-slate-700 text-xs font-semibold">Replace Demo Video (Optional)</Label>
                   <Input
                     type="file"
                     accept="video/*"
                     onChange={e => setEditForm({ ...editForm, video: e.target.files?.[0] || null })}
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-                    className="text-white h-10 file:text-white file:border-0 file:bg-white/10 file:h-full file:px-3 file:mr-3 file:rounded-md hover:file:bg-white/20 text-xs"
+                    className="bg-white border-slate-200 text-slate-900 h-10 file:text-slate-700 file:border-0 file:bg-slate-100 file:h-full file:px-3 file:mr-3 file:rounded-md hover:file:bg-slate-200 text-xs cursor-pointer"
                   />
                 </div>
               </div>
 
-              <DialogFooter className="flex gap-2 sm:justify-end pt-4 border-t border-white/10">
+              <DialogFooter className="flex gap-2 sm:justify-end pt-4 border-t border-slate-100">
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => setIsEditDialogOpen(false)}
-                  className="text-white/70 hover:text-white hover:bg-white/10 border-0"
+                  className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={isUpdating}
-                  className="bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white px-6 h-10 rounded-full font-semibold shadow-md disabled:opacity-50 border-0 hover:opacity-90"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 h-10 rounded-full font-semibold shadow-sm disabled:opacity-50 border-0"
                 >
                   {isUpdating ? "Saving..." : "Save Project Changes"}
                 </Button>
@@ -1339,27 +1330,26 @@ export default function AdminDashboard() {
 
       {/* Tracking ID Dialog */}
       <Dialog open={isTrackingDialogOpen} onOpenChange={setIsTrackingDialogOpen}>
-        <DialogContent className="bg-[#241B38] border border-white/10 text-white sm:max-w-md shadow-chocolate">
+        <DialogContent className="bg-white border border-slate-200 text-slate-900 sm:max-w-md shadow-2xl rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-white">Enter Tracking Details</DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogTitle className="text-slate-900 font-bold">Enter Tracking Details</DialogTitle>
+            <DialogDescription className="text-slate-500">
               Provide the courier tracking ID to mark this order as shipped.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <Label htmlFor="tracking-id" className="text-white/70 mb-2 block">Tracking ID (e.g., DTDC)</Label>
+            <Label htmlFor="tracking-id" className="text-slate-700 mb-2 block font-medium">Tracking ID (e.g., DTDC)</Label>
             <Input 
               id="tracking-id" 
               value={trackingIdInput} 
               onChange={e => setTrackingIdInput(e.target.value)} 
               placeholder="Enter tracking number" 
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-              className="text-white h-11 focus-visible:ring-1 focus-visible:ring-[#6E5BFF]/45 focus-visible:border-[#6E5BFF]/50" 
+              className="bg-white border-slate-200 text-slate-900 h-11 focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500" 
               autoFocus 
             />
           </div>
           <DialogFooter className="flex gap-2 sm:justify-end">
-            <Button variant="ghost" onClick={() => setIsTrackingDialogOpen(false)} className="text-white/70 hover:text-white hover:bg-white/10 border-0">
+            <Button variant="ghost" onClick={() => setIsTrackingDialogOpen(false)} className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200">
               Cancel
             </Button>
             <Button onClick={() => {
@@ -1367,7 +1357,7 @@ export default function AdminDashboard() {
                 updateOrderStatus(trackingOrderInfo.id, "Shipped", trackingIdInput.trim() || undefined);
                 setIsTrackingDialogOpen(false);
               }
-            }} className="bg-gradient-to-r from-[#6E5BFF] to-[#8B5CF6] text-white shadow-[0_10px_30px_rgba(110,91,255,0.25)] border-0 hover:opacity-90 transition-all">
+            }} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm border-0 transition-all">
               Save Tracking & Ship
             </Button>
           </DialogFooter>
