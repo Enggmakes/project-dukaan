@@ -277,8 +277,8 @@ export default function Home() {
           <MeshGradient className="absolute inset-0 opacity-25" />
           
           {/* Subtle Glow Orbs & Gradient Blur */}
-          <div className="absolute -top-24 -left-20 w-80 h-80 rounded-full bg-[#6E5BFF]/20 blur-[100px] pointer-events-none animate-float" style={{ animationDuration: '8s' }} />
-          <div className="absolute -bottom-36 -right-24 w-96 h-96 rounded-full bg-[#8B5CF6]/25 blur-[120px] pointer-events-none animate-float" style={{ animationDuration: '12s' }} />
+          <div className="absolute -top-24 -left-20 w-80 h-80 rounded-full bg-indigo-500/20 blur-[100px] pointer-events-none animate-float" style={{ animationDuration: '8s' }} />
+          <div className="absolute -bottom-36 -right-24 w-96 h-96 rounded-full bg-indigo-600/25 blur-[120px] pointer-events-none animate-float" style={{ animationDuration: '12s' }} />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] rounded-full bg-indigo-500/10 blur-[130px] pointer-events-none" />
 
           {/* Faint Tech Grid */}
@@ -330,10 +330,10 @@ export default function Home() {
           </div>
 
           <div className="relative z-10">
-            <h2 className="text-display text-4xl md:text-5xl text-white">Can't find your project?</h2>
-            <p className="text-white/70 mt-4 max-w-xl mx-auto">Tell us what you need. Our team will scope it, quote it and ship it — typically within 7 days.</p>
+            <h2 className="text-display text-4xl md:text-5xl text-white font-bold">Can't find your project?</h2>
+            <p className="text-slate-300 mt-4 max-w-xl mx-auto">Tell us what you need. Our team will scope it, quote it and ship it — typically within 7 days.</p>
             <Link to="/custom-request">
-              <Button size="lg" className="rounded-full bg-white text-navy hover:bg-white/90 px-7 h-12 mt-8 shadow-[0_10px_30px_rgba(255,255,255,0.1)] hover:shadow-[0_10px_30px_rgba(110,91,255,0.3)] transition-all duration-300">
+              <Button size="lg" className="rounded-full bg-white text-slate-900 hover:bg-slate-100 font-semibold px-7 h-12 mt-8 shadow-sm transition-all duration-300">
                 Request a custom project <ArrowRight className="ml-1.5 w-4 h-4" />
               </Button>
             </Link>

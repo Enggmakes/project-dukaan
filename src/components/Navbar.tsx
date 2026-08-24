@@ -66,20 +66,20 @@ export default function Navbar() {
           scrolled ? "liquid-glass shadow-elegant" : "bg-white/45 backdrop-blur-xl border border-white/60 shadow-[inset_0_1px_2px_rgba(255,255,255,0.8),0_4px_20px_rgba(0,0,0,0.03)]"
         )}>
           <Link to="/" className="flex items-center gap-2 pl-2 group">
-            <img src="/logo.png" alt="ProjectDukaan" className="w-9 h-9 object-contain transition-transform duration-300 group-hover:scale-105" />
-            <span className="font-semibold text-navy tracking-tight text-base">Project<span className="text-primary">Dukaan</span></span>
+            <img src="/logo.png" alt="ProjectDukaan" className="w-8 h-8 object-contain transition-transform duration-300 group-hover:scale-105" />
+            <span className="font-bold text-slate-900 tracking-tight text-base">Project<span className="text-indigo-600">Dukaan</span></span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-1.5 p-1 rounded-full bg-black/[0.03] border border-white/40">
+          <div className="hidden md:flex items-center gap-1.5 p-1 rounded-full bg-slate-100/80 border border-slate-200/60">
             {visibleLinks.map(l => (
               <NavLink
                 key={l.to}
                 to={l.to}
                 className={({ isActive }) => cn(
-                  "px-3.5 py-1.5 text-xs font-medium rounded-full transition-all duration-200",
+                  "px-3.5 py-1.5 text-xs font-semibold rounded-full transition-all duration-200",
                   isActive 
-                    ? "text-primary bg-white shadow-[inset_0_1px_1px_rgba(255,255,255,1),0_2px_8px_rgba(110,91,255,0.12)] border border-white/80" 
-                    : "text-navy/70 hover:text-navy hover:bg-white/50"
+                    ? "text-indigo-600 bg-white shadow-sm border border-slate-200/80" 
+                    : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
                 )}
               >
                 {l.label}
@@ -93,68 +93,68 @@ export default function Navbar() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="rounded-full flex items-center gap-2 p-1 h-9 hover:bg-transparent">
-                    <div className="w-8 h-8 rounded-full bg-primary-gradient grid place-items-center text-white text-xs font-medium shadow-sm transition-transform hover:scale-105">
+                    <div className="w-8 h-8 rounded-full bg-indigo-600 grid place-items-center text-white text-xs font-semibold shadow-sm transition-transform hover:scale-105">
                       <User className="w-4 h-4" />
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52 liquid-glass border-white/80 rounded-2xl shadow-2xl p-2 animate-in fade-in zoom-in-95">
-                  <div className="px-2.5 py-1.5 text-xs text-muted-foreground truncate mb-1 border-b border-black/5 pb-2">
+                <DropdownMenuContent align="end" className="w-52 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 animate-in fade-in zoom-in-95">
+                  <div className="px-2.5 py-1.5 text-xs text-slate-500 truncate mb-1 border-b border-slate-100 pb-2">
                     {user.email}
                   </div>
-                  <DropdownMenuItem className="rounded-xl cursor-pointer py-2 mb-1 hover:bg-white/80 text-navy font-medium text-xs" onClick={() => navigate("/profile")}>
-                    <User className="w-4 h-4 mr-2 text-primary" /> My Profile
+                  <DropdownMenuItem className="rounded-xl cursor-pointer py-2 mb-1 hover:bg-slate-50 text-slate-800 font-medium text-xs" onClick={() => navigate("/profile")}>
+                    <User className="w-4 h-4 mr-2 text-indigo-600" /> My Profile
                   </DropdownMenuItem>
                   {isAdmin && (
-                    <DropdownMenuItem className="rounded-xl cursor-pointer py-2 mb-1 hover:bg-white/80 text-navy font-medium text-xs" onClick={() => navigate("/admin")}>
-                      <User className="w-4 h-4 mr-2 text-primary" /> Admin Dashboard
+                    <DropdownMenuItem className="rounded-xl cursor-pointer py-2 mb-1 hover:bg-slate-50 text-slate-800 font-medium text-xs" onClick={() => navigate("/admin")}>
+                      <User className="w-4 h-4 mr-2 text-indigo-600" /> Admin Dashboard
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem onClick={handleLogout} className="text-rose-500 rounded-xl cursor-pointer py-2 hover:bg-rose-50 font-medium text-xs">
+                  <DropdownMenuItem onClick={handleLogout} className="text-rose-600 rounded-xl cursor-pointer py-2 hover:bg-rose-50 font-medium text-xs">
                     <LogOut className="w-4 h-4 mr-2" /> Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
               <>
-                <Link to="/login"><Button variant="ghost" className="rounded-full text-sm">Sign in</Button></Link>
-                <Link to="/register"><Button className="rounded-full bg-navy hover:bg-navy-light text-white text-sm px-5">Get started →</Button></Link>
+                <Link to="/login"><Button variant="ghost" className="rounded-full text-slate-700 text-xs font-semibold">Sign in</Button></Link>
+                <Link to="/register"><Button className="rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-5 shadow-sm">Get started →</Button></Link>
               </>
             )}
           </div>
 
-          <button className="md:hidden p-2" onClick={() => setOpen(!open)} aria-label="Menu">
+          <button className="md:hidden p-2 text-slate-700" onClick={() => setOpen(!open)} aria-label="Menu">
             {open ? <X /> : <Menu />}
           </button>
         </nav>
 
         {open && (
-          <div className="md:hidden mt-2 glass rounded-2xl p-4 mx-auto max-w-6xl animate-fade-in">
+          <div className="md:hidden mt-2 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl p-4 mx-auto max-w-6xl shadow-xl animate-fade-in">
             <div className="flex flex-col gap-1">
               {visibleLinks.map(l => (
-                <NavLink key={l.to} to={l.to} className="px-3 py-2 rounded-lg hover:bg-secondary text-navy">
+                <NavLink key={l.to} to={l.to} className="px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-800 text-sm font-medium">
                   {l.label}
                 </NavLink>
               ))}
               {user ? (
-                <div className="flex flex-col gap-1 pt-2 border-t border-border mt-2">
-                  <div className="px-3 py-2 text-xs text-muted-foreground truncate">
+                <div className="flex flex-col gap-1 pt-2 border-t border-slate-100 mt-2">
+                  <div className="px-3 py-2 text-xs text-slate-500 truncate">
                     {user.email}
                   </div>
-                  <Button variant="ghost" className="w-full justify-start rounded-lg text-navy" onClick={() => { navigate("/profile"); setOpen(false); }}>
-                    <User className="w-4 h-4 mr-2" /> My Profile
+                  <Button variant="ghost" className="w-full justify-start rounded-lg text-slate-800 text-xs font-medium" onClick={() => { navigate("/profile"); setOpen(false); }}>
+                    <User className="w-4 h-4 mr-2 text-indigo-600" /> My Profile
                   </Button>
                   {isAdmin && (
-                    <Button variant="ghost" className="w-full justify-start rounded-lg text-navy" onClick={() => { navigate("/admin"); setOpen(false); }}>
-                      <User className="w-4 h-4 mr-2" /> Admin Dashboard
+                    <Button variant="ghost" className="w-full justify-start rounded-lg text-slate-800 text-xs font-medium" onClick={() => { navigate("/admin"); setOpen(false); }}>
+                      <User className="w-4 h-4 mr-2 text-indigo-600" /> Admin Dashboard
                     </Button>
                   )}
-                  <Button variant="ghost" className="w-full justify-start rounded-lg text-red-500 hover:text-red-600 hover:bg-red-50" onClick={handleLogout}><LogOut className="w-4 h-4 mr-2" /> Logout</Button>
+                  <Button variant="ghost" className="w-full justify-start rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-xs font-medium" onClick={handleLogout}><LogOut className="w-4 h-4 mr-2" /> Logout</Button>
                 </div>
               ) : (
-                <div className="flex gap-2 pt-2 border-t border-border mt-2">
-                  <Link to="/login" className="flex-1"><Button variant="outline" className="w-full rounded-full">Sign in</Button></Link>
-                  <Link to="/register" className="flex-1"><Button className="w-full rounded-full bg-navy text-white">Get started</Button></Link>
+                <div className="flex gap-2 pt-2 border-t border-slate-100 mt-2">
+                  <Link to="/login" className="flex-1"><Button variant="outline" className="w-full rounded-full text-xs font-semibold">Sign in</Button></Link>
+                  <Link to="/register" className="flex-1"><Button className="w-full rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-sm">Get started</Button></Link>
                 </div>
               )}
             </div>
