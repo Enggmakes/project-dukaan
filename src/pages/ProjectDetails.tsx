@@ -439,15 +439,15 @@ export default function ProjectDetails() {
             </div>
           )}
         </div>
-      </div>      {/* Premium Glassmorphism Checkout Modal */}
+      </div>      {/* Checkout Modal */}
       {isCheckoutOpen && (
-        <div className="fixed inset-0 z-50 bg-navy/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-300">
-          <div className="bg-white/95 rounded-[2rem] w-full max-w-lg border border-border shadow-2xl relative overflow-hidden flex flex-col p-6 sm:p-8 animate-in zoom-in-95 duration-200 text-navy">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-lg border border-slate-200 shadow-2xl relative overflow-hidden flex flex-col p-6 sm:p-8 animate-in zoom-in-95 duration-200 text-slate-900">
             
             {/* Close Button */}
             <button 
               onClick={() => setIsCheckoutOpen(false)} 
-              className="absolute top-5 right-5 text-navy/40 hover:text-navy hover:bg-secondary p-1.5 rounded-full transition-all"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-full transition-all"
             >
               <X className="w-5 h-5" />
             </button>
@@ -709,7 +709,7 @@ export default function ProjectDetails() {
 
       {/* Cashfree Sandbox Payment Gateway Overlay */}
       {isCashfreeOpen && (
-        <div className="fixed inset-0 z-[60] bg-navy/95 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[60] bg-slate-900/80 flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
           <div className="bg-[#f9fafc] rounded-2xl w-full max-w-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col md:grid md:grid-cols-[240px_1fr] text-slate-800 animate-in zoom-in-95 duration-200">
             
             {/* Left Sidebar: Order Details */}

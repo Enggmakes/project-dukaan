@@ -63,7 +63,7 @@ export default function Navbar() {
       <div className="container-px">
         <nav className={cn(
           "mx-auto max-w-6xl flex items-center justify-between rounded-full px-4 md:px-6 py-2 transition-all",
-          scrolled ? "liquid-glass shadow-elegant" : "bg-white/45 backdrop-blur-xl border border-white/60 shadow-[inset_0_1px_2px_rgba(255,255,255,0.8),0_4px_20px_rgba(0,0,0,0.03)]"
+          scrolled ? "bg-white border border-slate-200 shadow-md" : "bg-white/95 border border-slate-200/80 shadow-sm"
         )}>
           <Link to="/" className="flex items-center gap-2 pl-2 group">
             <img src="/logo.png" alt="ProjectDukaan" className="w-8 h-8 object-contain transition-transform duration-300 group-hover:scale-105" />

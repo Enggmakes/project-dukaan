@@ -70,20 +70,20 @@ export default function Marketplace() {
         <meta name="keywords" content="AI project marketplace, ML projects download, buy IoT blueprints, robotics final year projects, engineering code marketplace" />
         <link rel="canonical" href="https://projectdukaan.vercel.app/marketplace" />
       </Helmet>
-      <MeshGradient className="py-16">
+      <div className="py-16 bg-slate-50 border-b border-slate-200/80">
         <div className="container-px max-w-6xl mx-auto">
-          <h1 className="text-display text-5xl md:text-6xl text-navy">Marketplace</h1>
-          <p className="text-navy/60 mt-3 text-lg">{projects.length}+ production-ready projects, instant download.</p>
+          <h1 className="text-display text-5xl md:text-6xl text-slate-900 font-bold">Marketplace</h1>
+          <p className="text-slate-600 mt-3 text-lg font-medium">{projects.length}+ production-ready projects, instant download.</p>
         </div>
-      </MeshGradient>
+      </div>
 
       <section className="container-px py-10">
         <div className="max-w-6xl mx-auto">
-          <div className="liquid-glass rounded-[2rem] md:rounded-full shadow-2xl border-white/80 p-3 md:p-3 flex flex-col md:flex-row gap-2.5 items-stretch md:items-center sticky top-20 md:top-24 z-30">
+          <div className="bg-white rounded-[2rem] md:rounded-full shadow-sm border border-slate-200 p-3 md:p-3 flex flex-col md:flex-row gap-2.5 items-stretch md:items-center sticky top-20 md:top-24 z-30">
             {/* Search Input - Spans full width on mobile, flexible on desktop */}
-            <div className="flex-1 flex items-center gap-2 px-4 py-1 md:py-0 bg-black/[0.04] rounded-full border border-white/50">
-              <Search className="w-4 h-4 text-muted-foreground shrink-0" />
-              <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search projects…" className="border-0 bg-transparent focus-visible:ring-0 h-9 text-navy placeholder:text-navy/45 text-sm" />
+            <div className="flex-1 flex items-center gap-2 px-4 py-1 md:py-0 bg-slate-50 rounded-full border border-slate-200">
+              <Search className="w-4 h-4 text-slate-400 shrink-0" />
+              <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search projects…" className="border-0 bg-transparent focus-visible:ring-0 h-9 text-slate-900 placeholder:text-slate-400 text-sm" />
             </div>
 
             {/* Selects & Controls Container - Elegant wrap flow */}
@@ -92,8 +92,8 @@ export default function Marketplace() {
                 {/* Category Select */}
                 <div className="flex-1 sm:flex-none">
                   <Select value={cat} onValueChange={setCat}>
-                    <SelectTrigger className="w-full sm:w-44 rounded-full bg-white/70 backdrop-blur-md border-white/80 text-xs font-medium text-navy shadow-sm"><SelectValue /></SelectTrigger>
-                    <SelectContent className="liquid-glass border-white/80 rounded-2xl shadow-xl">
+                    <SelectTrigger className="w-full sm:w-44 rounded-full bg-slate-50 border-slate-200 text-xs font-semibold text-slate-800 shadow-none"><SelectValue /></SelectTrigger>
+                    <SelectContent className="bg-white border-slate-200 rounded-2xl shadow-xl">
                       <SelectItem value="all">All categories</SelectItem>
                       {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                     </SelectContent>
@@ -103,8 +103,8 @@ export default function Marketplace() {
                 {/* Sort Select */}
                 <div className="flex-1 sm:flex-none">
                   <Select value={sort} onValueChange={setSort}>
-                    <SelectTrigger className="w-full sm:w-40 rounded-full bg-white/70 backdrop-blur-md border-white/80 text-xs font-medium text-navy shadow-sm"><SelectValue /></SelectTrigger>
-                    <SelectContent className="liquid-glass border-white/80 rounded-2xl shadow-xl">
+                    <SelectTrigger className="w-full sm:w-40 rounded-full bg-slate-50 border-slate-200 text-xs font-semibold text-slate-800 shadow-none"><SelectValue /></SelectTrigger>
+                    <SelectContent className="bg-white border-slate-200 rounded-2xl shadow-xl">
                       <SelectItem value="latest">Latest</SelectItem>
                       <SelectItem value="popular">Most popular</SelectItem>
                       <SelectItem value="rating">Highest rated</SelectItem>
@@ -117,13 +117,13 @@ export default function Marketplace() {
 
               {/* Filters Trigger & Grid/List View switcher */}
               <div className="flex items-center gap-2">
-                <Button variant="outline" className="flex-1 sm:flex-none rounded-full h-10 border-white/80 bg-white/70 backdrop-blur-md text-xs font-medium text-navy shadow-sm hover:bg-white" onClick={() => setShowFilters(!showFilters)}>
-                  <SlidersHorizontal className="w-4 h-4 mr-1.5 text-primary" /> Filters
+                <Button variant="outline" className="flex-1 sm:flex-none rounded-full h-10 border-slate-200 bg-white text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50" onClick={() => setShowFilters(!showFilters)}>
+                  <SlidersHorizontal className="w-4 h-4 mr-1.5 text-indigo-600" /> Filters
                 </Button>
                 
-                <div className="flex bg-black/[0.04] border border-white/50 rounded-full p-1 h-10 shrink-0">
-                  <button onClick={() => setView("grid")} className={`p-1.5 px-2.5 rounded-full transition-all ${view === "grid" ? "bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] text-primary" : "text-navy/60"}`}><LayoutGrid className="w-4 h-4" /></button>
-                  <button onClick={() => setView("list")} className={`p-1.5 px-2.5 rounded-full transition-all ${view === "list" ? "bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] text-primary" : "text-navy/60"}`}><List className="w-4 h-4" /></button>
+                <div className="flex bg-slate-100 border border-slate-200 rounded-full p-1 h-10 shrink-0">
+                  <button onClick={() => setView("grid")} className={`p-1.5 px-2.5 rounded-full transition-all ${view === "grid" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500"}`}><LayoutGrid className="w-4 h-4" /></button>
+                  <button onClick={() => setView("list")} className={`p-1.5 px-2.5 rounded-full transition-all ${view === "list" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500"}`}><List className="w-4 h-4" /></button>
                 </div>
               </div>
             </div>
@@ -131,27 +131,27 @@ export default function Marketplace() {
 
           <div className="grid lg:grid-cols-[260px_1fr] gap-8 mt-8">
             <aside className={`${showFilters ? "block" : "hidden lg:block"} space-y-6`}>
-              <div className="liquid-glass-card rounded-[2rem] p-5">
-                <h4 className="font-medium text-navy mb-3 text-sm">Price range</h4>
+              <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                <h4 className="font-semibold text-slate-900 mb-3 text-sm">Price range</h4>
                 <Slider value={price} onValueChange={setPrice} max={100000} step={500} />
-                <div className="flex justify-between text-xs text-muted-foreground mt-3 font-mono"><span>₹{price[0].toLocaleString()}</span><span>₹{price[1].toLocaleString()}</span></div>
+                <div className="flex justify-between text-xs text-slate-500 mt-3 font-mono"><span>₹{price[0].toLocaleString()}</span><span>₹{price[1].toLocaleString()}</span></div>
               </div>
-              <div className="liquid-glass-card rounded-[2rem] p-5">
-                <h4 className="font-medium text-navy mb-3 text-sm">Difficulty</h4>
+              <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                <h4 className="font-semibold text-slate-900 mb-3 text-sm">Difficulty</h4>
                 <div className="space-y-2.5">
                   {DIFFICULTIES.map(d => (
-                    <label key={d} className="flex items-center gap-2.5 text-sm text-navy cursor-pointer hover:text-primary transition-colors">
+                    <label key={d} className="flex items-center gap-2.5 text-sm text-slate-700 cursor-pointer hover:text-indigo-600 transition-colors">
                       <Checkbox checked={diffs.includes(d)} onCheckedChange={() => toggle(diffs, d, setDiffs)} />{d}
                     </label>
                   ))}
                 </div>
               </div>
-              <div className="liquid-glass-card rounded-[2rem] p-5">
-                <h4 className="font-medium text-navy mb-3 text-sm">Technologies</h4>
+              <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+                <h4 className="font-semibold text-slate-900 mb-3 text-sm">Technologies</h4>
                 <div className="flex flex-wrap gap-1.5 max-h-48 overflow-auto no-scrollbar">
                   {ALL_TECH.map(t => (
                     <Badge key={t} onClick={() => toggle(techs, t, setTechs)}
-                      className={`cursor-pointer rounded-full text-xs transition-all ${techs.includes(t) ? "bg-primary text-white shadow-sm hover:bg-primary" : "bg-black/[0.04] text-navy/80 hover:bg-white/80 border border-white/60"}`}>
+                      className={`cursor-pointer rounded-full text-xs font-medium transition-all ${techs.includes(t) ? "bg-indigo-600 text-white shadow-sm hover:bg-indigo-700" : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"}`}>
                       {t}
                     </Badge>
                   ))}
@@ -160,14 +160,14 @@ export default function Marketplace() {
             </aside>
 
             <div>
-              <div className="text-sm text-muted-foreground mb-4">{filtered.length} projects</div>
+              <div className="text-sm text-slate-500 font-medium mb-4">{filtered.length} projects found</div>
               {isLoading ? (
-                <div className="bg-white rounded-3xl p-12 text-center border border-border">
-                  <p className="text-navy font-medium">Loading projects...</p>
+                <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm">
+                  <p className="text-slate-700 font-medium">Loading projects...</p>
                 </div>
               ) : filtered.length === 0 ? (
-                <div className="bg-white rounded-3xl p-12 text-center border border-border">
-                  <p className="text-navy font-medium">No projects match your filters.</p>
+                <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm">
+                  <p className="text-slate-700 font-medium">No projects match your filters.</p>
                 </div>
               ) : view === "grid" ? (
                 <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">

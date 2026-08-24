@@ -17,6 +17,7 @@ import Terms from "./pages/Terms.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 import { HelmetProvider } from 'react-helmet-async';
+import GlobalTechParticles from "@/components/GlobalTechParticles";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <GlobalTechParticles />
       <Toaster />
       <Sonner />
       <BrowserRouter>
