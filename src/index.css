@@ -446,4 +446,38 @@
 .animate-drift-2 { animation: drift-2 20s ease-in-out infinite; }
 .animate-drift-3 { animation: drift-3 18s ease-in-out infinite; }
 
+/* Craft Floor: Themed Browser Surfaces */
+::selection {
+  background-color: #4F46E5;
+  color: #FFFFFF;
+}
 
+::-moz-selection {
+  background-color: #4F46E5;
+  color: #FFFFFF;
+}
+
+/* Slim executive scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
+}
+
+/* Smooth focus rings */
+:focus-visible {
+  outline: 2px solid #4F46E5;
+  outline-offset: 2px;
+}

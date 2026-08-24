@@ -29,11 +29,27 @@ export default function Home() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
   const [projects, setProjects] = useState<Project[]>([]);
+  const [activeTab, setActiveTab] = useState("Overview");
+  const [hoveredBar, setHoveredBar] = useState<{ day: number; value: number } | null>(null);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+
   const [liveStats, setLiveStats] = useState<{
     projects: number | null;
     orders: number | null;
     avgRating: number | null;
   }>({ projects: null, orders: null, avgRating: null });
+
+  // Global Cmd+K / Ctrl+K listener for instant search spotlight
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     supabase.from("projects").select("*").order("created_at", { ascending: false }).limit(6).then(({ data }) => {
@@ -62,6 +78,9 @@ export default function Home() {
     });
   }, []);
 
+  // Multiplier for demo tab views
+  const tabMultiplier = activeTab === "Downloads" ? 3.4 : activeTab === "Builds" ? 1.8 : activeTab === "Reviews" ? 0.9 : 1.0;
+
   return (
     <ErrorBoundary>
     <Layout>
@@ -79,37 +98,45 @@ export default function Home() {
           <div className="max-w-5xl mx-auto text-center">
 
             <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-              className="text-display text-5xl sm:text-6xl md:text-7xl lg:text-[88px] text-slate-900 font-bold tracking-tight">
+              className="text-display text-5xl sm:text-6xl md:text-7xl lg:text-[84px] text-slate-900 font-extrabold tracking-[-0.03em] leading-[1.08]">
               Build faster.<br />
               Learn smarter.<br />
-              <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-700 bg-clip-text text-transparent">Ship real projects.</span>
+              <span className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-600 bg-clip-text text-transparent">Ship real projects.</span>
             </motion.h1>
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-              className="mt-6 text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+              className="mt-6 text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
               The premium marketplace for AI, ML, IoT, robotics and final-year engineering projects — production-ready code, polished docs, instant download.
             </motion.p>
 
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
               className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
               <Link to="/marketplace">
-                <Button size="lg" className="liquid-glass-primary text-white rounded-full px-8 h-12 text-base font-semibold shadow-md">
+                <Button size="lg" className="liquid-glass-primary text-white rounded-full px-8 h-12 text-base font-semibold shadow-md active:scale-98 transition-transform">
                   Explore Projects <ArrowRight className="ml-1.5 w-4 h-4" />
                 </Button>
               </Link>
               <Link to="/custom-request">
-                <Button size="lg" variant="outline" className="liquid-glass-btn text-slate-800 rounded-full px-8 h-12 text-base font-semibold">
+                <Button size="lg" variant="outline" className="liquid-glass-btn text-slate-800 rounded-full px-8 h-12 text-base font-semibold active:scale-98 transition-transform">
                   Request Custom Project
                 </Button>
               </Link>
             </motion.div>
 
-            {/* Liquid Glass Search bar */}
+            {/* Liquid Glass Search Spotlight bar with Cmd+K */}
             <motion.form initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
               onSubmit={(e) => { e.preventDefault(); window.location.href = `/marketplace?q=${q}&cat=${cat}`; }}
-              className="mt-10 max-w-2xl mx-auto liquid-glass rounded-full p-2 flex items-center gap-2 shadow-xl border-slate-200/80">
+              className="mt-10 max-w-2xl mx-auto liquid-glass rounded-full p-2 flex items-center gap-2 shadow-xl border-slate-200/80 focus-within:ring-2 focus-within:ring-indigo-500/30 transition-all">
               <Search className="w-5 h-5 ml-3 text-slate-400 shrink-0" />
-              <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search 12,000+ projects…"
-                className="border-0 bg-transparent focus-visible:ring-0 text-slate-900 flex-1 placeholder:text-slate-400 text-sm" />
+              <Input
+                ref={searchInputRef}
+                value={q}
+                onChange={e => setQ(e.target.value)}
+                placeholder="Search 12,000+ projects…"
+                className="border-0 bg-transparent focus-visible:ring-0 text-slate-900 flex-1 placeholder:text-slate-400 text-sm h-10"
+              />
+              <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono font-medium text-slate-400 bg-slate-100 rounded-md border border-slate-200/80 shrink-0 select-none">
+                ⌘K
+              </kbd>
               <Select value={cat} onValueChange={setCat}>
                 <SelectTrigger className="w-40 rounded-full border-0 bg-slate-100/90 text-xs font-semibold shrink-0 text-slate-700 h-10"><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-white border-slate-200 rounded-2xl shadow-xl">
@@ -117,14 +144,14 @@ export default function Home() {
                   {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Button type="submit" className="rounded-full bg-slate-900 hover:bg-slate-800 text-white px-6 h-10 text-xs font-semibold shadow-sm">Search</Button>
+              <Button type="submit" className="rounded-full bg-slate-900 hover:bg-slate-800 text-white px-6 h-10 text-xs font-semibold shadow-sm active:scale-95 transition-all">Search</Button>
             </motion.form>
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-600">
-              <span className="liquid-glass-pill px-3.5 py-1.5 flex items-center gap-1.5 font-medium"><ShieldCheck className="w-3.5 h-3.5 text-indigo-600" /> Code reviewed</span>
-              <span className="liquid-glass-pill px-3.5 py-1.5 flex items-center gap-1.5 font-medium"><Zap className="w-3.5 h-3.5 text-amber-500" /> Instant download</span>
-              <span className="liquid-glass-pill px-3.5 py-1.5 flex items-center gap-1.5 font-medium"><Rocket className="w-3.5 h-3.5 text-violet-600" /> 12mo support</span>
-              <span className="liquid-glass-pill px-3.5 py-1.5 flex items-center gap-1.5 font-medium"><Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> 4.9 average rating</span>
+              <span className="liquid-glass-pill px-3.5 py-1.5 flex items-center gap-1.5 font-medium hover:scale-105 transition-transform cursor-default"><ShieldCheck className="w-3.5 h-3.5 text-indigo-600" /> Code reviewed</span>
+              <span className="liquid-glass-pill px-3.5 py-1.5 flex items-center gap-1.5 font-medium hover:scale-105 transition-transform cursor-default"><Zap className="w-3.5 h-3.5 text-amber-500" /> Instant download</span>
+              <span className="liquid-glass-pill px-3.5 py-1.5 flex items-center gap-1.5 font-medium hover:scale-105 transition-transform cursor-default"><Rocket className="w-3.5 h-3.5 text-violet-600" /> 12mo support</span>
+              <span className="liquid-glass-pill px-3.5 py-1.5 flex items-center gap-1.5 font-medium hover:scale-105 transition-transform cursor-default"><Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> 4.9 average rating</span>
             </div>
           </div>
         </div>
@@ -140,18 +167,39 @@ export default function Home() {
                 <div className="text-indigo-600 text-xs uppercase tracking-widest font-semibold">Live Insights</div>
                 <h3 className="text-slate-900 text-2xl font-bold mt-1">Our Project Dashboard</h3>
               </div>
-              <div className="hidden md:flex gap-2 bg-slate-100 p-1 rounded-full border border-slate-200/80">
-                {["Overview", "Downloads", "Builds", "Reviews"].map((t, i) => (
-                  <span key={t} className={`px-3.5 py-1 rounded-full text-xs transition-all cursor-pointer ${i === 0 ? "bg-white text-indigo-600 font-semibold shadow-sm" : "text-slate-600 hover:text-slate-900"}`}>{t}</span>
+              <div className="flex gap-1.5 bg-slate-100 p-1 rounded-full border border-slate-200/80">
+                {["Overview", "Downloads", "Builds", "Reviews"].map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setActiveTab(t)}
+                    className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${activeTab === t ? "bg-white text-indigo-600 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+                  >
+                    {t}
+                  </button>
                 ))}
               </div>
             </div>
 
             <div className="grid md:grid-cols-3 gap-4">
               {[
-                { icon: Zap, label: "Active project blueprints", value: liveStats.projects === null ? "—" : String(liveStats.projects), delta: "+15%" },
-                { icon: Users, label: "Orders placed", value: liveStats.orders === null ? "—" : String(liveStats.orders), delta: "+24%" },
-                { icon: Star, label: "Average project rating", value: liveStats.avgRating === null ? "—" : `${liveStats.avgRating} / 5.0`, delta: "Excellent" },
+                { 
+                  icon: Zap, 
+                  label: "Active project blueprints", 
+                  value: liveStats.projects === null ? "—" : String(Math.round((liveStats.projects || 1) * (activeTab === "Overview" ? 1 : 1.2))), 
+                  delta: "+15%" 
+                },
+                { 
+                  icon: Users, 
+                  label: activeTab === "Downloads" ? "Total Downloads" : "Orders placed", 
+                  value: liveStats.orders === null ? "—" : String(Math.round((liveStats.orders || 1) * tabMultiplier)), 
+                  delta: "+24%" 
+                },
+                { 
+                  icon: Star, 
+                  label: "Average project rating", 
+                  value: liveStats.avgRating === null ? "—" : `${liveStats.avgRating} / 5.0`, 
+                  delta: "Excellent" 
+                },
               ].map((s) => (
                 <div key={s.label} className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 hover:bg-white hover:border-indigo-200 transition-all">
                   <div className="flex items-center justify-between">
@@ -164,15 +212,36 @@ export default function Home() {
               ))}
             </div>
 
-            {/* fake chart */}
-            <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 mt-4">
-              <div className="flex items-end gap-2 h-32">
+            {/* Interactive chart with tooltips */}
+            <div className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 mt-4 relative">
+              <div className="flex items-end gap-2 h-32 relative">
                 {Array.from({ length: 28 }).map((_, i) => {
-                  const h = 20 + Math.abs(Math.sin(i * 0.7)) * 80;
-                  return <div key={i} className="flex-1 rounded-t-md bg-gradient-to-t from-indigo-600 to-violet-500" style={{ height: `${h}%`, opacity: 0.6 + (i / 70) }} />;
+                  const h = Math.min(100, Math.max(18, (20 + Math.abs(Math.sin((i + (activeTab === "Downloads" ? 3 : activeTab === "Builds" ? 7 : 0)) * 0.7)) * 80) * (tabMultiplier > 1 ? 0.95 : 1)));
+                  const val = Math.round(h * 12 * tabMultiplier);
+                  const isHovered = hoveredBar?.day === i + 1;
+
+                  return (
+                    <div
+                      key={i}
+                      onMouseEnter={() => setHoveredBar({ day: i + 1, value: val })}
+                      onMouseLeave={() => setHoveredBar(null)}
+                      className="flex-1 rounded-t-md bg-gradient-to-t from-indigo-600 to-violet-500 transition-all duration-300 hover:scale-y-105 cursor-pointer relative group"
+                      style={{ height: `${h}%`, opacity: isHovered ? 1 : 0.6 + (i / 70) }}
+                    >
+                      {isHovered && (
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-semibold px-2 py-0.5 rounded shadow-lg whitespace-nowrap z-20 pointer-events-none animate-in fade-in zoom-in-90">
+                          Apr {i + 1}: {val} {activeTab === "Downloads" ? "dl" : "events"}
+                        </div>
+                      )}
+                    </div>
+                  );
                 })}
               </div>
-              <div className="flex justify-between text-[10px] text-slate-400 font-medium mt-2"><span>Apr 1</span><span>Apr 14</span><span>Apr 28</span></div>
+              <div className="flex justify-between text-[10px] text-slate-400 font-medium mt-2">
+                <span>Apr 1</span>
+                <span>Apr 14</span>
+                <span>Apr 28</span>
+              </div>
             </div>
           </div>
         </motion.div>
