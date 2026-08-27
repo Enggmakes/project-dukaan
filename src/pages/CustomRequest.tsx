@@ -196,14 +196,14 @@ export default function CustomRequest() {
       <Layout>
         <section className="container-px py-20">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="max-w-2xl mx-auto bg-white rounded-3xl p-12 border border-border shadow-elegant text-center">
-            <div className="w-16 h-16 rounded-full bg-primary-gradient grid place-items-center mx-auto shadow-elegant">
-              <Check className="w-8 h-8 text-white" />
+            className="max-w-2xl mx-auto bg-white rounded-3xl p-12 border border-slate-200 shadow-sm text-center">
+            <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 grid place-items-center mx-auto text-emerald-600">
+              <Check className="w-8 h-8" />
             </div>
-            <h1 className="text-display text-4xl text-navy mt-6">Thank you.</h1>
-            <p className="text-navy/70 mt-3 text-lg">Our team will contact you shortly.</p>
-            <p className="text-muted-foreground text-sm mt-2">We typically reply within 24 hours with a scoped quote and timeline.</p>
-            <Button className="mt-8 rounded-full bg-navy hover:bg-navy-light" onClick={() => { setSubmitted(false); setStep(0); }}>Submit another</Button>
+            <h1 className="text-display text-4xl text-slate-900 font-bold mt-6">Thank you.</h1>
+            <p className="text-slate-600 mt-3 text-lg font-medium">Our team will contact you shortly.</p>
+            <p className="text-slate-500 text-sm mt-2">We typically reply within 24 hours with a scoped quote and timeline.</p>
+            <Button className="mt-8 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6" onClick={() => { setSubmitted(false); setStep(0); }}>Submit another</Button>
           </motion.div>
         </section>
       </Layout>
@@ -218,15 +218,15 @@ export default function CustomRequest() {
         <meta name="keywords" content="request custom project, custom AI development, custom ML development, IoT prototype build, robotics custom project, engineering support" />
         <link rel="canonical" href="https://projectdukaan.vercel.app/custom-request" />
       </Helmet>
-      <MeshGradient className="py-16">
+      <div className="py-16 bg-slate-50 border-b border-slate-200/80">
         <div className="container-px max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm text-navy mb-6">
-            <Sparkles className="w-3.5 h-3.5 text-primary" /> Custom builds
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200 text-sm text-slate-800 font-medium mb-6 shadow-sm">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-600" /> Custom builds
           </div>
-          <h1 className="text-display text-5xl md:text-6xl text-navy">Request a custom project</h1>
-          <p className="text-navy/60 mt-3 text-lg">Tell us what you need — we'll design, build & deliver.</p>
+          <h1 className="text-display text-5xl md:text-6xl text-slate-900 font-bold">Request a custom project</h1>
+          <p className="text-slate-600 mt-3 text-lg font-medium">Tell us what you need — we'll design, build & deliver.</p>
         </div>
-      </MeshGradient>
+      </div>
 
       <section className="container-px py-12">
         <div className="max-w-3xl mx-auto">
@@ -235,10 +235,10 @@ export default function CustomRequest() {
             {/* Progress Lines Container */}
             <div className="absolute left-[18px] right-[18px] h-0.5 -translate-y-1/2 z-0" style={{ top: "18px" }}>
               {/* Background Line */}
-              <div className="absolute inset-0 bg-border" />
+              <div className="absolute inset-0 bg-slate-200" />
               {/* Active Progress Line */}
               <div 
-                className="absolute left-0 top-0 bottom-0 bg-primary transition-all duration-500 ease-in-out"
+                className="absolute left-0 top-0 bottom-0 bg-indigo-600 transition-all duration-500 ease-in-out"
                 style={{ width: `${(step / (steps.length - 1)) * 100}%` }}
               />
             </div>
@@ -247,59 +247,59 @@ export default function CustomRequest() {
             <div className="flex items-center justify-between relative z-10">
               {steps.map((s, i) => (
                 <div key={s} className="flex flex-col items-center gap-2">
-                  <div className={`w-9 h-9 rounded-full grid place-items-center text-sm font-medium transition-all ${
-                    i < step ? "bg-primary text-white" : i === step ? "bg-navy text-white scale-110" : "bg-secondary text-muted-foreground"
+                  <div className={`w-9 h-9 rounded-full grid place-items-center text-sm font-semibold transition-all ${
+                    i < step ? "bg-indigo-600 text-white shadow-sm" : i === step ? "bg-slate-900 text-white scale-110 shadow-sm" : "bg-slate-100 text-slate-400 border border-slate-200"
                   }`}>
                     {i < step ? <Check className="w-4 h-4" /> : i + 1}
                   </div>
-                  <span className="text-xs text-navy hidden sm:block font-medium">{s}</span>
+                  <span className="text-xs text-slate-700 hidden sm:block font-medium">{s}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-8 md:p-10 border border-border shadow-elegant">
+          <div className="bg-white rounded-3xl p-8 md:p-10 border border-slate-200 shadow-sm">
             <AnimatePresence mode="wait">
               <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
                 {step === 0 && (
                   <div className="space-y-5">
-                    <h2 className="text-2xl font-semibold text-navy">Tell us about you</h2>
-                    <Field label="Full name *" error={errors.fullName}><Input value={data.fullName} onChange={e => set("fullName", e.target.value)} placeholder="Jane Doe" /></Field>
+                    <h2 className="text-2xl font-bold text-slate-900">Tell us about you</h2>
+                    <Field label="Full name *" error={errors.fullName}><Input value={data.fullName} onChange={e => set("fullName", e.target.value)} placeholder="Jane Doe" className="bg-slate-50 border-slate-200" /></Field>
                     <div className="grid sm:grid-cols-2 gap-4">
-                      <Field label="Email *" error={errors.email}><Input type="email" value={data.email} onChange={e => set("email", e.target.value)} placeholder="jane@example.com" /></Field>
-                      <Field label="Phone *" error={errors.phone}><Input value={data.phone} onChange={e => set("phone", e.target.value)} placeholder="+91 98xxxx0000" /></Field>
+                      <Field label="Email *" error={errors.email}><Input type="email" value={data.email} onChange={e => set("email", e.target.value)} placeholder="jane@example.com" className="bg-slate-50 border-slate-200" /></Field>
+                      <Field label="Phone *" error={errors.phone}><Input value={data.phone} onChange={e => set("phone", e.target.value)} placeholder="+91 98xxxx0000" className="bg-slate-50 border-slate-200" /></Field>
                     </div>
-                    <Field label="College / Company" error={errors.college}><Input value={data.college} onChange={e => set("college", e.target.value)} placeholder="IIT Delhi" /></Field>
+                    <Field label="College / Company" error={errors.college}><Input value={data.college} onChange={e => set("college", e.target.value)} placeholder="IIT Delhi" className="bg-slate-50 border-slate-200" /></Field>
                   </div>
                 )}
 
                 {step === 1 && (
                   <div className="space-y-5">
-                    <h2 className="text-2xl font-semibold text-navy">Project details</h2>
-                    <Field label="Project title *" error={errors.title}><Input value={data.title} onChange={e => set("title", e.target.value)} placeholder="AI-powered crop disease detector" /></Field>
+                    <h2 className="text-2xl font-bold text-slate-900">Project details</h2>
+                    <Field label="Project title *" error={errors.title}><Input value={data.title} onChange={e => set("title", e.target.value)} placeholder="AI-powered crop disease detector" className="bg-slate-50 border-slate-200" /></Field>
                     <Field label="Domain / Category *" error={errors.category}>
                       <Select value={data.category} onValueChange={v => set("category", v)}>
-                        <SelectTrigger><SelectValue placeholder="Pick a category" /></SelectTrigger>
-                        <SelectContent>
+                        <SelectTrigger className="bg-slate-50 border-slate-200"><SelectValue placeholder="Pick a category" /></SelectTrigger>
+                        <SelectContent className="bg-white border-slate-200 rounded-2xl shadow-xl">
                           {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </Field>
                     <Field label="Project description *" error={errors.description}>
-                      <Textarea rows={5} value={data.description} onChange={e => set("description", e.target.value)} placeholder="What should the project do? Who is it for?" />
+                      <Textarea rows={5} value={data.description} onChange={e => set("description", e.target.value)} placeholder="What should the project do? Who is it for?" className="bg-slate-50 border-slate-200" />
                     </Field>
-                    <Field label="Technologies required" error={errors.tech}><Input value={data.tech} onChange={e => set("tech", e.target.value)} placeholder="Python, TensorFlow, React" /></Field>
+                    <Field label="Technologies required" error={errors.tech}><Input value={data.tech} onChange={e => set("tech", e.target.value)} placeholder="Python, TensorFlow, React" className="bg-slate-50 border-slate-200" /></Field>
                   </div>
                 )}
 
                 {step === 2 && (
                   <div className="space-y-5">
-                    <h2 className="text-2xl font-semibold text-navy">Scope & budget</h2>
+                    <h2 className="text-2xl font-bold text-slate-900">Scope & budget</h2>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <Field label="Budget range *" error={errors.budget}>
                         <Select value={data.budget} onValueChange={v => set("budget", v)}>
-                          <SelectTrigger><SelectValue placeholder="Select budget" /></SelectTrigger>
-                          <SelectContent>
+                          <SelectTrigger className="bg-slate-50 border-slate-200"><SelectValue placeholder="Select budget" /></SelectTrigger>
+                          <SelectContent className="bg-white border-slate-200 rounded-2xl shadow-xl">
                             <SelectItem value="<5k">Under ₹5,000</SelectItem>
                             <SelectItem value="5k-15k">₹5,000 – ₹15,000</SelectItem>
                             <SelectItem value="15k-50k">₹15,000 – ₹50,000</SelectItem>
@@ -307,7 +307,7 @@ export default function CustomRequest() {
                           </SelectContent>
                         </Select>
                       </Field>
-                      <Field label="Deadline *" error={errors.deadline}><Input type="date" value={data.deadline} onChange={e => set("deadline", e.target.value)} /></Field>
+                      <Field label="Deadline *" error={errors.deadline}><Input type="date" value={data.deadline} onChange={e => set("deadline", e.target.value)} className="bg-slate-50 border-slate-200" /></Field>
                     </div>
                     <Field label="Upload requirement documents">
                       <div 
@@ -316,14 +316,14 @@ export default function CustomRequest() {
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
                         className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer relative ${
-                          isDragging ? "border-primary bg-primary/5 scale-[1.01]" : "border-border hover:border-primary"
+                          isDragging ? "border-indigo-600 bg-indigo-50/50 scale-[1.01]" : "border-slate-200 hover:border-indigo-600 bg-slate-50/50"
                         }`}
                       >
                         {selectedFile ? (
                           <div className="space-y-2">
-                            <Check className="w-6 h-6 text-emerald-500 mx-auto" />
-                            <p className="text-sm font-medium text-navy">{selectedFile.name}</p>
-                            <p className="text-xs text-muted-foreground">
+                            <Check className="w-6 h-6 text-emerald-600 mx-auto" />
+                            <p className="text-sm font-semibold text-slate-900">{selectedFile.name}</p>
+                            <p className="text-xs text-slate-500">
                               {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
                             </p>
                             <button
@@ -333,16 +333,16 @@ export default function CustomRequest() {
                                 setSelectedFile(null);
                                 if (fileInputRef.current) fileInputRef.current.value = "";
                               }}
-                              className="text-xs text-destructive hover:underline mt-2 block mx-auto font-medium"
+                              className="text-xs text-rose-600 hover:underline mt-2 block mx-auto font-semibold"
                             >
                               Remove File
                             </button>
                           </div>
                         ) : (
                           <>
-                            <Upload className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
-                            <p className="text-sm text-navy">Drop files or click to browse</p>
-                            <p className="text-xs text-muted-foreground mt-1">PDF, DOCX, PNG, JPG up to 10MB</p>
+                            <Upload className="w-6 h-6 text-slate-400 mx-auto mb-2" />
+                            <p className="text-sm font-semibold text-slate-800">Drop files or click to browse</p>
+                            <p className="text-xs text-slate-500 mt-1">PDF, DOCX, PNG, JPG up to 10MB</p>
                           </>
                         )}
                       </div>
@@ -366,22 +366,22 @@ export default function CustomRequest() {
                     <Field label="Preferred contact method">
                       <RadioGroup value={data.contact} onValueChange={v => set("contact", v)} className="flex gap-4">
                         {["email", "phone", "whatsapp"].map(c => (
-                          <label key={c} className="flex items-center gap-2 capitalize text-sm cursor-pointer">
+                          <label key={c} className="flex items-center gap-2 capitalize text-sm cursor-pointer font-medium text-slate-700">
                             <RadioGroupItem value={c} /> {c}
                           </label>
                         ))}
                       </RadioGroup>
                     </Field>
                     <Field label="Additional notes" error={errors.notes}>
-                      <Textarea rows={3} value={data.notes} onChange={e => set("notes", e.target.value)} placeholder="Anything else we should know?" />
+                      <Textarea rows={3} value={data.notes} onChange={e => set("notes", e.target.value)} placeholder="Anything else we should know?" className="bg-slate-50 border-slate-200" />
                     </Field>
                   </div>
                 )}
 
                 {step === 3 && (
                   <div className="space-y-5">
-                    <h2 className="text-2xl font-semibold text-navy">Review & submit</h2>
-                    <div className="bg-secondary rounded-2xl p-5 space-y-2 text-sm">
+                    <h2 className="text-2xl font-bold text-slate-900">Review & submit</h2>
+                    <div className="bg-slate-50 rounded-2xl p-5 space-y-2.5 text-sm border border-slate-200/80">
                       <Row label="Name" value={data.fullName} />
                       <Row label="Email" value={data.email} />
                       <Row label="Phone" value={data.phone} />
@@ -393,18 +393,18 @@ export default function CustomRequest() {
                       <Row label="Contact via" value={data.contact} />
                       {selectedFile && <Row label="Document" value={selectedFile.name} />}
                     </div>
-                    <p className="text-xs text-muted-foreground">By submitting you agree to be contacted by our team about this project.</p>
+                    <p className="text-xs text-slate-500">By submitting you agree to be contacted by our team about this project.</p>
                   </div>
                 )}
               </motion.div>
             </AnimatePresence>
 
-            <div className="flex justify-between mt-8 pt-6 border-t border-border">
-              <Button variant="ghost" className="rounded-full" onClick={prev} disabled={step === 0}><ArrowLeft className="w-4 h-4 mr-1" /> Back</Button>
+            <div className="flex justify-between mt-8 pt-6 border-t border-slate-100">
+              <Button variant="ghost" className="rounded-full text-slate-700 font-semibold" onClick={prev} disabled={step === 0}><ArrowLeft className="w-4 h-4 mr-1" /> Back</Button>
               {step < steps.length - 1 ? (
-                <Button onClick={next} className="rounded-full bg-primary hover:bg-primary/90 px-6">Next <ArrowRight className="w-4 h-4 ml-1" /></Button>
+                <Button onClick={next} className="rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 shadow-sm">Next <ArrowRight className="w-4 h-4 ml-1" /></Button>
               ) : (
-                <Button onClick={submit} disabled={isSubmitting} className="rounded-full bg-navy hover:bg-navy-light px-6">
+                <Button onClick={submit} disabled={isSubmitting} className="rounded-full bg-slate-900 hover:bg-slate-800 text-white font-semibold px-6 shadow-sm">
                   {isSubmitting ? "Submitting..." : "Submit request"}
                 </Button>
               )}
@@ -419,9 +419,9 @@ export default function CustomRequest() {
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <div>
-      <Label className="text-navy text-sm mb-1.5 block">{label}</Label>
+      <Label className="text-slate-700 font-semibold text-sm mb-1.5 block">{label}</Label>
       {children}
-      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
+      {error && <p className="text-xs text-rose-600 mt-1 font-medium">{error}</p>}
     </div>
   );
 }
@@ -429,8 +429,8 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="text-navy font-medium text-right">{value}</span>
+      <span className="text-slate-500 font-medium">{label}</span>
+      <span className="text-slate-900 font-semibold text-right">{value}</span>
     </div>
   );
 }

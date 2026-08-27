@@ -33,36 +33,36 @@ export default function Privacy() {
         <title>Privacy Policy - ProjectDukaan</title>
         <meta name="description" content="Read the Privacy Policy of ProjectDukaan. Learn how we handle, secure, and protect your digital library assets and personal registry." />
       </Helmet>
-      <MeshGradient className="py-24">
+      <div className="py-20 bg-slate-50 border-b border-slate-200/80">
         <div className="container-px max-w-4xl mx-auto text-center">
-          <span className="text-sm font-semibold text-primary uppercase tracking-widest bg-primary/10 px-3 py-1 rounded-full">Legal</span>
-          <h1 className="text-display text-5xl md:text-7xl text-navy mt-4">Privacy Policy</h1>
-          <p className="text-navy/70 mt-6 text-lg max-w-2xl mx-auto">
+          <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest bg-indigo-50 border border-indigo-200/80 px-3 py-1 rounded-full">Legal</span>
+          <h1 className="text-display text-5xl md:text-7xl text-slate-900 font-bold mt-4">Privacy Policy</h1>
+          <p className="text-slate-600 mt-6 text-lg max-w-2xl mx-auto leading-relaxed">
             Last Updated: May 23, 2026. Learn how we handle, secure, and protect your digital library assets and personal registry.
           </p>
         </div>
-      </MeshGradient>
+      </div>
 
       <section className="container-px py-20 bg-white">
         <div className="max-w-4xl mx-auto">
-          <div className="grid gap-12">
+          <div className="grid gap-10">
             {sections.map((s, idx) => (
-              <div key={idx} className="flex flex-col md:flex-row gap-6 items-start">
-                <div className="w-12 h-12 rounded-2xl bg-primary-gradient grid place-items-center text-white shrink-0 shadow-elegant">
+              <div key={idx} className="flex flex-col md:flex-row gap-6 items-start p-6 bg-slate-50/50 rounded-2xl border border-slate-200/60">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 grid place-items-center text-indigo-600 shrink-0">
                   <s.icon className="w-5 h-5" />
                 </div>
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-bold text-navy">{s.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed text-base">{s.content}</p>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold text-slate-900">{s.title}</h3>
+                  <p className="text-slate-600 leading-relaxed text-sm sm:text-base">{s.content}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-16 p-8 bg-secondary rounded-3xl border border-border">
-            <h4 className="text-lg font-semibold text-navy mb-2">Have questions about your data?</h4>
-            <p className="text-sm text-muted-foreground">
-              If you have any questions, concerns, or requests regarding this Privacy Policy or your personal registry, please reach out via our <a href="/contact" className="text-primary hover:underline font-medium">Contact Form</a>.
+          <div className="mt-16 p-8 bg-slate-50 rounded-3xl border border-slate-200">
+            <h4 className="text-lg font-bold text-slate-900 mb-2">Have questions about your data?</h4>
+            <p className="text-sm text-slate-600">
+              If you have any questions, concerns, or requests regarding this Privacy Policy or your personal registry, please reach out via our <a href="/contact" className="text-indigo-600 hover:underline font-semibold">Contact Form</a>.
             </p>
           </div>
         </div>

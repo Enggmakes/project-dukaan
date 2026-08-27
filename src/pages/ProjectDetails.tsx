@@ -316,12 +316,12 @@ export default function ProjectDetails() {
               </div>
 
               <div className="mt-6">
-                <Badge className="bg-secondary text-navy hover:bg-secondary">{project.category}</Badge>
-                <h1 className="text-display text-4xl md:text-5xl text-navy mt-3">{project.title}</h1>
+                <Badge className="bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-200">{project.category}</Badge>
+                <h1 className="text-display text-4xl md:text-5xl text-slate-900 font-bold mt-3">{project.title}</h1>
                 <div className="flex items-center gap-4 mt-4 text-sm">
-                  <Badge variant="outline" className="rounded-full">{project.difficulty}</Badge>
+                  <Badge variant="outline" className="rounded-full border-slate-300 text-slate-700">{project.difficulty}</Badge>
                 </div>
-                <p className="text-navy/70 mt-5 text-lg leading-relaxed">{project.description}</p>
+                <p className="text-slate-600 mt-5 text-lg leading-relaxed">{project.description}</p>
               </div>
 
               {project.price_note && (
@@ -336,25 +336,25 @@ export default function ProjectDetails() {
               )}
 
               <div className="mt-8">
-                <h3 className="font-medium text-navy mb-3">Tech stack</h3>
+                <h3 className="font-bold text-slate-900 mb-3">Tech stack</h3>
                 <div className="flex flex-wrap gap-2">
-                  {(project.tech || []).map(t => <span key={t} className="px-3 py-1.5 rounded-full bg-secondary text-navy text-sm">{t}</span>)}
+                  {(project.tech || []).map(t => <span key={t} className="px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-sm font-medium">{t}</span>)}
                 </div>
               </div>
 
               {((project.features || []).length > 0 || (project.screenshots || []).length > 0) && (
                 <Tabs defaultValue={(project.features || []).length > 0 ? "features" : "screens"} className="mt-10">
-                  <TabsList className="rounded-full bg-secondary p-1">
-                    {(project.features || []).length > 0 && <TabsTrigger value="features" className="rounded-full">Features</TabsTrigger>}
-                    {(project.screenshots || []).length > 0 && <TabsTrigger value="screens" className="rounded-full">Screenshots</TabsTrigger>}
+                  <TabsList className="rounded-full bg-slate-100 p-1 border border-slate-200">
+                    {(project.features || []).length > 0 && <TabsTrigger value="features" className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm">Features</TabsTrigger>}
+                    {(project.screenshots || []).length > 0 && <TabsTrigger value="screens" className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm">Screenshots</TabsTrigger>}
                   </TabsList>
                   
                   {(project.features || []).length > 0 && (
-                    <TabsContent value="features" className="mt-6 bg-white rounded-3xl p-6 border border-border shadow-soft">
+                    <TabsContent value="features" className="mt-6 bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
                       <ul className="space-y-3">
                         {project.features!.map(f => (
-                          <li key={f} className="flex items-start gap-3 text-navy">
-                            <div className="w-5 h-5 rounded-full bg-primary/10 grid place-items-center shrink-0 mt-0.5"><Check className="w-3 h-3 text-primary" /></div>
+                          <li key={f} className="flex items-start gap-3 text-slate-800">
+                            <div className="w-5 h-5 rounded-full bg-indigo-50 border border-indigo-100 grid place-items-center shrink-0 mt-0.5"><Check className="w-3 h-3 text-indigo-600" /></div>
                             {f}
                           </li>
                         ))}
@@ -366,7 +366,7 @@ export default function ProjectDetails() {
                     <TabsContent value="screens" className="mt-6">
                       <div className="grid sm:grid-cols-2 gap-4">
                         {project.screenshots!.map((img, i) => (
-                          <div key={i} className="aspect-video rounded-2xl shadow-soft overflow-hidden">
+                          <div key={i} className="aspect-video rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                             <img src={img} alt="Screenshot" className="w-full h-full object-cover" />
                           </div>
                         ))}
@@ -379,11 +379,11 @@ export default function ProjectDetails() {
 
             {/* Sidebar */}
             <aside className="lg:sticky lg:top-28 self-start">
-              <div className="liquid-glass-card rounded-[2.5rem] p-7 border-white/80 shadow-2xl">
-                <div className="text-4xl font-bold text-navy">₹{project.price.toLocaleString()}</div>
-                <div className="text-xs text-muted-foreground mt-1 font-medium">One-time purchase · Lifetime access & updates</div>
+              <div className="bg-white rounded-[2.5rem] p-7 border border-slate-200 shadow-sm">
+                <div className="text-4xl font-bold text-slate-900">₹{project.price.toLocaleString()}</div>
+                <div className="text-xs text-slate-500 mt-1 font-medium">One-time purchase · Lifetime access & updates</div>
                 <Button 
-                  className="w-full rounded-full liquid-glass-primary text-white h-12 mt-6 text-sm font-semibold flex items-center justify-center gap-2 shadow-[0_12px_28px_rgba(110,91,255,0.35)]" 
+                  className="w-full rounded-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 mt-6 text-sm font-semibold flex items-center justify-center gap-2 shadow-sm" 
                   onClick={handlePurchaseClick}
                 >
                   {project.delivery_type === "physical" ? (
@@ -400,31 +400,31 @@ export default function ProjectDetails() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className={`w-full rounded-full h-11 mt-2.5 flex items-center justify-center gap-2 transition-all text-xs font-semibold ${isWishlisted ? "bg-rose-50 text-rose-500 border-rose-200 hover:bg-rose-100" : "liquid-glass-btn text-navy/80 hover:text-navy"}`}
+                  className={`w-full rounded-full h-11 mt-2.5 flex items-center justify-center gap-2 transition-all text-xs font-semibold ${isWishlisted ? "bg-rose-50 text-rose-500 border-rose-200 hover:bg-rose-100" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
                   onClick={toggleWishlist}
                   disabled={isWishlistLoading}
                 >
                   <Heart className={`w-4 h-4 ${isWishlisted ? "fill-rose-500" : ""}`} /> 
                   {isWishlisted ? "Saved to Wishlist" : "Add to wishlist"}
                 </Button>
-                <div className="mt-6 pt-5 border-t border-black/5">
-                  <h4 className="font-semibold text-navy mb-3 text-xs uppercase tracking-wider">What's included</h4>
+                <div className="mt-6 pt-5 border-t border-slate-100">
+                  <h4 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">What's included</h4>
                   <ul className="space-y-2.5">
                     {(project.includes || []).length > 0 ? (project.includes || []).map(i => {
                       const Icon = getIncludeIcon(i);
                       return (
-                        <li key={i} className="flex items-center gap-2.5 text-xs font-medium text-navy/80">
-                          <div className="w-6 h-6 rounded-full bg-primary/10 grid place-items-center shrink-0">
-                            <Icon className="w-3.5 h-3.5 text-primary" />
+                        <li key={i} className="flex items-center gap-2.5 text-xs font-medium text-slate-700">
+                          <div className="w-6 h-6 rounded-full bg-indigo-50 border border-indigo-100 grid place-items-center shrink-0">
+                            <Icon className="w-3.5 h-3.5 text-indigo-600" />
                           </div>
                           <span>{i}</span>
                         </li>
                       );
-                    }) : <li className="text-xs text-navy/60">Source code included</li>}
+                    }) : <li className="text-xs text-slate-500">Source code included</li>}
                   </ul>
                 </div>
-                <div className="mt-6 pt-5 border-t border-black/5 flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" /> 7-day money-back guarantee
+                <div className="mt-6 pt-5 border-t border-slate-100 flex items-center gap-2 text-xs font-medium text-slate-600">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" /> 7-day money-back guarantee
                 </div>
               </div>
             </aside>
@@ -432,7 +432,7 @@ export default function ProjectDetails() {
 
           {related.length > 0 && (
             <div className="mt-20">
-              <h2 className="text-display text-3xl text-navy mb-6">Related projects</h2>
+              <h2 className="text-display text-3xl text-slate-900 font-bold mb-6">Related projects</h2>
               <div className="grid md:grid-cols-3 gap-5">
                 {related.map(p => <ProjectCard key={p.id} project={p} />)}
               </div>
@@ -457,118 +457,118 @@ export default function ProjectDetails() {
               <form onSubmit={handleCheckoutSubmit} className="space-y-5">
                 <div>
                   <span className="text-xs font-semibold text-primary uppercase tracking-wider block">Secure Checkout</span>
-                  <h3 className="text-2xl font-bold text-navy mt-1 flex items-center gap-2">
+                  <h3 className="text-2xl font-bold text-slate-900 mt-1 flex items-center gap-2">
                     {project.delivery_type === "physical" ? (
                       <>
-                        <Bot className="w-5 h-5 text-primary animate-pulse" />
+                        <Bot className="w-5 h-5 text-indigo-600 animate-pulse" />
                         Ship Hardware Kit
                       </>
                     ) : (
                       <>
-                        <Laptop className="w-5 h-5 text-primary animate-pulse" />
+                        <Laptop className="w-5 h-5 text-indigo-600 animate-pulse" />
                         Digital Download
                       </>
                     )}
                   </h3>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Project: <strong className="text-navy">{project.title}</strong> · Price: <strong className="text-primary">₹{project.price.toLocaleString()}</strong>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Project: <strong className="text-slate-900">{project.title}</strong> · Price: <strong className="text-indigo-600">₹{project.price.toLocaleString()}</strong>
                   </p>
                 </div>
 
                 <div className="space-y-4">
                   {/* Name */}
                   <div>
-                    <label className="text-xs font-semibold text-navy/70 block mb-1">Full Name *</label>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1">Full Name *</label>
                     <input 
                       type="text" 
                       required
                       value={form.name} 
                       onChange={e => setForm({ ...form, name: e.target.value })}
                       placeholder="Your Name" 
-                      className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-navy placeholder:text-muted-foreground/60"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder:text-slate-400"
                     />
                   </div>
 
                   {/* Email */}
                   <div>
-                    <label className="text-xs font-semibold text-navy/70 block mb-1">Email Address *</label>
+                    <label className="text-xs font-semibold text-slate-700 block mb-1">Email Address *</label>
                     <input 
                       type="email" 
                       required
                       value={form.email} 
                       onChange={e => setForm({ ...form, email: e.target.value })}
                       placeholder="you@example.com" 
-                      className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-navy placeholder:text-muted-foreground/60"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder:text-slate-400"
                     />
                   </div>
 
                   {project.delivery_type === "physical" && (
                     /* --- Physical Shipping Fields --- */
-                    <div className="space-y-4 pt-1 border-t border-border/50">
-                      <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                    <div className="space-y-4 pt-1 border-t border-slate-100">
+                      <span className="text-xs font-bold text-indigo-600 flex items-center gap-1.5">
                         <MapPin className="w-3.5 h-3.5" />
                         Shipping Details
                       </span>
                       
                       {/* Phone */}
                       <div>
-                        <label className="text-xs font-semibold text-navy/70 block mb-1">Phone Number *</label>
+                        <label className="text-xs font-semibold text-slate-700 block mb-1">Phone Number *</label>
                         <input 
                           type="tel" 
                           required
                           value={form.phone} 
                           onChange={e => setForm({ ...form, phone: e.target.value })}
                           placeholder="10-digit mobile number" 
-                          className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-navy placeholder:text-muted-foreground/60"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder:text-slate-400"
                         />
                       </div>
 
                       {/* Address */}
                       <div>
-                        <label className="text-xs font-semibold text-navy/70 block mb-1">Full Address *</label>
+                        <label className="text-xs font-semibold text-slate-700 block mb-1">Full Address *</label>
                         <textarea 
                           required
                           rows={2}
                           value={form.address} 
                           onChange={e => setForm({ ...form, address: e.target.value })}
                           placeholder="House No, Building, Street, Area" 
-                          className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-navy placeholder:text-muted-foreground/60 resize-none"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder:text-slate-400 resize-none"
                         />
                       </div>
 
                       {/* City & State & Pincode Grid */}
                       <div className="grid grid-cols-3 gap-3">
                         <div>
-                          <label className="text-xs font-semibold text-navy/70 block mb-1">City *</label>
+                          <label className="text-xs font-semibold text-slate-700 block mb-1">City *</label>
                           <input 
                             type="text" 
                             required
                             value={form.city} 
                             onChange={e => setForm({ ...form, city: e.target.value })}
                             placeholder="City" 
-                            className="w-full bg-secondary border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-navy placeholder:text-muted-foreground/60"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder:text-slate-400"
                           />
                         </div>
                         <div>
-                          <label className="text-xs font-semibold text-navy/70 block mb-1">State *</label>
+                          <label className="text-xs font-semibold text-slate-700 block mb-1">State *</label>
                           <input 
                             type="text" 
                             required
                             value={form.state} 
                             onChange={e => setForm({ ...form, state: e.target.value })}
                             placeholder="State" 
-                            className="w-full bg-secondary border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-navy placeholder:text-muted-foreground/60"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder:text-slate-400"
                           />
                         </div>
                         <div>
-                          <label className="text-xs font-semibold text-navy/70 block mb-1">Pincode *</label>
+                          <label className="text-xs font-semibold text-slate-700 block mb-1">Pincode *</label>
                           <input 
                             type="text" 
                             required
                             value={form.pincode} 
                             onChange={e => setForm({ ...form, pincode: e.target.value })}
                             placeholder="6-digit" 
-                            className="w-full bg-secondary border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-navy placeholder:text-muted-foreground/60"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder:text-slate-400"
                           />
                         </div>
                       </div>
@@ -580,7 +580,7 @@ export default function ProjectDetails() {
                   <Button 
                     type="submit" 
                     disabled={isPaying} 
-                    className="w-full rounded-full bg-primary hover:bg-primary/90 h-12 text-sm font-semibold flex items-center justify-center gap-2 shadow-elegant disabled:opacity-50"
+                    className="w-full rounded-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 text-sm font-semibold flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
                   >
                     {isPaying ? (
                       <>
@@ -591,100 +591,100 @@ export default function ProjectDetails() {
                       <>Proceed to payment</>
                     )}
                   </Button>
-                  <span className="text-[10px] text-muted-foreground text-center block mt-2">🛡️ Secured by 256-bit SSL encryption & BHIM UPI</span>
+                  <span className="text-[10px] text-slate-500 text-center block mt-2">🛡️ Secured by 256-bit SSL encryption & BHIM UPI</span>
                 </div>
               </form>
             ) : (
               /* --- Success State --- */
               <div className="text-center py-4 space-y-6 animate-in fade-in duration-300">
-                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-500 animate-bounce">
+                <div className="w-16 h-16 bg-emerald-50 border border-emerald-200 rounded-full flex items-center justify-center mx-auto text-emerald-600">
                   <CheckCircle2 className="w-10 h-10" />
                 </div>
 
                 <div>
-                  <h3 className="text-2xl font-bold text-navy">
+                  <h3 className="text-2xl font-bold text-slate-900">
                     {project.delivery_type === "physical" ? "Order Confirmed" : "Payment Successful"}
                   </h3>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-sm text-slate-600 mt-1">
                     Thank you, {form.name}. Your purchase was completed and registered successfully.
                   </p>
                 </div>
 
                 {project.delivery_type === "physical" ? (
                   /* --- Hardware Delivery Timeline Tracker --- */
-                  <div className="bg-secondary/60 border border-border rounded-2xl p-5 text-left space-y-4">
-                    <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
-                      <Truck className="w-4 h-4 animate-pulse" />
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-left space-y-4">
+                    <div className="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-wider">
+                      <Truck className="w-4 h-4" />
                       Delivery Timeline Tracker
                     </div>
 
                     {/* Tracker Steps */}
-                    <div className="space-y-4 relative pl-5 before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-0.5 before:bg-border/70">
+                    <div className="space-y-4 relative pl-5 before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
                       
                       {/* Step 1: Placed */}
                       <div className="relative flex gap-3 text-xs">
                         <span className="absolute -left-[22px] w-3 h-3 rounded-full bg-emerald-500 border-2 border-white ring-2 ring-emerald-500/20" />
                         <div>
-                          <strong className="text-navy block font-medium">Order Placed Successfully</strong>
-                          <span className="text-muted-foreground text-[10px]">Payment verified via Cashfree. Preparing hardware kit.</span>
+                          <strong className="text-slate-900 block font-semibold">Order Placed Successfully</strong>
+                          <span className="text-slate-500 text-[10px]">Payment verified via Cashfree. Preparing hardware kit.</span>
                         </div>
                       </div>
 
                       {/* Step 2: Processing */}
                       <div className="relative flex gap-3 text-xs">
-                        <span className="absolute -left-[22px] w-3 h-3 rounded-full bg-primary animate-pulse border-2 border-white ring-2 ring-primary/20" />
+                        <span className="absolute -left-[22px] w-3 h-3 rounded-full bg-indigo-600 border-2 border-white ring-2 ring-indigo-600/20" />
                         <div>
-                          <strong className="text-navy block font-medium">Packing & Testing Hardware</strong>
-                          <span className="text-muted-foreground text-[10px]">Our engineers are checking sensors & microcontrollers.</span>
+                          <strong className="text-slate-900 block font-semibold">Packing & Testing Hardware</strong>
+                          <span className="text-slate-500 text-[10px]">Our engineers are checking sensors & microcontrollers.</span>
                         </div>
                       </div>
 
                       {/* Step 3: Dispatched */}
                       <div className="relative flex gap-3 text-xs opacity-60">
-                        <span className="absolute -left-[22px] w-3 h-3 rounded-full bg-muted border-2 border-white" />
+                        <span className="absolute -left-[22px] w-3 h-3 rounded-full bg-slate-300 border-2 border-white" />
                         <div>
-                          <strong className="text-navy block font-medium">Dispatch via DTDC Courier</strong>
-                          <span className="text-muted-foreground text-[10px]">Tracking ID will be listed in your profile.</span>
+                          <strong className="text-slate-900 block font-semibold">Dispatch via DTDC Courier</strong>
+                          <span className="text-slate-500 text-[10px]">Tracking ID will be listed in your profile.</span>
                         </div>
                       </div>
 
                       {/* Step 4: Delivered */}
                       <div className="relative flex gap-3 text-xs opacity-60">
-                        <span className="absolute -left-[22px] w-3 h-3 rounded-full bg-muted border-2 border-white" />
+                        <span className="absolute -left-[22px] w-3 h-3 rounded-full bg-slate-300 border-2 border-white" />
                         <div>
-                          <strong className="text-navy block font-medium">Out for Delivery</strong>
-                          <span className="text-muted-foreground text-[10px]">Expected delivery to your address: 5-7 working days.</span>
+                          <strong className="text-slate-900 block font-semibold">Out for Delivery</strong>
+                          <span className="text-slate-500 text-[10px]">Expected delivery to your address: 5-7 working days.</span>
                         </div>
                       </div>
 
                     </div>
 
                     {/* Shipping Address Summary */}
-                    <div className="border-t border-border/70 pt-3 text-xs space-y-1">
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Shipping to:</span>
-                      <div className="flex items-start gap-1.5 text-navy mt-1">
-                        <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                    <div className="border-t border-slate-200 pt-3 text-xs space-y-1">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Shipping to:</span>
+                      <div className="flex items-start gap-1.5 text-slate-900 mt-1">
+                        <MapPin className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
                         <p className="leading-tight font-medium">
                           {form.address}, {form.city}, {form.state} - {form.pincode}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1.5 text-navy/70 mt-1">
-                        <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <div className="flex items-center gap-1.5 text-slate-600 mt-1">
+                        <Phone className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                         <span>{form.phone}</span>
                       </div>
                     </div>
                   </div>
                 ) : (
                   /* --- Digital Download Action --- */
-                  <div className="bg-secondary/60 border border-border rounded-2xl p-6 space-y-3 text-center">
-                    <Package className="w-10 h-10 text-primary mx-auto opacity-70 animate-bounce" />
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-3 text-center">
+                    <Package className="w-10 h-10 text-indigo-600 mx-auto opacity-80" />
                     <div className="text-xs">
-                      <strong className="text-navy block text-sm">Download is ready!</strong>
-                      <span className="text-muted-foreground">Click below to fetch the production-ready source code ZIP and documentation PDF.</span>
+                      <strong className="text-slate-900 block text-sm font-bold">Download is ready!</strong>
+                      <span className="text-slate-500">Click below to fetch the production-ready source code ZIP and documentation PDF.</span>
                     </div>
                     <Button 
                       onClick={handleDownload}
-                      className="w-full mt-2 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white h-11 font-semibold flex items-center justify-center gap-2 shadow-elegant"
+                      className="w-full mt-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white h-11 font-semibold flex items-center justify-center gap-2 shadow-sm"
                     >
                       <Download className="w-4 h-4" />
                       Download Project ZIP
@@ -695,7 +695,7 @@ export default function ProjectDetails() {
                 <div className="pt-2 flex gap-3">
                   <Button 
                     onClick={() => setIsCheckoutOpen(false)}
-                    className="w-full rounded-full bg-navy text-white hover:bg-navy-light h-11 font-semibold text-xs flex items-center justify-center gap-2"
+                    className="w-full rounded-full bg-slate-900 text-white hover:bg-slate-800 h-11 font-semibold text-xs flex items-center justify-center gap-2 shadow-sm"
                   >
                     <ShoppingBag className="w-4 h-4" />
                     Continue Exploring

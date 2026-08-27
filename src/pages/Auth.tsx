@@ -66,51 +66,50 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2">
-      <MeshGradient className="hidden lg:block relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent to-white/20" />
-        <Link to="/" className="absolute top-8 left-8 flex items-center gap-2">
+    <div className="min-h-screen grid lg:grid-cols-2 bg-white">
+      <div className="hidden lg:flex flex-col justify-between p-12 bg-slate-900 text-white relative overflow-hidden">
+        <Link to="/" className="flex items-center gap-2 relative z-10">
           <img src="/logo.png" alt="ProjectDukaan" className="w-9 h-9 object-contain" />
-          <span className="font-semibold text-navy">Project<span className="text-primary">Dukaan</span></span>
+          <span className="font-bold text-white text-lg">Project<span className="text-indigo-400">Dukaan</span></span>
         </Link>
-        <div className="absolute bottom-12 left-12 right-12">
-          <h2 className="text-display text-4xl text-navy">Build faster.<br />Ship real projects.</h2>
-          <p className="text-navy/60 mt-3">Join 38,000+ builders shipping with ProjectDukaan.</p>
+        <div className="relative z-10 max-w-md">
+          <h2 className="text-display text-4xl font-bold leading-tight">Build faster.<br />Ship real projects.</h2>
+          <p className="text-slate-400 mt-3 text-base">Join 38,000+ builders shipping with ProjectDukaan.</p>
         </div>
-      </MeshGradient>
+      </div>
 
       <div className="flex items-center justify-center p-8 lg:p-16">
         <div className="w-full max-w-md">
           <Link to="/" className="lg:hidden flex items-center gap-2 mb-8">
             <img src="/logo.png" alt="ProjectDukaan" className="w-9 h-9 object-contain" />
-            <span className="font-semibold text-navy">Project<span className="text-primary">Dukaan</span></span>
+            <span className="font-bold text-slate-900">Project<span className="text-indigo-600">Dukaan</span></span>
           </Link>
-          <h1 className="text-display text-4xl text-navy">{isLogin ? "Welcome back" : "Create your account"}</h1>
-          <p className="text-muted-foreground mt-2">{isLogin ? "Sign in to access your projects." : "Start shipping in minutes."}</p>
+          <h1 className="text-display text-4xl font-bold text-slate-900">{isLogin ? "Welcome back" : "Create your account"}</h1>
+          <p className="text-slate-600 mt-2">{isLogin ? "Sign in to access your projects." : "Start shipping in minutes."}</p>
 
           <form onSubmit={submit} className="mt-8 space-y-4">
             {!isLogin && (
               <div>
-                <Label className="text-navy text-sm">Full name</Label>
-                <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="mt-1.5" placeholder="Jane Doe" />
+                <Label className="text-slate-700 font-semibold text-sm">Full name</Label>
+                <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="mt-1.5 bg-slate-50 border-slate-200" placeholder="Jane Doe" />
               </div>
             )}
             <div>
-              <Label className="text-navy text-sm">Email</Label>
-              <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="mt-1.5" placeholder="you@example.com" />
+              <Label className="text-slate-700 font-semibold text-sm">Email</Label>
+              <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="mt-1.5 bg-slate-50 border-slate-200" placeholder="you@example.com" />
             </div>
             <div>
-              <Label className="text-navy text-sm">Password</Label>
-              <Input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className="mt-1.5" placeholder="••••••••" />
+              <Label className="text-slate-700 font-semibold text-sm">Password</Label>
+              <Input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className="mt-1.5 bg-slate-50 border-slate-200" placeholder="••••••••" />
             </div>
-            <Button type="submit" disabled={loading} className="w-full rounded-full bg-primary hover:bg-primary/90 h-11">
+            <Button type="submit" disabled={loading} className="w-full rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold h-11 shadow-sm">
               {loading ? "Please wait..." : (isLogin ? "Sign in" : "Create account")}
             </Button>
           </form>
 
-          <div className="text-sm text-center mt-6 text-muted-foreground">
+          <div className="text-sm text-center mt-6 text-slate-600">
             {isLogin ? "New here? " : "Already have an account? "}
-            <Link to={isLogin ? "/register" : "/login"} className="text-primary font-medium">{isLogin ? "Create an account" : "Sign in"}</Link>
+            <Link to={isLogin ? "/register" : "/login"} className="text-indigo-600 font-semibold hover:underline">{isLogin ? "Create an account" : "Sign in"}</Link>
           </div>
         </div>
       </div>

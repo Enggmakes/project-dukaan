@@ -55,30 +55,30 @@ export default function Contact() {
         <meta name="keywords" content="contact projectdukaan, project support, final year project help, sales contact" />
         <link rel="canonical" href="https://projectdukaan.vercel.app/contact" />
       </Helmet>
-      <MeshGradient className="py-20">
+      <div className="py-20 bg-slate-50 border-b border-slate-200/80">
         <div className="container-px max-w-3xl mx-auto text-center">
-          <h1 className="text-display text-5xl md:text-6xl text-navy">Get in touch</h1>
-          <p className="text-navy/70 mt-4 text-lg">Sales, support, partnerships — we read every message.</p>
+          <h1 className="text-display text-5xl md:text-6xl text-slate-900 font-bold">Get in touch</h1>
+          <p className="text-slate-600 mt-4 text-lg font-medium">Sales, support, partnerships — we read every message.</p>
         </div>
-      </MeshGradient>
+      </div>
 
       <section className="container-px py-16">
         <div className="max-w-5xl mx-auto grid lg:grid-cols-[1fr_360px] gap-8">
-          <form onSubmit={submit} className="bg-white rounded-3xl p-8 border border-border shadow-soft space-y-5">
-            <h2 className="text-2xl font-semibold text-navy">Send us a message</h2>
+          <form onSubmit={submit} className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-5">
+            <h2 className="text-2xl font-bold text-slate-900">Send us a message</h2>
             <div>
-              <Label className="text-navy text-sm">Name</Label>
-              <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Your name" className="mt-1.5" />
+              <Label className="text-slate-700 font-medium text-sm">Name</Label>
+              <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Your name" className="mt-1.5 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400" />
             </div>
             <div>
-              <Label className="text-navy text-sm">Email</Label>
-              <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="you@example.com" className="mt-1.5" />
+              <Label className="text-slate-700 font-medium text-sm">Email</Label>
+              <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="you@example.com" className="mt-1.5 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400" />
             </div>
             <div>
-              <Label className="text-navy text-sm">Message</Label>
-              <Textarea rows={5} value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} placeholder="How can we help?" className="mt-1.5" />
+              <Label className="text-slate-700 font-medium text-sm">Message</Label>
+              <Textarea rows={5} value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} placeholder="How can we help?" className="mt-1.5 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400" />
             </div>
-            <Button type="submit" disabled={isSubmitting} className="rounded-full bg-primary hover:bg-primary/90 px-6">
+            <Button type="submit" disabled={isSubmitting} className="rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 shadow-sm">
               <Send className="w-4 h-4 mr-2" /> {isSubmitting ? "Sending..." : "Send message"}
             </Button>
           </form>
@@ -89,10 +89,10 @@ export default function Contact() {
               { icon: Phone, label: "Phone", value: "+91 77569 37861" },
               { icon: MapPin, label: "HQ", value: "Pune, India" },
             ].map(i => (
-              <div key={i.label} className="bg-white rounded-3xl p-6 border border-border shadow-soft">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 grid place-items-center text-primary"><i.icon className="w-4 h-4" /></div>
-                <div className="text-xs text-muted-foreground mt-3">{i.label}</div>
-                <div className="text-navy font-medium mt-0.5">{i.value}</div>
+              <div key={i.label} className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 grid place-items-center text-indigo-600"><i.icon className="w-4 h-4" /></div>
+                <div className="text-xs text-slate-500 font-medium mt-3">{i.label}</div>
+                <div className="text-slate-900 font-semibold mt-0.5">{i.value}</div>
               </div>
             ))}
           </aside>
