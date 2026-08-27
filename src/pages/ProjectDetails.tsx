@@ -287,7 +287,7 @@ export default function ProjectDetails() {
   if (!project) {
     return (
       <Layout>
-        <div className="container-px py-20 text-center text-navy font-medium">Loading project details...</div>
+        <div className="container-px py-20 text-center text-slate-700 font-semibold">Loading project details...</div>
       </Layout>
     );
   }
@@ -303,7 +303,7 @@ export default function ProjectDetails() {
       </Helmet>
       <div className="container-px py-8">
         <div className="max-w-6xl mx-auto">
-          <Link to="/marketplace" className="text-sm text-muted-foreground hover:text-navy inline-flex items-center gap-1"><ArrowLeft className="w-4 h-4" /> Back to marketplace</Link>
+          <Link to="/marketplace" className="text-sm text-slate-500 hover:text-slate-900 font-medium inline-flex items-center gap-1"><ArrowLeft className="w-4 h-4" /> Back to marketplace</Link>
 
           <div className="grid lg:grid-cols-[1fr_360px] gap-8 mt-6">
             <div>
