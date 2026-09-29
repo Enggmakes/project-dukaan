@@ -2,6 +2,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { 
+  Home,
   Menu, 
   X, 
   User, 
@@ -23,6 +24,7 @@ import { User as SupabaseUser } from "@supabase/supabase-js";
 import NotificationBell from "@/components/NotificationBell";
 
 const links = [
+  { to: "/", label: "Home", icon: Home, desc: "Main landing & featured showcase" },
   { to: "/marketplace", label: "Marketplace", icon: ShoppingBag, desc: "Explore ready-to-ship projects" },
   { to: "/custom-request", label: "Custom Build", icon: Sparkles, desc: "Order tailored software blueprints", badge: "Fast" },
   { to: "/about", label: "About", icon: Info, desc: "Our mission & background" },
@@ -322,6 +324,50 @@ export default function Navbar() {
 
                 {/* Bento Grid Navigation */}
                 <div className="grid grid-cols-2 gap-2.5">
+                  {/* Bento Tile 0: Home */}
+                  <NavLink
+                    to="/"
+                    end
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) => cn(
+                      "col-span-2 relative overflow-hidden rounded-2xl p-3 transition-all duration-200 group border text-left flex items-center justify-between",
+                      isActive
+                        ? "bg-slate-900 text-white border-slate-900 shadow-md shadow-slate-900/10"
+                        : "bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs"
+                    )}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-9 h-9 rounded-xl flex items-center justify-center transition-colors shrink-0",
+                            isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+                          )}>
+                            <Home className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <span className={cn(
+                              "text-xs font-bold block",
+                              isActive ? "text-white" : "text-slate-900"
+                            )}>
+                              Home
+                            </span>
+                            <span className={cn(
+                              "text-[10px] block leading-tight",
+                              isActive ? "text-slate-300" : "text-slate-500"
+                            )}>
+                              Landing page & featured showcase
+                            </span>
+                          </div>
+                        </div>
+                        <ChevronRight className={cn(
+                          "w-4 h-4 shrink-0",
+                          isActive ? "text-white" : "text-slate-400 group-hover:text-slate-700"
+                        )} />
+                      </>
+                    )}
+                  </NavLink>
+
                   {/* Bento Tile 1: Marketplace (Full Width) */}
                   <NavLink
                     to="/marketplace"
