@@ -46,9 +46,10 @@ export function useNotifications() {
 
     fetchNewProjects();
 
-    // Listen for real-time new project inserts
+    // Listen for real-time new project inserts with unique channel name to avoid collisions
+    const channelId = `new-projects-${Math.random().toString(36).substring(2, 9)}`;
     const channel = supabase
-      .channel("new-projects")
+      .channel(channelId)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "projects" },
