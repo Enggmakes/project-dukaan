@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { LayoutGrid, List, SlidersHorizontal, Search } from "lucide-react";
+import { SlidersHorizontal, Search } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Helmet } from "react-helmet-async";
 import ProjectCard from "@/components/ProjectCard";
@@ -21,7 +21,6 @@ export default function Marketplace() {
   const [q, setQ] = useState(params.get("q") ?? "");
   const [cat, setCat] = useState<string>(params.get("cat") ?? "all");
   const [sort, setSort] = useState("latest");
-  const [view, setView] = useState<"grid" | "list">("grid");
   const [price, setPrice] = useState([0, 100000]);
   const [diffs, setDiffs] = useState<string[]>([]);
   const [techs, setTechs] = useState<string[]>([]);
@@ -227,39 +226,18 @@ export default function Marketplace() {
                 </div>
               </div>
 
-              {/* Filters Trigger & View Switcher */}
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  className={`flex-1 sm:flex-none rounded-full h-10 text-xs font-bold transition-all shadow-xs ${
-                    showFilters 
-                      ? "bg-indigo-50 text-indigo-700 border-indigo-200" 
-                      : "bg-white text-slate-800 border-slate-200 hover:bg-slate-50"
-                  }`} 
-                  onClick={() => setShowFilters(!showFilters)}
-                >
-                  <SlidersHorizontal className="w-4 h-4 mr-1.5 text-indigo-600" /> Filters
-                </Button>
-                
-                <div className="flex bg-slate-100/90 border border-slate-200 rounded-full p-1 h-10 shrink-0">
-                  <button 
-                    onClick={() => setView("grid")} 
-                    className={`p-1.5 px-3 rounded-full transition-all cursor-pointer ${
-                      view === "grid" ? "bg-white shadow-xs text-indigo-600 font-bold" : "text-slate-500 hover:text-slate-900"
-                    }`}
-                  >
-                    <LayoutGrid className="w-4 h-4" />
-                  </button>
-                  <button 
-                    onClick={() => setView("list")} 
-                    className={`p-1.5 px-3 rounded-full transition-all cursor-pointer ${
-                      view === "list" ? "bg-white shadow-xs text-indigo-600 font-bold" : "text-slate-500 hover:text-slate-900"
-                    }`}
-                  >
-                    <List className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+              {/* Filters Trigger */}
+              <Button 
+                variant="outline" 
+                className={`w-full sm:w-auto rounded-full h-10 text-xs font-bold transition-all shadow-xs ${
+                  showFilters 
+                    ? "bg-indigo-50 text-indigo-700 border-indigo-200" 
+                    : "bg-white text-slate-800 border-slate-200 hover:bg-slate-50"
+                }`} 
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <SlidersHorizontal className="w-4 h-4 mr-1.5 text-indigo-600" /> Filters
+              </Button>
             </div>
           </div>
 
@@ -340,13 +318,9 @@ export default function Marketplace() {
                     Clear All Filters
                   </Button>
                 </div>
-              ) : view === "grid" ? (
+              ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                   {filtered.map(p => <ProjectCard key={p.id} project={p} />)}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {filtered.map(p => <ProjectCard key={p.id} project={p} view="list" />)}
                 </div>
               )}
             </div>
