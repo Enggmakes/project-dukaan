@@ -124,21 +124,28 @@ WITH CHECK (
 -- 4. Enable Realtime Publications
 -- ==============================================================
 DO $$ BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE product_conversations;
-EXCEPTION WHEN duplicate_object THEN
-    NULL;
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'product_conversations'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE product_conversations;
+    END IF;
 END $$;
 
 DO $$ BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE chat_messages;
-EXCEPTION WHEN duplicate_object THEN
-    NULL;
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'chat_messages'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE chat_messages;
+    END IF;
 END $$;
 
 -- ==============================================================
 -- 5. Soft Delete (Admin Side Only) & 5-Day Auto-Purge
 -- ==============================================================
 ALTER TABLE product_conversations ADD COLUMN IF NOT EXISTS admin_deleted BOOLEAN DEFAULT FALSE;
+ALTER TABLE product_conversations ADD COLUMN IF NOT EXISTS admin_cleared_at TIMESTAMP WITH TIME ZONE;
 
 -- Automatically purge chats older than 5 days
 CREATE OR REPLACE FUNCTION purge_expired_chats()
@@ -155,4 +162,28 @@ CREATE TRIGGER trigger_purge_expired_chats
 AFTER INSERT OR UPDATE ON product_conversations
 FOR EACH STATEMENT
 EXECUTE FUNCTION purge_expired_chats();
+
+-- Automatically unhide conversation in admin view when client sends a new message
+CREATE OR REPLACE FUNCTION unhide_conversation_on_user_message()
+RETURNS trigger AS $$
+BEGIN
+    IF NEW.sender_role = 'user' THEN
+        UPDATE product_conversations 
+        SET admin_deleted = FALSE, 
+            status = 'active', 
+            last_message = NEW.message,
+            last_message_at = NEW.created_at,
+            updated_at = NOW()
+        WHERE id = NEW.conversation_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS trigger_unhide_on_user_message ON chat_messages;
+CREATE TRIGGER trigger_unhide_on_user_message
+AFTER INSERT ON chat_messages
+FOR EACH ROW
+EXECUTE FUNCTION unhide_conversation_on_user_message();
+
 

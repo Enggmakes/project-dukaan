@@ -250,12 +250,15 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
           });
         }
 
-        // Update last message in conversation
+        // Update last message in conversation and unhide for admin
         await supabase
           .from("product_conversations")
           .update({
             last_message: msgText,
             last_message_at: new Date().toISOString(),
+            admin_deleted: false,
+            status: "active",
+            updated_at: new Date().toISOString(),
           })
           .eq("id", conversation.id);
       }

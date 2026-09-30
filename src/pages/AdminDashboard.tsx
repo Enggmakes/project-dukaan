@@ -136,6 +136,13 @@ export default function AdminDashboard() {
           fetchConversations();
         }
       )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'chat_messages' },
+        () => {
+          fetchConversations();
+        }
+      )
       .subscribe();
 
     return () => {
@@ -150,14 +157,33 @@ export default function AdminDashboard() {
       return;
     }
 
+    const getClearedCutoff = () => {
+      let cleared = selectedConvo.admin_cleared_at;
+      if (!cleared) {
+        try {
+          const clearedMap = JSON.parse(localStorage.getItem('admin_cleared_chats') || '{}');
+          cleared = clearedMap[selectedConvo.id];
+        } catch {}
+      }
+      return cleared ? new Date(cleared).getTime() : null;
+    };
+
     const fetchMessagesForConvo = async () => {
+      const cutoffTime = getClearedCutoff();
       const { data, error } = await supabase
         .from('chat_messages')
         .select('*')
         .eq('conversation_id', selectedConvo.id)
         .order('created_at', { ascending: true });
+
       if (!error && data) {
-        setAdminChatMessages(data);
+        // Only show new messages to admin if previously cleared
+        if (cutoffTime) {
+          const newOnly = data.filter((m: any) => new Date(m.created_at).getTime() > cutoffTime);
+          setAdminChatMessages(newOnly);
+        } else {
+          setAdminChatMessages(data);
+        }
       }
     };
 
@@ -174,6 +200,11 @@ export default function AdminDashboard() {
           filter: `conversation_id=eq.${selectedConvo.id}`,
         },
         (payload) => {
+          const cutoffTime = getClearedCutoff();
+          if (cutoffTime && new Date(payload.new.created_at).getTime() <= cutoffTime) {
+            return;
+          }
+
           setAdminChatMessages((prev) => {
             if (prev.some((m) => m.id === payload.new.id)) return prev;
             // Deduplicate: replace optimistic temp message if matching
@@ -194,7 +225,7 @@ export default function AdminDashboard() {
     return () => {
       supabase.removeChannel(msgChannel);
     };
-  }, [selectedConvo?.id]);
+  }, [selectedConvo?.id, selectedConvo?.admin_cleared_at]);
 
   useEffect(() => {
     if (adminChatFeedRef.current) {
@@ -279,24 +310,36 @@ export default function AdminDashboard() {
 
   const handleDeleteForAdmin = async (convoId: string) => {
     try {
-      // Soft delete from admin view only: client still sees admin messages in their wishlist
+      const now = new Date().toISOString();
+      // Soft delete from admin view and record cleared timestamp so old messages stay hidden
       const { error } = await supabase
         .from('product_conversations')
-        .update({ admin_deleted: true, updated_at: new Date().toISOString() })
+        .update({ 
+          admin_deleted: true, 
+          admin_cleared_at: now,
+          updated_at: now 
+        })
         .eq('id', convoId);
 
       if (error) {
         await supabase
           .from('product_conversations')
-          .update({ status: 'archived', updated_at: new Date().toISOString() })
+          .update({ status: 'archived', updated_at: now })
           .eq('id', convoId);
       }
+
+      // Persist locally so even before DB column exists, old messages stay hidden to admin
+      try {
+        const clearedMap = JSON.parse(localStorage.getItem('admin_cleared_chats') || '{}');
+        clearedMap[convoId] = now;
+        localStorage.setItem('admin_cleared_chats', JSON.stringify(clearedMap));
+      } catch {}
 
       setConversations((prev) => prev.filter((c) => c.id !== convoId));
       if (selectedConvo?.id === convoId) {
         setSelectedConvo(null);
       }
-      toast.success("Inquiry removed from Admin view (Client retains full chat)");
+      toast.success("Inquiry cleared from Admin view. Any new messages from user will appear fresh.");
     } catch (err: any) {
       toast.error("Failed to remove inquiry");
     }
