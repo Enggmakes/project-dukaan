@@ -1,6 +1,20 @@
 import { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { SlidersHorizontal, Search, X, Check, RotateCcw } from "lucide-react";
+import { 
+  SlidersHorizontal, 
+  Search, 
+  X, 
+  Check, 
+  RotateCcw, 
+  Zap, 
+  GraduationCap, 
+  Flame, 
+  Sparkles, 
+  TrendingUp, 
+  Layers, 
+  Tag, 
+  ArrowUpDown 
+} from "lucide-react";
 import Layout from "@/components/Layout";
 import { Helmet } from "react-helmet-async";
 import ProjectCard from "@/components/ProjectCard";
@@ -78,12 +92,27 @@ export default function Marketplace() {
     setTechs([]);
     setPrice([0, 100000]);
     setCat("all");
+    setSort("latest");
     setQ("");
     setTechSearch("");
     setSearchParams(new URLSearchParams());
   };
 
   const ALL_TECH = useMemo(() => Array.from(new Set(projects.flatMap(p => p.tech || []))).sort(), [projects]);
+
+  // Top popular technologies for Bento quick-selection
+  const popularTech = useMemo(() => {
+    const counts: Record<string, number> = {};
+    projects.forEach(p => {
+      (p.tech || []).forEach(t => {
+        counts[t] = (counts[t] || 0) + 1;
+      });
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([tech]) => tech);
+  }, [projects]);
 
   const filteredTechList = useMemo(() => {
     if (!techSearch.trim()) return ALL_TECH;
@@ -98,8 +127,9 @@ export default function Marketplace() {
     if (techs.length > 0) count += techs.length;
     if (price[0] > 0 || price[1] < 100000) count++;
     if (q.trim()) count++;
+    if (sort !== "latest") count++;
     return count;
-  }, [cat, diffs, techs, price, q]);
+  }, [cat, diffs, techs, price, q, sort]);
 
   const filtered = useMemo(() => {
     let r = projects.filter(p => {
@@ -149,47 +179,60 @@ export default function Marketplace() {
     }
   };
 
-  // Reusable Bento Filter Modules
-  const renderFilterModules = () => (
-    <div className="space-y-4">
-      {/* Price Range Module */}
-      <div className="bento-card p-4 sm:p-5 bg-white border border-slate-200/90 shadow-2xs">
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">Price Range</h4>
-          {(price[0] > 0 || price[1] < 100000) && (
-            <button
-              type="button"
-              onClick={() => setPrice([0, 100000])}
-              className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800"
-            >
-              Reset
-            </button>
-          )}
+  // Reusable Hybrid Bento Filter Grid
+  const renderBentoFilterGrid = (isInsideDrawer = false) => (
+    <div className={isInsideDrawer ? "grid grid-cols-1 md:grid-cols-2 gap-3.5" : "space-y-4"}>
+      {/* BENTO CELL 1: Price Range & Budget Dial */}
+      <div className="bento-card p-4 sm:p-5 bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+        <div>
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 uppercase tracking-wider">
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
+              <span>Budget & Price</span>
+            </div>
+            {(price[0] > 0 || price[1] < 100000) && (
+              <button
+                type="button"
+                onClick={() => setPrice([0, 100000])}
+                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+          
+          <div className="flex justify-between items-baseline text-xs mb-3">
+            <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">
+              ₹{price[0].toLocaleString()}
+            </span>
+            <span className="text-[11px] text-slate-400 font-semibold">to</span>
+            <span className="font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
+              ₹{price[1].toLocaleString()}
+            </span>
+          </div>
+
+          <Slider value={price} onValueChange={setPrice} max={100000} step={500} min={0} className="my-2" />
         </div>
-        <Slider value={price} onValueChange={setPrice} max={100000} step={500} min={0} />
-        <div className="flex justify-between text-xs text-slate-600 mt-3 font-mono font-semibold">
-          <span>₹{price[0].toLocaleString()}</span>
-          <span>₹{price[1].toLocaleString()}</span>
-        </div>
-        {/* Quick price presets */}
+
+        {/* 3 Quick Bento Budget Brackets */}
         <div className="grid grid-cols-3 gap-1.5 mt-3 pt-3 border-t border-slate-100">
           <button
             type="button"
             onClick={() => setPrice([0, 5000])}
-            className={`px-2 py-1 text-[11px] font-semibold rounded-lg border transition-all ${
+            className={`px-2 py-1.5 text-[11px] font-semibold rounded-xl border transition-all text-center ${
               price[0] === 0 && price[1] === 5000
-                ? "bg-indigo-50 text-indigo-700 border-indigo-200 font-bold"
+                ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs font-bold"
                 : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
             }`}
           >
-            &lt; ₹5k
+            &lt; ₹5,000
           </button>
           <button
             type="button"
             onClick={() => setPrice([5000, 20000])}
-            className={`px-2 py-1 text-[11px] font-semibold rounded-lg border transition-all ${
+            className={`px-2 py-1.5 text-[11px] font-semibold rounded-xl border transition-all text-center ${
               price[0] === 5000 && price[1] === 20000
-                ? "bg-indigo-50 text-indigo-700 border-indigo-200 font-bold"
+                ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs font-bold"
                 : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
             }`}
           >
@@ -198,21 +241,24 @@ export default function Marketplace() {
           <button
             type="button"
             onClick={() => setPrice([20000, 100000])}
-            className={`px-2 py-1 text-[11px] font-semibold rounded-lg border transition-all ${
+            className={`px-2 py-1.5 text-[11px] font-semibold rounded-xl border transition-all text-center ${
               price[0] === 20000 && price[1] === 100000
-                ? "bg-indigo-50 text-indigo-700 border-indigo-200 font-bold"
+                ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs font-bold"
                 : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
             }`}
           >
-            ₹20k+
+            ₹20,000+
           </button>
         </div>
       </div>
 
-      {/* Difficulty Level Module */}
-      <div className="bento-card p-4 sm:p-5 bg-white border border-slate-200/90 shadow-2xs">
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">Difficulty Level</h4>
+      {/* BENTO CELL 2: Difficulty Level Matrix */}
+      <div className="bento-card p-4 sm:p-5 bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+        <div className="flex items-center justify-between mb-2.5">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 uppercase tracking-wider">
+            <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Difficulty Level</span>
+          </div>
           {diffs.length > 0 && (
             <button
               type="button"
@@ -223,33 +269,83 @@ export default function Marketplace() {
             </button>
           )}
         </div>
+
         <div className="grid grid-cols-3 gap-2">
           {DIFFICULTIES.map(d => {
             const isSelected = diffs.includes(d);
+            const indicatorColor = 
+              d === "Beginner" ? "bg-emerald-500" :
+              d === "Intermediate" ? "bg-amber-500" : "bg-purple-600";
+
             return (
               <button
                 key={d}
                 type="button"
                 onClick={() => toggle(diffs, d, setDiffs)}
-                className={`px-2 py-2 rounded-xl text-xs font-bold transition-all border text-center cursor-pointer ${
+                className={`p-2.5 rounded-2xl text-xs font-bold transition-all border flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
                   isSelected
-                    ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs"
+                    ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
                     : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
                 }`}
               >
-                {d}
+                <span className={`w-2 h-2 rounded-full ${isSelected ? "bg-white" : indicatorColor}`} />
+                <span className="truncate w-full text-center">{d}</span>
               </button>
             );
           })}
         </div>
+        <p className="text-[11px] text-slate-400 mt-3 font-medium text-center">
+          {diffs.length === 0 ? "Showing all skill tiers" : `${diffs.length} tier(s) selected`}
+        </p>
       </div>
 
-      {/* Future-Proof Tech Stack Module */}
-      <div className="bento-card p-4 sm:p-5 bg-white border border-slate-200/90 shadow-2xs">
-        <div className="flex items-center justify-between mb-2.5">
-          <div className="flex items-center gap-1.5">
-            <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">Tech Stack</h4>
-            <span className="text-[10px] text-slate-400 font-mono">({ALL_TECH.length})</span>
+      {/* BENTO CELL 3: Sort & Ranking Matrix (in drawer) */}
+      {isInsideDrawer && (
+        <div className="bento-card p-4 sm:p-5 bg-white border border-slate-200/90 shadow-2xs md:col-span-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 uppercase tracking-wider mb-2.5">
+            <ArrowUpDown className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Order & Prioritization</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {[
+              { id: "latest", label: "Latest Releases", icon: Sparkles },
+              { id: "popular", label: "Most Popular", icon: Flame },
+              { id: "rating", label: "Highest Rated", icon: TrendingUp },
+              { id: "price-low", label: "Lowest Price", icon: Tag },
+            ].map(item => {
+              const Icon = item.icon;
+              const isSelected = sort === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSort(item.id)}
+                  className={`p-2 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-all ${
+                    isSelected
+                      ? "bg-slate-900 text-white border-slate-900 shadow-2xs"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* BENTO CELL 4: Tech Stack Command Center (Hero Bento Tile) */}
+      <div className={`bento-card p-4 sm:p-5 bg-white border border-slate-200/90 shadow-2xs ${isInsideDrawer ? "md:col-span-2" : ""}`}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 grid place-items-center">
+              <Layers className="w-3.5 h-3.5" />
+            </div>
+            <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">Tech Stack Hub</h4>
+            <span className="text-[10px] text-slate-400 font-mono bg-slate-100 px-1.5 py-0.5 rounded-full">
+              {ALL_TECH.length} Available
+            </span>
           </div>
           {techs.length > 0 && (
             <button
@@ -257,19 +353,48 @@ export default function Marketplace() {
               onClick={() => setTechs([])}
               className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800"
             >
-              Clear ({techs.length})
+              Clear Selected ({techs.length})
             </button>
           )}
         </div>
 
-        {/* Tech search input */}
+        {/* Quick Popular Stacks Bento Bar */}
+        {popularTech.length > 0 && !techSearch && (
+          <div className="mb-3">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+              Popular Technologies
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {popularTech.map(t => {
+                const isSelected = techs.includes(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => toggle(techs, t, setTechs)}
+                    className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all border flex items-center gap-1 ${
+                      isSelected
+                        ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs"
+                        : "bg-indigo-50/60 text-indigo-700 border-indigo-100 hover:bg-indigo-100/80"
+                    }`}
+                  >
+                    {isSelected ? <Check className="w-3 h-3" /> : <Sparkles className="w-2.5 h-2.5 opacity-60" />}
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Real-time Search input */}
         <div className="relative mb-2.5">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Input
             value={techSearch}
             onChange={e => setTechSearch(e.target.value)}
-            placeholder="Search technologies..."
-            className="h-8 text-xs pl-8 pr-7 bg-slate-50 border-slate-200 rounded-xl placeholder:text-slate-400"
+            placeholder="Search 20+ technologies (React, Python, IoT)..."
+            className="h-9 text-xs pl-8 pr-7 bg-slate-50 border-slate-200 rounded-xl placeholder:text-slate-400"
           />
           {techSearch && (
             <button
@@ -282,8 +407,8 @@ export default function Marketplace() {
           )}
         </div>
 
-        {/* Scrollable Tag Cloud (Capped height prevents page blowout) */}
-        <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto pr-1 [scrollbar-width:thin]">
+        {/* Scrollable Tag Cloud with bounded height */}
+        <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto pr-1 [scrollbar-width:thin]">
           {filteredTechList.length === 0 ? (
             <p className="text-xs text-slate-400 py-3 text-center w-full">No technologies match "{techSearch}"</p>
           ) : (
@@ -308,7 +433,7 @@ export default function Marketplace() {
         </div>
       </div>
 
-      {activeFilterCount > 0 && (
+      {activeFilterCount > 0 && !isInsideDrawer && (
         <Button
           variant="ghost"
           onClick={resetFilters}
@@ -381,10 +506,10 @@ export default function Marketplace() {
         </div>
       </div>
 
-      <section className="container-px py-10 bleed-container">
+      <section className="container-px py-8 md:py-10 bleed-container">
         <div className="max-w-6xl mx-auto">
           {/* Bento Search & Filter Dock */}
-          <div className="bento-card p-3 md:p-3.5 flex flex-col md:flex-row gap-3 items-stretch md:items-center relative z-10 shadow-sm bg-white border border-slate-200/90 mb-6">
+          <div className="bento-card p-3 md:p-3.5 flex flex-col md:flex-row gap-3 items-stretch md:items-center relative z-10 shadow-sm bg-white border border-slate-200/90 mb-4">
             {/* Search Input */}
             <div className="flex-1 flex items-center gap-2 px-4 py-1 md:py-0 bg-slate-50 rounded-full border border-slate-200/90 focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-400 transition-all">
               <Search className="w-4 h-4 text-slate-400 shrink-0" />
@@ -450,6 +575,92 @@ export default function Marketplace() {
             </div>
           </div>
 
+          {/* HYBRID BENTO QUICK-FILTER RIBBON (Instant 1-tap filtering right on the page) */}
+          <div className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden py-1 mb-5">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1 hidden sm:inline">
+              Quick Bento:
+            </span>
+
+            {/* Quick Under ₹5k */}
+            <button
+              type="button"
+              onClick={() => {
+                if (price[0] === 0 && price[1] === 5000) {
+                  setPrice([0, 100000]);
+                } else {
+                  setPrice([0, 5000]);
+                }
+              }}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border shrink-0 flex items-center gap-1.5 cursor-pointer ${
+                price[0] === 0 && price[1] === 5000
+                  ? "bg-amber-500 text-white border-amber-500 shadow-2xs"
+                  : "bg-white text-slate-700 hover:bg-slate-50 border-slate-200"
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
+              <span>Under ₹5,000</span>
+            </button>
+
+            {/* Quick Beginner Friendly */}
+            <button
+              type="button"
+              onClick={() => toggle(diffs, "Beginner", setDiffs)}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border shrink-0 flex items-center gap-1.5 cursor-pointer ${
+                diffs.includes("Beginner")
+                  ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
+                  : "bg-white text-slate-700 hover:bg-slate-50 border-slate-200"
+              }`}
+            >
+              <GraduationCap className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Beginner Friendly</span>
+            </button>
+
+            {/* Quick Most Popular */}
+            <button
+              type="button"
+              onClick={() => setSort(sort === "popular" ? "latest" : "popular")}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border shrink-0 flex items-center gap-1.5 cursor-pointer ${
+                sort === "popular"
+                  ? "bg-rose-600 text-white border-rose-600 shadow-2xs"
+                  : "bg-white text-slate-700 hover:bg-slate-50 border-slate-200"
+              }`}
+            >
+              <Flame className="w-3.5 h-3.5 text-rose-500" />
+              <span>Trending Hits</span>
+            </button>
+
+            {/* Quick Top Technologies */}
+            {popularTech.slice(0, 3).map(tech => (
+              <button
+                key={tech}
+                type="button"
+                onClick={() => toggle(techs, tech, setTechs)}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border shrink-0 flex items-center gap-1.5 cursor-pointer ${
+                  techs.includes(tech)
+                    ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs"
+                    : "bg-white text-slate-700 hover:bg-slate-50 border-slate-200"
+                }`}
+              >
+                <span>{tech}</span>
+              </button>
+            ))}
+
+            {/* Slide-over Bento Hub Trigger */}
+            <button
+              type="button"
+              onClick={() => setMobileDrawerOpen(true)}
+              className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-all shrink-0 flex items-center gap-1.5 ml-auto cursor-pointer"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Bento Filter Hub</span>
+              {activeFilterCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-indigo-600 text-white text-[9px] grid place-items-center">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+          </div>
+
           {/* ACTIVE FILTER CHIPS BAR (Quick 1-tap dismissal) */}
           {activeFilterCount > 0 && (
             <div className="flex items-center gap-2 flex-wrap mb-6 p-3 rounded-2xl bg-white border border-slate-200/90 shadow-2xs text-xs animate-in fade-in duration-200">
@@ -461,6 +672,15 @@ export default function Marketplace() {
                 <Badge variant="secondary" className="gap-1.5 bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold rounded-full pr-1.5">
                   Domain: {cat}
                   <button onClick={() => handleCatChange("all")} className="hover:bg-indigo-200/60 rounded-full p-0.5">
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              )}
+
+              {sort !== "latest" && (
+                <Badge variant="secondary" className="gap-1.5 bg-slate-100 text-slate-800 border-slate-200 font-semibold rounded-full pr-1.5">
+                  Sort: {sort}
+                  <button onClick={() => setSort("latest")} className="hover:bg-slate-200 rounded-full p-0.5">
                     <X className="w-3 h-3" />
                   </button>
                 </Badge>
@@ -516,7 +736,7 @@ export default function Marketplace() {
             {/* Desktop Filter Sidebar (Always hidden on mobile, toggled on desktop) */}
             {desktopSidebarOpen && (
               <aside className="hidden lg:block space-y-4 sticky top-28">
-                {renderFilterModules()}
+                {renderBentoFilterGrid(false)}
               </aside>
             )}
 
@@ -557,58 +777,61 @@ export default function Marketplace() {
         </div>
       </section>
 
-      {/* MOBILE FULL-BLEED SLIDE-OVER SHEET (Never pushes products down) */}
+      {/* HYBRID BENTO SLIDE-OVER SHEET (Bottom on mobile, slide-over on wider screens) */}
       <Sheet open={mobileDrawerOpen} onOpenChange={setMobileDrawerOpen}>
         <SheetContent 
           side="bottom" 
-          className="lg:hidden max-h-[88vh] p-0 rounded-t-3xl bg-white border-t border-slate-200/90 shadow-2xl flex flex-col z-50 focus:outline-none"
+          className="max-h-[92vh] md:max-h-[85vh] md:max-w-2xl md:mx-auto md:rounded-3xl p-0 rounded-t-3xl bg-slate-50/95 backdrop-blur-xl border-t md:border border-slate-200/90 shadow-2xl flex flex-col z-50 focus:outline-none"
         >
           {/* Top Drag Indicator */}
-          <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mt-3 mb-1 shrink-0" />
+          <div className="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mt-3 mb-1 shrink-0" />
 
           {/* Sheet Header */}
-          <SheetHeader className="px-6 py-3 border-b border-slate-100 flex flex-row items-center justify-between space-y-0 text-left shrink-0">
+          <SheetHeader className="px-6 py-3 border-b border-slate-200/70 bg-white/80 backdrop-blur-md flex flex-row items-center justify-between space-y-0 text-left shrink-0">
             <div className="flex items-center gap-2">
-              <SheetTitle className="text-base font-black text-slate-900">
-                Filters & Refinements
-              </SheetTitle>
-              {activeFilterCount > 0 && (
-                <Badge className="bg-indigo-100 text-indigo-700 font-bold text-xs">
-                  {activeFilterCount}
-                </Badge>
-              )}
+              <div className="w-7 h-7 rounded-xl bg-indigo-600 text-white grid place-items-center shadow-xs">
+                <SlidersHorizontal className="w-4 h-4" />
+              </div>
+              <div>
+                <SheetTitle className="text-base font-black text-slate-900 leading-tight">
+                  Bento Filter Hub
+                </SheetTitle>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  {filtered.length} matching blueprints
+                </p>
+              </div>
             </div>
             {activeFilterCount > 0 && (
               <button 
                 onClick={resetFilters}
                 className="text-xs font-bold text-rose-600 hover:text-rose-700 pr-6"
               >
-                Reset
+                Reset All ({activeFilterCount})
               </button>
             )}
           </SheetHeader>
 
-          {/* Scrollable Filter Modules */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            {renderFilterModules()}
+          {/* Scrollable Bento Grid Content */}
+          <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-4">
+            {renderBentoFilterGrid(true)}
           </div>
 
           {/* Sticky Bottom Apply Action Bar */}
-          <div className="p-4 border-t border-slate-100 bg-white/95 backdrop-blur-md flex items-center gap-3 shrink-0">
+          <div className="p-4 border-t border-slate-200/80 bg-white/95 backdrop-blur-md flex items-center gap-3 shrink-0">
             {activeFilterCount > 0 && (
               <Button
                 variant="outline"
                 onClick={resetFilters}
-                className="rounded-full text-xs font-bold text-slate-600 border-slate-200 h-12 px-4"
+                className="rounded-full text-xs font-bold text-slate-600 border-slate-200 h-12 px-4 hover:bg-slate-100"
               >
                 Clear
               </Button>
             )}
             <Button
               onClick={() => setMobileDrawerOpen(false)}
-              className="flex-1 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm h-12 shadow-lg shadow-indigo-600/25"
+              className="flex-1 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm h-12 shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2"
             >
-              Show {filtered.length} Blueprints
+              <span>Apply & Show {filtered.length} Blueprints</span>
             </Button>
           </div>
         </SheetContent>
