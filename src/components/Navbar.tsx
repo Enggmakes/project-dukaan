@@ -257,8 +257,8 @@ export default function Navbar() {
       {/* ========================================================================= */}
       {/* 3. MOBILE FLOATING BOTTOM NAVIGATION ISLAND (Grubbe Style)                 */}
       {/* ========================================================================= */}
-      <div className="fixed bottom-3 inset-x-0 z-50 flex md:hidden justify-center pointer-events-none px-4 transform-gpu will-change-transform">
-        <nav className="pointer-events-auto w-full max-w-sm bg-slate-950/95 text-white border border-white/10 rounded-full px-3 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.45)] flex items-center justify-between">
+      <div className="fixed bottom-3.5 inset-x-0 z-50 flex md:hidden justify-center pointer-events-none px-3.5 transform-gpu will-change-transform">
+        <nav className="pointer-events-auto w-full max-w-[420px] bg-slate-950/95 text-white border border-white/15 rounded-full px-3.5 py-2.5 shadow-[0_16px_45px_rgba(0,0,0,0.5)] flex items-center justify-between backdrop-blur-md min-h-[64px]">
           
           {/* Tab 1: Home */}
           <NavLink 
@@ -271,12 +271,12 @@ export default function Navbar() {
           >
             {({ isActive }) => (
               <>
-                <Home className="w-4 h-4 mb-0.5" />
-                <span className="text-[10px] tracking-tight">Home</span>
+                <Home className="w-5 h-5 mb-1" />
+                <span className="text-[11px] font-medium tracking-tight">Home</span>
                 {isActive && (
                   <motion.div 
                     layoutId="mobile-bottom-dot" 
-                    className="w-1 h-1 rounded-full bg-indigo-400 mt-0.5" 
+                    className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-0.5" 
                   />
                 )}
               </>
@@ -293,12 +293,12 @@ export default function Navbar() {
           >
             {({ isActive }) => (
               <>
-                <ShoppingBag className="w-4 h-4 mb-0.5" />
-                <span className="text-[10px] tracking-tight">Shop</span>
+                <ShoppingBag className="w-5 h-5 mb-1" />
+                <span className="text-[11px] font-medium tracking-tight">Shop</span>
                 {isActive && (
                   <motion.div 
                     layoutId="mobile-bottom-dot" 
-                    className="w-1 h-1 rounded-full bg-indigo-400 mt-0.5" 
+                    className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-0.5" 
                   />
                 )}
               </>
@@ -308,20 +308,20 @@ export default function Navbar() {
           {/* Tab 3: Elevated Center Custom Build Capsule */}
           <NavLink 
             to="/custom-request" 
-            className="flex flex-col items-center justify-center flex-1 relative -mt-6 group cursor-pointer"
+            className="flex flex-col items-center justify-center flex-1 relative -mt-7 group cursor-pointer"
           >
             {({ isActive }) => (
               <>
                 <div className={cn(
-                  "w-11 h-11 rounded-full grid place-items-center transition-all shadow-lg border-2 border-slate-950",
+                  "w-13 h-13 rounded-full grid place-items-center transition-all shadow-xl border-2 border-slate-950",
                   isActive 
                     ? "bg-white text-indigo-600 shadow-indigo-500/50 scale-105" 
-                    : "bg-indigo-600 text-white shadow-indigo-600/40 hover:scale-105 active:scale-95"
+                    : "bg-indigo-600 text-white shadow-indigo-600/50 hover:scale-105 active:scale-95"
                 )}>
-                  <Sparkles className="w-5 h-5 animate-pulse" />
+                  <Sparkles className="w-6 h-6 animate-pulse" />
                 </div>
                 <span className={cn(
-                  "text-[9px] font-bold mt-1 tracking-tight",
+                  "text-[10px] font-bold mt-1 tracking-tight",
                   isActive ? "text-indigo-400" : "text-slate-300"
                 )}>
                   Custom
@@ -340,12 +340,12 @@ export default function Navbar() {
           >
             {({ isActive }) => (
               <>
-                <MessageSquare className="w-4 h-4 mb-0.5" />
-                <span className="text-[10px] tracking-tight">Help</span>
+                <MessageSquare className="w-5 h-5 mb-1" />
+                <span className="text-[11px] font-medium tracking-tight">Help</span>
                 {isActive && (
                   <motion.div 
                     layoutId="mobile-bottom-dot" 
-                    className="w-1 h-1 rounded-full bg-indigo-400 mt-0.5" 
+                    className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-0.5" 
                   />
                 )}
               </>
@@ -357,8 +357,8 @@ export default function Navbar() {
             onClick={() => setMobileMenuOpen(true)}
             className="flex flex-col items-center justify-center flex-1 py-1 transition-all text-slate-400 hover:text-slate-200 cursor-pointer"
           >
-            <MoreHorizontal className="w-4 h-4 mb-0.5" />
-            <span className="text-[10px] tracking-tight">More</span>
+            <MoreHorizontal className="w-5 h-5 mb-1" />
+            <span className="text-[11px] font-medium tracking-tight">More</span>
           </button>
         </nav>
       </div>
