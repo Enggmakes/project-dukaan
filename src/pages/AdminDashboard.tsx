@@ -172,6 +172,15 @@ export default function AdminDashboard() {
         (payload) => {
           setAdminChatMessages((prev) => {
             if (prev.some((m) => m.id === payload.new.id)) return prev;
+            // Deduplicate: replace optimistic temp message if matching
+            const tempIdx = prev.findIndex(
+              (m) => String(m.id).startsWith("temp-") && m.message === payload.new.message
+            );
+            if (tempIdx !== -1) {
+              const copy = [...prev];
+              copy[tempIdx] = payload.new;
+              return copy;
+            }
             return [...prev, payload.new];
           });
         }
@@ -192,8 +201,9 @@ export default function AdminDashboard() {
     if (!text || !selectedConvo) return;
 
     setIsAdminSending(true);
+    const tempId = `temp-${Date.now()}`;
     const tempMsg = {
-      id: `temp-${Date.now()}`,
+      id: tempId,
       conversation_id: selectedConvo.id,
       sender_id: adminUser?.id || "admin",
       sender_role: "admin",
@@ -207,15 +217,24 @@ export default function AdminDashboard() {
 
     try {
       if (adminUser?.id) {
-        const { error: insertErr } = await supabase.from('chat_messages').insert({
+        const { data: inserted, error: insertErr } = await supabase.from('chat_messages').insert({
           conversation_id: selectedConvo.id,
           sender_id: adminUser.id,
           sender_role: "admin",
           sender_name: "ProjectDukaan Support",
           message: text,
-        });
+        }).select().single();
 
         if (insertErr) throw insertErr;
+
+        if (inserted) {
+          setAdminChatMessages((prev) => {
+            if (prev.some((m) => m.id === inserted.id)) {
+              return prev.filter((m) => m.id !== tempId);
+            }
+            return prev.map((m) => (m.id === tempId ? inserted : m));
+          });
+        }
 
         await supabase.from('product_conversations').update({
           last_message: text,
@@ -1484,13 +1503,30 @@ export default function AdminDashboard() {
 
                           {/* Chat Message Scrollable Feed */}
                           <div className="flex-1 p-4 overflow-y-auto max-h-[420px] min-h-[380px] space-y-3 bg-slate-50/20">
-                            {adminChatMessages.length === 0 ? (
-                              <div className="py-12 text-center text-slate-400">
-                                <Sparkles className="w-8 h-8 mx-auto mb-2 text-indigo-400" />
-                                <p className="text-xs">No messages in this inquiry yet. Send a greeting below.</p>
-                              </div>
-                            ) : (
-                              adminChatMessages.map((msg: any) => {
+                            {(() => {
+                              const displayChatMessages = adminChatMessages.filter((msg: any, idx: number, arr: any[]) => {
+                                if (idx > 0) {
+                                  const prev = arr[idx - 1];
+                                  if (prev.sender_role === msg.sender_role && prev.message === msg.message) {
+                                    const timeDiff = Math.abs(new Date(msg.created_at).getTime() - new Date(prev.created_at).getTime());
+                                    if (isNaN(timeDiff) || timeDiff < 60000) {
+                                      return false;
+                                    }
+                                  }
+                                }
+                                return true;
+                              });
+
+                              if (displayChatMessages.length === 0) {
+                                return (
+                                  <div className="py-12 text-center text-slate-400">
+                                    <Sparkles className="w-8 h-8 mx-auto mb-2 text-indigo-400" />
+                                    <p className="text-xs">No messages in this inquiry yet. Send a greeting below.</p>
+                                  </div>
+                                );
+                              }
+
+                              return displayChatMessages.map((msg: any) => {
                                 const isAdmin = msg.sender_role === "admin";
                                 return (
                                   <div
@@ -1516,8 +1552,8 @@ export default function AdminDashboard() {
                                     </div>
                                   </div>
                                 );
-                              })
-                            )}
+                              });
+                            })()}
                             <div ref={adminChatScrollRef} />
                           </div>
 

@@ -174,6 +174,15 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
         (payload) => {
           setMessages((prev) => {
             if (prev.some((m) => m.id === payload.new.id)) return prev;
+            // Deduplicate: replace optimistic temp message if matching
+            const tempIdx = prev.findIndex(
+              (m) => String(m.id).startsWith("temp-") && m.message === payload.new.message
+            );
+            if (tempIdx !== -1) {
+              const copy = [...prev];
+              copy[tempIdx] = payload.new;
+              return copy;
+            }
             return [...prev, payload.new];
           });
         }
@@ -211,15 +220,24 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
 
     try {
       if (!conversation.id.startsWith("local-")) {
-        const { error: insertError } = await supabase.from("chat_messages").insert({
+        const { data: insertedMsg, error: insertError } = await supabase.from("chat_messages").insert({
           conversation_id: conversation.id,
           sender_id: user.id,
           sender_role: user.email === import.meta.env.VITE_ADMIN_EMAIL ? "admin" : "user",
           sender_name: user.user_metadata?.full_name || user.email.split("@")[0],
           message: msgText,
-        });
+        }).select().single();
 
         if (insertError) throw insertError;
+
+        if (insertedMsg) {
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === insertedMsg.id)) {
+              return prev.filter((m) => m.id !== tempId);
+            }
+            return prev.map((m) => (m.id === tempId ? insertedMsg : m));
+          });
+        }
 
         // Update last message in conversation
         await supabase
@@ -311,7 +329,20 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
                 </div>
               ) : (
                 <>
-                  {messages.map((m) => {
+                  {messages
+                    .filter((m, idx, arr) => {
+                      if (idx > 0) {
+                        const prev = arr[idx - 1];
+                        if (prev.sender_role === m.sender_role && prev.message === m.message) {
+                          const timeDiff = Math.abs(new Date(m.created_at).getTime() - new Date(prev.created_at).getTime());
+                          if (isNaN(timeDiff) || timeDiff < 60000) {
+                            return false;
+                          }
+                        }
+                      }
+                      return true;
+                    })
+                    .map((m) => {
                     const isAdmin = m.sender_role === "admin";
                     const isMe = m.sender_id === user.id;
 
