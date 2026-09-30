@@ -272,9 +272,11 @@ export default function ProjectDetails() {
   };
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     supabase.from("projects").select("*").eq("id", id).single().then(({ data }) => {
       if (data) {
         setProject(data as Project);
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
         supabase.from("projects").select("*").eq("category", data.category).neq("id", data.id).limit(3).then(({ data: rData }) => {
           if (rData) setRelated(rData as Project[]);
         });

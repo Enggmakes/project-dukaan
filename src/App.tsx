@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound.tsx";
 
 import { HelmetProvider } from 'react-helmet-async';
 import GlobalTechParticles from "@/components/GlobalTechParticles";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/home" element={<Navigate to="/" replace />} />

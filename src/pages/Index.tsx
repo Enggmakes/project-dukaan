@@ -149,11 +149,11 @@ export default function Home() {
               initial={{ opacity: 0, y: -10 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ duration: 0.35 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 border border-slate-200/90 shadow-xs backdrop-blur-md mb-8"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/95 border border-slate-200/90 shadow-xs mb-8"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
               <span className="text-xs font-semibold text-slate-800 tracking-tight">
-                500+ Verified Blueprints • Instant Download • IEEE Thesis Docs
+                Verified Blueprints • Instant Download • IEEE Thesis Docs
               </span>
             </motion.div>
 
@@ -253,8 +253,8 @@ export default function Home() {
                       Flagship Blueprint
                     </span>
                   </div>
-                  <span className="text-xs font-bold text-amber-500 flex items-center gap-1 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100">
-                    <Star className="w-3.5 h-3.5 fill-amber-400" /> 4.9 (128 reviews)
+                  <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100/80">
+                    {flagship.category || "Latest Release"}
                   </span>
                 </div>
 
