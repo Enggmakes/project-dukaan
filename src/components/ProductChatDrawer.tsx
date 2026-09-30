@@ -40,7 +40,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const drawerChatFeedRef = useRef<HTMLDivElement>(null);
 
   // Check auth session
   useEffect(() => {
@@ -194,9 +194,11 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
     };
   }, [conversation?.id]);
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom inside container only
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (drawerChatFeedRef.current) {
+      drawerChatFeedRef.current.scrollTop = drawerChatFeedRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const handleSendMessage = async (textToSend?: string) => {
@@ -266,10 +268,10 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-md md:max-w-lg p-0 flex flex-col bg-slate-50 z-50 focus:outline-none"
+        className="w-full sm:max-w-md md:max-w-lg p-0 flex flex-col bg-slate-50 z-50 focus:outline-none h-[100dvh] max-h-[100dvh]"
       >
         {/* Drawer Header with Project Context */}
-        <SheetHeader className="p-4 bg-white border-b border-slate-200/90 shrink-0">
+        <SheetHeader className="p-3.5 sm:p-4 bg-white border-b border-slate-200/90 shrink-0">
           <div className="flex items-start gap-3">
             {project?.thumb && (
               <img
@@ -320,8 +322,11 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
           </div>
         ) : (
           <>
-            {/* Messages Feed */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
+            {/* Messages Feed (Contained scrolling, prevents window jump) */}
+            <div 
+              ref={drawerChatFeedRef}
+              className="flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-3.5 overscroll-contain"
+            >
               {isLoading ? (
                 <div className="py-20 text-center space-y-3">
                   <Loader2 className="w-6 h-6 animate-spin text-indigo-600 mx-auto" />
@@ -381,24 +386,23 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
                       </div>
                     );
                   })}
-                  <div ref={messagesEndRef} />
                 </>
               )}
             </div>
 
             {/* Quick Inquiry Chips (When empty or 1 message) */}
             {messages.length <= 2 && (
-              <div className="px-4 py-2 bg-white/80 border-t border-slate-200/60 shrink-0">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+              <div className="px-3 sm:px-4 py-2 bg-white/90 border-t border-slate-200/60 shrink-0">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
                   Suggested Questions:
                 </span>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
                   {quickQuestions.map((q) => (
                     <button
                       key={q}
                       type="button"
                       onClick={() => handleSendMessage(q)}
-                      className="text-[11px] font-medium text-slate-700 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 border border-slate-200/80 rounded-full px-2.5 py-1 text-left transition-all cursor-pointer"
+                      className="text-[11px] font-medium text-slate-700 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 border border-slate-200/80 rounded-full px-2.5 py-1 whitespace-nowrap transition-all cursor-pointer shrink-0"
                     >
                       {q}
                     </button>
@@ -408,7 +412,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
             )}
 
             {/* Input Bar */}
-            <div className="p-3.5 bg-white border-t border-slate-200/90 shrink-0">
+            <div className="p-3 sm:p-3.5 bg-white border-t border-slate-200/90 shrink-0">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -420,7 +424,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Ask about components, hardware, or code..."
-                  className="rounded-full bg-slate-50 border-slate-200 text-xs h-10 px-4 focus-visible:ring-indigo-500/20"
+                  className="rounded-full bg-slate-50 border-slate-200 text-xs sm:text-sm h-10 px-4 focus-visible:ring-indigo-500/20 flex-1"
                   disabled={isSending}
                 />
                 <Button
