@@ -35,7 +35,9 @@ USING (auth.uid() = user_id);
 
 
 -- ==============================================================
--- 2. Create Product Conversations Table
+-- 2. Create / Upgrade Product Conversations Table
+--    Stores messages as a JSONB list directly inside the row!
+--    (1 row per inquiry thread, no table explosion)
 -- ==============================================================
 CREATE TABLE IF NOT EXISTS product_conversations (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -49,9 +51,46 @@ CREATE TABLE IF NOT EXISTS product_conversations (
     status TEXT DEFAULT 'active', -- 'active', 'purchased', 'archived'
     last_message TEXT DEFAULT '',
     last_message_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    messages JSONB DEFAULT '[]'::jsonb,
+    admin_deleted BOOLEAN DEFAULT FALSE,
+    admin_cleared_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Ensure all columns exist if the table was created earlier
+ALTER TABLE product_conversations ADD COLUMN IF NOT EXISTS messages JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE product_conversations ADD COLUMN IF NOT EXISTS admin_deleted BOOLEAN DEFAULT FALSE;
+ALTER TABLE product_conversations ADD COLUMN IF NOT EXISTS admin_cleared_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE product_conversations ADD COLUMN IF NOT EXISTS last_message TEXT DEFAULT '';
+ALTER TABLE product_conversations ADD COLUMN IF NOT EXISTS last_message_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
+-- Migrate existing chat_messages into messages JSONB if chat_messages exists
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'chat_messages') THEN
+        UPDATE product_conversations c
+        SET messages = COALESCE(
+            (
+                SELECT jsonb_agg(
+                    jsonb_build_object(
+                        'id', m.id,
+                        'conversation_id', m.conversation_id,
+                        'sender_id', m.sender_id,
+                        'sender_role', m.sender_role,
+                        'sender_name', m.sender_name,
+                        'message', m.message,
+                        'created_at', m.created_at
+                    ) ORDER BY m.created_at ASC
+                )
+                FROM chat_messages m
+                WHERE m.conversation_id = c.id
+            ),
+            '[]'::jsonb
+        )
+        WHERE messages IS NULL OR messages = '[]'::jsonb;
+    END IF;
+END $$;
 
 ALTER TABLE product_conversations ENABLE ROW LEVEL SECURITY;
 
@@ -78,50 +117,7 @@ USING (auth.uid() = user_id OR auth.jwt() ->> 'email' = 'workspace7204@gmail.com
 
 
 -- ==============================================================
--- 3. Create Chat Messages Table
--- ==============================================================
-CREATE TABLE IF NOT EXISTS chat_messages (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    conversation_id UUID REFERENCES product_conversations(id) ON DELETE CASCADE NOT NULL,
-    sender_id UUID REFERENCES auth.users NOT NULL,
-    sender_role TEXT NOT NULL DEFAULT 'user', -- 'user' or 'admin'
-    sender_name TEXT NOT NULL,
-    message TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
-
-DO $$ BEGIN
-    DROP POLICY IF EXISTS "Users and admin can view messages" ON chat_messages;
-    DROP POLICY IF EXISTS "Users and admin can insert messages" ON chat_messages;
-END $$;
-
-CREATE POLICY "Users and admin can view messages"
-ON chat_messages FOR SELECT
-TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM product_conversations c
-        WHERE c.id = chat_messages.conversation_id
-        AND (c.user_id = auth.uid() OR auth.jwt() ->> 'email' = 'workspace7204@gmail.com')
-    )
-);
-
-CREATE POLICY "Users and admin can insert messages"
-ON chat_messages FOR INSERT
-TO authenticated
-WITH CHECK (
-    auth.uid() = sender_id AND
-    EXISTS (
-        SELECT 1 FROM product_conversations c
-        WHERE c.id = chat_messages.conversation_id
-        AND (c.user_id = auth.uid() OR auth.jwt() ->> 'email' = 'workspace7204@gmail.com')
-    )
-);
-
--- ==============================================================
--- 4. Enable Realtime Publications
+-- 3. Enable Realtime Publications for product_conversations
 -- ==============================================================
 DO $$ BEGIN
     IF NOT EXISTS (
@@ -132,22 +128,11 @@ DO $$ BEGIN
     END IF;
 END $$;
 
-DO $$ BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_publication_tables 
-        WHERE pubname = 'supabase_realtime' AND tablename = 'chat_messages'
-    ) THEN
-        ALTER PUBLICATION supabase_realtime ADD TABLE chat_messages;
-    END IF;
-END $$;
 
 -- ==============================================================
--- 5. Soft Delete (Admin Side Only) & 5-Day Auto-Purge
+-- 4. 5-Day Auto-Purge Trigger
+--    Automatically purges inactive conversations older than 5 days
 -- ==============================================================
-ALTER TABLE product_conversations ADD COLUMN IF NOT EXISTS admin_deleted BOOLEAN DEFAULT FALSE;
-ALTER TABLE product_conversations ADD COLUMN IF NOT EXISTS admin_cleared_at TIMESTAMP WITH TIME ZONE;
-
--- Automatically purge chats older than 5 days
 CREATE OR REPLACE FUNCTION purge_expired_chats()
 RETURNS trigger AS $$
 BEGIN
@@ -162,28 +147,3 @@ CREATE TRIGGER trigger_purge_expired_chats
 AFTER INSERT OR UPDATE ON product_conversations
 FOR EACH STATEMENT
 EXECUTE FUNCTION purge_expired_chats();
-
--- Automatically unhide conversation in admin view when client sends a new message
-CREATE OR REPLACE FUNCTION unhide_conversation_on_user_message()
-RETURNS trigger AS $$
-BEGIN
-    IF NEW.sender_role = 'user' THEN
-        UPDATE product_conversations 
-        SET admin_deleted = FALSE, 
-            status = 'active', 
-            last_message = NEW.message,
-            last_message_at = NEW.created_at,
-            updated_at = NOW()
-        WHERE id = NEW.conversation_id;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS trigger_unhide_on_user_message ON chat_messages;
-CREATE TRIGGER trigger_unhide_on_user_message
-AFTER INSERT ON chat_messages
-FOR EACH ROW
-EXECUTE FUNCTION unhide_conversation_on_user_message();
-
-

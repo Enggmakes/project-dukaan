@@ -122,7 +122,19 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
 
         if (isMounted) {
           setConversation(activeConvo);
-          fetchMessages(activeConvo.id);
+          if (activeConvo && Array.isArray(activeConvo.messages) && activeConvo.messages.length > 0) {
+            setMessages(activeConvo.messages);
+          } else {
+            setMessages([
+              {
+                id: "welcome",
+                sender_role: "admin",
+                sender_name: "ProjectDukaan Lead Engineer",
+                message: `Hi there! I'm here to answer any questions about "${project?.title}". Are you looking for custom sensor upgrades, IEEE thesis customization, or hardware kit dispatch details?`,
+                created_at: new Date().toISOString(),
+              }
+            ]);
+          }
         }
       } catch (err) {
         console.error("Failed to initialize conversation:", err);
@@ -138,35 +150,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
     };
   }, [isOpen, project, user]);
 
-  // Fetch messages for active conversation
-  const fetchMessages = async (conversationId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("chat_messages")
-        .select("*")
-        .eq("conversation_id", conversationId)
-        .order("created_at", { ascending: true });
-
-      if (!error && data) {
-        setMessages(data);
-      } else {
-        // Seed default welcome message if empty
-        setMessages([
-          {
-            id: "welcome",
-            sender_role: "admin",
-            sender_name: "ProjectDukaan Lead Engineer",
-            message: `Hi there! I'm here to answer any questions about "${project?.title}". Are you looking for custom sensor upgrades, IEEE thesis customization, or hardware kit dispatch details?`,
-            created_at: new Date().toISOString(),
-          }
-        ]);
-      }
-    } catch {
-      // Fallback
-    }
-  };
-
-  // Realtime WebSocket Subscription
+  // Realtime WebSocket Subscription on conversation UPDATE
   useEffect(() => {
     if (!conversation?.id || conversation.id.startsWith("local-")) return;
 
@@ -175,25 +159,15 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "UPDATE",
           schema: "public",
-          table: "chat_messages",
-          filter: `conversation_id=eq.${conversation.id}`,
+          table: "product_conversations",
+          filter: `id=eq.${conversation.id}`,
         },
         (payload) => {
-          setMessages((prev) => {
-            if (prev.some((m) => m.id === payload.new.id)) return prev;
-            // Deduplicate: replace optimistic temp message if matching
-            const tempIdx = prev.findIndex(
-              (m) => String(m.id).startsWith("temp-") && m.message === payload.new.message
-            );
-            if (tempIdx !== -1) {
-              const copy = [...prev];
-              copy[tempIdx] = payload.new;
-              return copy;
-            }
-            return [...prev, payload.new];
-          });
+          if (payload.new && Array.isArray(payload.new.messages)) {
+            setMessages(payload.new.messages);
+          }
         }
       )
       .subscribe();
@@ -215,9 +189,8 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
     if (!msgText || !user || !conversation) return;
 
     setIsSending(true);
-    const tempId = `temp-${Date.now()}`;
-    const optimisticMsg = {
-      id: tempId,
+    const newMsg = {
+      id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       conversation_id: conversation.id,
       sender_id: user.id,
       sender_role: user.email === import.meta.env.VITE_ADMIN_EMAIL ? "admin" : "user",
@@ -226,41 +199,39 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
       created_at: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, optimisticMsg]);
+    // Optimistically update message feed
+    setMessages((prev) => [...prev, newMsg]);
     if (!textToSend) setNewMessage("");
 
     try {
       if (!conversation.id.startsWith("local-")) {
-        const { data: insertedMsg, error: insertError } = await supabase.from("chat_messages").insert({
-          conversation_id: conversation.id,
-          sender_id: user.id,
-          sender_role: user.email === import.meta.env.VITE_ADMIN_EMAIL ? "admin" : "user",
-          sender_name: user.user_metadata?.full_name || user.email.split("@")[0],
-          message: msgText,
-        }).select().single();
+        // Fetch current message list from DB to append cleanly
+        const { data: latest } = await supabase
+          .from("product_conversations")
+          .select("messages")
+          .eq("id", conversation.id)
+          .single();
 
-        if (insertError) throw insertError;
+        const currentMessages = Array.isArray(latest?.messages)
+          ? latest.messages
+          : messages.filter((m) => m.id !== "welcome");
 
-        if (insertedMsg) {
-          setMessages((prev) => {
-            if (prev.some((m) => m.id === insertedMsg.id)) {
-              return prev.filter((m) => m.id !== tempId);
-            }
-            return prev.map((m) => (m.id === tempId ? insertedMsg : m));
-          });
-        }
+        const updatedMessages = [...currentMessages, newMsg];
 
-        // Update last message in conversation and unhide for admin
-        await supabase
+        // Update single conversation row in Supabase
+        const { error: updateError } = await supabase
           .from("product_conversations")
           .update({
+            messages: updatedMessages,
             last_message: msgText,
-            last_message_at: new Date().toISOString(),
-            admin_deleted: false,
+            last_message_at: newMsg.created_at,
+            admin_deleted: false, // Unhide in admin view if previously cleared
             status: "active",
             updated_at: new Date().toISOString(),
           })
           .eq("id", conversation.id);
+
+        if (updateError) throw updateError;
       }
     } catch (err: any) {
       console.warn("Could not save message to Supabase:", err);

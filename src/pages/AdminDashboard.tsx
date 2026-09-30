@@ -76,6 +76,7 @@ export default function AdminDashboard() {
   const [chatSearch, setChatSearch] = useState("");
   const [chatStatusFilter, setChatStatusFilter] = useState<"all" | "active" | "purchased" | "archived">("all");
   const adminChatFeedRef = useRef<HTMLDivElement>(null);
+  const selectedConvoRef = useRef<any>(null);
 
   useEffect(() => {
     supabase.from('custom_requests').select('*').order('created_at', { ascending: false }).then(({ data }) => {
@@ -125,22 +126,55 @@ export default function AdminDashboard() {
     }
   };
 
-  // Realtime subscription for conversation list
+  // Helper to extract cutoff time if admin previously cleared this conversation
+  const getClearedCutoff = (convo: any) => {
+    if (!convo) return null;
+    let cleared = convo.admin_cleared_at;
+    if (!cleared) {
+      try {
+        const clearedMap = JSON.parse(localStorage.getItem('admin_cleared_chats') || '{}');
+        cleared = clearedMap[convo.id];
+      } catch {}
+    }
+    return cleared ? new Date(cleared).getTime() : null;
+  };
+
+  // Sync messages from conversation into adminChatMessages state
+  const syncAdminMessages = (convo: any) => {
+    if (!convo) {
+      setAdminChatMessages([]);
+      return;
+    }
+    const cutoffTime = getClearedCutoff(convo);
+    const msgs = Array.isArray(convo.messages) ? convo.messages : [];
+    if (cutoffTime) {
+      // Filter out messages prior to the admin clear timestamp
+      const filtered = msgs.filter((m: any) => new Date(m.created_at).getTime() > cutoffTime);
+      setAdminChatMessages(filtered);
+    } else {
+      setAdminChatMessages(msgs);
+    }
+  };
+
+  // Whenever selectedConvo changes, sync its messages to state
+  useEffect(() => {
+    selectedConvoRef.current = selectedConvo;
+    syncAdminMessages(selectedConvo);
+  }, [selectedConvo?.id, selectedConvo?.admin_cleared_at]);
+
+  // Realtime subscription for conversation list and active chat (all in product_conversations)
   useEffect(() => {
     const convoChannel = supabase
       .channel('admin-convo-feed')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'product_conversations' },
-        () => {
+        (payload: any) => {
           fetchConversations();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'chat_messages' },
-        () => {
-          fetchConversations();
+          if (payload.new && selectedConvoRef.current?.id === payload.new.id) {
+            setSelectedConvo(payload.new);
+            syncAdminMessages(payload.new);
+          }
         }
       )
       .subscribe();
@@ -149,83 +183,6 @@ export default function AdminDashboard() {
       supabase.removeChannel(convoChannel);
     };
   }, []);
-
-  // Realtime subscription for selected conversation messages
-  useEffect(() => {
-    if (!selectedConvo?.id) {
-      setAdminChatMessages([]);
-      return;
-    }
-
-    const getClearedCutoff = () => {
-      let cleared = selectedConvo.admin_cleared_at;
-      if (!cleared) {
-        try {
-          const clearedMap = JSON.parse(localStorage.getItem('admin_cleared_chats') || '{}');
-          cleared = clearedMap[selectedConvo.id];
-        } catch {}
-      }
-      return cleared ? new Date(cleared).getTime() : null;
-    };
-
-    const fetchMessagesForConvo = async () => {
-      const cutoffTime = getClearedCutoff();
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .select('*')
-        .eq('conversation_id', selectedConvo.id)
-        .order('created_at', { ascending: true });
-
-      if (!error && data) {
-        // Only show new messages to admin if previously cleared
-        if (cutoffTime) {
-          const newOnly = data.filter((m: any) => new Date(m.created_at).getTime() > cutoffTime);
-          setAdminChatMessages(newOnly);
-        } else {
-          setAdminChatMessages(data);
-        }
-      }
-    };
-
-    fetchMessagesForConvo();
-
-    const msgChannel = supabase
-      .channel(`admin-chat-${selectedConvo.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `conversation_id=eq.${selectedConvo.id}`,
-        },
-        (payload) => {
-          const cutoffTime = getClearedCutoff();
-          if (cutoffTime && new Date(payload.new.created_at).getTime() <= cutoffTime) {
-            return;
-          }
-
-          setAdminChatMessages((prev) => {
-            if (prev.some((m) => m.id === payload.new.id)) return prev;
-            // Deduplicate: replace optimistic temp message if matching
-            const tempIdx = prev.findIndex(
-              (m) => String(m.id).startsWith("temp-") && m.message === payload.new.message
-            );
-            if (tempIdx !== -1) {
-              const copy = [...prev];
-              copy[tempIdx] = payload.new;
-              return copy;
-            }
-            return [...prev, payload.new];
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(msgChannel);
-    };
-  }, [selectedConvo?.id, selectedConvo?.admin_cleared_at]);
 
   useEffect(() => {
     if (adminChatFeedRef.current) {
@@ -238,49 +195,47 @@ export default function AdminDashboard() {
     if (!text || !selectedConvo) return;
 
     setIsAdminSending(true);
-    const tempId = `temp-${Date.now()}`;
-    const tempMsg = {
-      id: tempId,
+    const newMsg = {
+      id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       conversation_id: selectedConvo.id,
       sender_id: adminUser?.id || "admin",
       sender_role: "admin",
-      sender_name: "ProjectDukaan Lead Engineer",
+      sender_name: "ProjectDukaan Support",
       message: text,
       created_at: new Date().toISOString(),
     };
 
-    setAdminChatMessages((prev) => [...prev, tempMsg]);
+    // Optimistic update
+    setAdminChatMessages((prev) => [...prev, newMsg]);
     if (!presetText) setAdminReplyText("");
 
     try {
-      if (adminUser?.id) {
-        const { data: inserted, error: insertErr } = await supabase.from('chat_messages').insert({
-          conversation_id: selectedConvo.id,
-          sender_id: adminUser.id,
-          sender_role: "admin",
-          sender_name: "ProjectDukaan Support",
-          message: text,
-        }).select().single();
+      // Fetch latest messages from DB to append cleanly without overwrite
+      const { data: latest } = await supabase
+        .from('product_conversations')
+        .select('messages')
+        .eq('id', selectedConvo.id)
+        .single();
 
-        if (insertErr) throw insertErr;
+      const currentMessages = Array.isArray(latest?.messages) 
+        ? latest.messages 
+        : (Array.isArray(selectedConvo.messages) ? selectedConvo.messages : []);
+      
+      const updatedMessages = [...currentMessages, newMsg];
 
-        if (inserted) {
-          setAdminChatMessages((prev) => {
-            if (prev.some((m) => m.id === inserted.id)) {
-              return prev.filter((m) => m.id !== tempId);
-            }
-            return prev.map((m) => (m.id === tempId ? inserted : m));
-          });
-        }
-
-        await supabase.from('product_conversations').update({
+      const { error: updateErr } = await supabase
+        .from('product_conversations')
+        .update({
+          messages: updatedMessages,
           last_message: text,
-          last_message_at: new Date().toISOString(),
+          last_message_at: newMsg.created_at,
           updated_at: new Date().toISOString(),
-        }).eq('id', selectedConvo.id);
+        })
+        .eq('id', selectedConvo.id);
 
-        fetchConversations();
-      }
+      if (updateErr) throw updateErr;
+
+      fetchConversations();
     } catch (err: any) {
       console.error("Failed to send admin message:", err);
       toast.error("Failed to deliver message via Supabase");
