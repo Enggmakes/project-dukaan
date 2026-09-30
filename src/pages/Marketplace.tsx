@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { SlidersHorizontal, Search } from "lucide-react";
+import { SlidersHorizontal, Search, X, Check, RotateCcw } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Helmet } from "react-helmet-async";
 import ProjectCard from "@/components/ProjectCard";
@@ -11,8 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 const DIFFICULTIES = ["Beginner", "Intermediate", "Advanced"] as const;
 
@@ -24,7 +29,9 @@ export default function Marketplace() {
   const [price, setPrice] = useState([0, 100000]);
   const [diffs, setDiffs] = useState<string[]>([]);
   const [techs, setTechs] = useState<string[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
+  const [techSearch, setTechSearch] = useState("");
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -72,10 +79,27 @@ export default function Marketplace() {
     setPrice([0, 100000]);
     setCat("all");
     setQ("");
+    setTechSearch("");
     setSearchParams(new URLSearchParams());
   };
 
   const ALL_TECH = useMemo(() => Array.from(new Set(projects.flatMap(p => p.tech || []))).sort(), [projects]);
+
+  const filteredTechList = useMemo(() => {
+    if (!techSearch.trim()) return ALL_TECH;
+    const term = techSearch.trim().toLowerCase();
+    return ALL_TECH.filter(t => t.toLowerCase().includes(term));
+  }, [ALL_TECH, techSearch]);
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (cat !== "all") count++;
+    if (diffs.length > 0) count += diffs.length;
+    if (techs.length > 0) count += techs.length;
+    if (price[0] > 0 || price[1] < 100000) count++;
+    if (q.trim()) count++;
+    return count;
+  }, [cat, diffs, techs, price, q]);
 
   const filtered = useMemo(() => {
     let r = projects.filter(p => {
@@ -116,6 +140,185 @@ export default function Marketplace() {
 
   const toggle = (arr: string[], v: string, set: (a: string[]) => void) =>
     set(arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v]);
+
+  const handleFilterToggle = () => {
+    if (window.innerWidth < 1024) {
+      setMobileDrawerOpen(true);
+    } else {
+      setDesktopSidebarOpen(prev => !prev);
+    }
+  };
+
+  // Reusable Bento Filter Modules
+  const renderFilterModules = () => (
+    <div className="space-y-4">
+      {/* Price Range Module */}
+      <div className="bento-card p-4 sm:p-5 bg-white border border-slate-200/90 shadow-2xs">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">Price Range</h4>
+          {(price[0] > 0 || price[1] < 100000) && (
+            <button
+              type="button"
+              onClick={() => setPrice([0, 100000])}
+              className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800"
+            >
+              Reset
+            </button>
+          )}
+        </div>
+        <Slider value={price} onValueChange={setPrice} max={100000} step={500} min={0} />
+        <div className="flex justify-between text-xs text-slate-600 mt-3 font-mono font-semibold">
+          <span>₹{price[0].toLocaleString()}</span>
+          <span>₹{price[1].toLocaleString()}</span>
+        </div>
+        {/* Quick price presets */}
+        <div className="grid grid-cols-3 gap-1.5 mt-3 pt-3 border-t border-slate-100">
+          <button
+            type="button"
+            onClick={() => setPrice([0, 5000])}
+            className={`px-2 py-1 text-[11px] font-semibold rounded-lg border transition-all ${
+              price[0] === 0 && price[1] === 5000
+                ? "bg-indigo-50 text-indigo-700 border-indigo-200 font-bold"
+                : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+            }`}
+          >
+            &lt; ₹5k
+          </button>
+          <button
+            type="button"
+            onClick={() => setPrice([5000, 20000])}
+            className={`px-2 py-1 text-[11px] font-semibold rounded-lg border transition-all ${
+              price[0] === 5000 && price[1] === 20000
+                ? "bg-indigo-50 text-indigo-700 border-indigo-200 font-bold"
+                : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+            }`}
+          >
+            ₹5k - ₹20k
+          </button>
+          <button
+            type="button"
+            onClick={() => setPrice([20000, 100000])}
+            className={`px-2 py-1 text-[11px] font-semibold rounded-lg border transition-all ${
+              price[0] === 20000 && price[1] === 100000
+                ? "bg-indigo-50 text-indigo-700 border-indigo-200 font-bold"
+                : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+            }`}
+          >
+            ₹20k+
+          </button>
+        </div>
+      </div>
+
+      {/* Difficulty Level Module */}
+      <div className="bento-card p-4 sm:p-5 bg-white border border-slate-200/90 shadow-2xs">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">Difficulty Level</h4>
+          {diffs.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setDiffs([])}
+              className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {DIFFICULTIES.map(d => {
+            const isSelected = diffs.includes(d);
+            return (
+              <button
+                key={d}
+                type="button"
+                onClick={() => toggle(diffs, d, setDiffs)}
+                className={`px-2 py-2 rounded-xl text-xs font-bold transition-all border text-center cursor-pointer ${
+                  isSelected
+                    ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs"
+                    : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
+                }`}
+              >
+                {d}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Future-Proof Tech Stack Module */}
+      <div className="bento-card p-4 sm:p-5 bg-white border border-slate-200/90 shadow-2xs">
+        <div className="flex items-center justify-between mb-2.5">
+          <div className="flex items-center gap-1.5">
+            <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">Tech Stack</h4>
+            <span className="text-[10px] text-slate-400 font-mono">({ALL_TECH.length})</span>
+          </div>
+          {techs.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setTechs([])}
+              className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800"
+            >
+              Clear ({techs.length})
+            </button>
+          )}
+        </div>
+
+        {/* Tech search input */}
+        <div className="relative mb-2.5">
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Input
+            value={techSearch}
+            onChange={e => setTechSearch(e.target.value)}
+            placeholder="Search technologies..."
+            className="h-8 text-xs pl-8 pr-7 bg-slate-50 border-slate-200 rounded-xl placeholder:text-slate-400"
+          />
+          {techSearch && (
+            <button
+              type="button"
+              onClick={() => setTechSearch("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+
+        {/* Scrollable Tag Cloud (Capped height prevents page blowout) */}
+        <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto pr-1 [scrollbar-width:thin]">
+          {filteredTechList.length === 0 ? (
+            <p className="text-xs text-slate-400 py-3 text-center w-full">No technologies match "{techSearch}"</p>
+          ) : (
+            filteredTechList.map(t => {
+              const isSelected = techs.includes(t);
+              return (
+                <Badge
+                  key={t}
+                  onClick={() => toggle(techs, t, setTechs)}
+                  className={`cursor-pointer rounded-full text-[11px] font-semibold transition-all py-1 px-2.5 ${
+                    isSelected
+                      ? "bg-indigo-600 text-white shadow-2xs hover:bg-indigo-700 border-indigo-600"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-200/80"
+                  }`}
+                >
+                  {isSelected && <Check className="w-2.5 h-2.5 mr-1 inline" />}
+                  {t}
+                </Badge>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {activeFilterCount > 0 && (
+        <Button
+          variant="ghost"
+          onClick={resetFilters}
+          className="w-full text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl h-9 gap-1.5"
+        >
+          <RotateCcw className="w-3.5 h-3.5" /> Reset All Filters
+        </Button>
+      )}
+    </div>
+  );
 
   return (
     <Layout>
@@ -181,7 +384,7 @@ export default function Marketplace() {
       <section className="container-px py-10 bleed-container">
         <div className="max-w-6xl mx-auto">
           {/* Bento Search & Filter Dock */}
-          <div className="bento-card p-3 md:p-3.5 flex flex-col md:flex-row gap-3 items-stretch md:items-center relative z-10 shadow-sm bg-white border border-slate-200/90 mb-8">
+          <div className="bento-card p-3 md:p-3.5 flex flex-col md:flex-row gap-3 items-stretch md:items-center relative z-10 shadow-sm bg-white border border-slate-200/90 mb-6">
             {/* Search Input */}
             <div className="flex-1 flex items-center gap-2 px-4 py-1 md:py-0 bg-slate-50 rounded-full border border-slate-200/90 focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-400 transition-all">
               <Search className="w-4 h-4 text-slate-400 shrink-0" />
@@ -196,7 +399,7 @@ export default function Marketplace() {
             {/* Selects & Controls Container */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
               <div className="flex items-center gap-2 flex-1">
-                {/* Category Select inside sticky dock */}
+                {/* Category Select inside dock */}
                 <div className="flex-1 sm:flex-none">
                   <Select value={cat} onValueChange={handleCatChange}>
                     <SelectTrigger className="w-full sm:w-44 rounded-full bg-slate-50 border-slate-200 text-xs font-semibold text-slate-800 shadow-none h-10">
@@ -226,77 +429,99 @@ export default function Marketplace() {
                 </div>
               </div>
 
-              {/* Filters Trigger */}
+              {/* Filters Trigger with active badge */}
               <Button 
                 variant="outline" 
-                className={`w-full sm:w-auto rounded-full h-10 text-xs font-bold transition-all shadow-xs ${
-                  showFilters 
+                className={`w-full sm:w-auto rounded-full h-10 text-xs font-bold transition-all shadow-xs gap-1.5 ${
+                  activeFilterCount > 0 
                     ? "bg-indigo-50 text-indigo-700 border-indigo-200" 
                     : "bg-white text-slate-800 border-slate-200 hover:bg-slate-50"
                 }`} 
-                onClick={() => setShowFilters(!showFilters)}
+                onClick={handleFilterToggle}
               >
-                <SlidersHorizontal className="w-4 h-4 mr-1.5 text-indigo-600" /> Filters
+                <SlidersHorizontal className="w-4 h-4 text-indigo-600" />
+                <span>Filters</span>
+                {activeFilterCount > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-black leading-none">
+                    {activeFilterCount}
+                  </span>
+                )}
               </Button>
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-[270px_1fr] gap-8 items-start">
-            {/* Filter Sidebar */}
-            <aside className={`${showFilters ? "block" : "hidden lg:block"} space-y-5 sticky top-28`}>
-              <div className="bento-card p-5 bg-white">
-                <h4 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Price Range</h4>
-                <Slider value={price} onValueChange={setPrice} max={100000} step={500} />
-                <div className="flex justify-between text-xs text-slate-500 mt-3 font-mono font-semibold">
-                  <span>₹{price[0].toLocaleString()}</span>
-                  <span>₹{price[1].toLocaleString()}</span>
-                </div>
-              </div>
+          {/* ACTIVE FILTER CHIPS BAR (Quick 1-tap dismissal) */}
+          {activeFilterCount > 0 && (
+            <div className="flex items-center gap-2 flex-wrap mb-6 p-3 rounded-2xl bg-white border border-slate-200/90 shadow-2xs text-xs animate-in fade-in duration-200">
+              <span className="font-bold text-slate-500 text-[11px] uppercase tracking-wider shrink-0 mr-1">
+                Active ({activeFilterCount}):
+              </span>
 
-              <div className="bento-card p-5 bg-white">
-                <h4 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Difficulty Level</h4>
-                <div className="space-y-2.5">
-                  {DIFFICULTIES.map(d => (
-                    <label key={d} className="flex items-center gap-2.5 text-xs font-semibold text-slate-700 cursor-pointer hover:text-indigo-600 transition-colors">
-                      <Checkbox checked={diffs.includes(d)} onCheckedChange={() => toggle(diffs, d, setDiffs)} />
-                      {d}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bento-card p-5 bg-white">
-                <h4 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Tech Stack</h4>
-                <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  {ALL_TECH.map(t => (
-                    <Badge 
-                      key={t} 
-                      onClick={() => toggle(techs, t, setTechs)}
-                      className={`cursor-pointer rounded-full text-[11px] font-semibold transition-all ${
-                        techs.includes(t) 
-                          ? "bg-indigo-600 text-white shadow-xs hover:bg-indigo-700" 
-                          : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/80"
-                      }`}
-                    >
-                      {t}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              {(diffs.length > 0 || techs.length > 0 || price[0] > 0 || price[1] < 100000 || cat !== "all" || q) && (
-                <Button 
-                  variant="ghost" 
-                  onClick={resetFilters}
-                  className="w-full text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-full h-9"
-                >
-                  Reset All Filters
-                </Button>
+              {cat !== "all" && (
+                <Badge variant="secondary" className="gap-1.5 bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold rounded-full pr-1.5">
+                  Domain: {cat}
+                  <button onClick={() => handleCatChange("all")} className="hover:bg-indigo-200/60 rounded-full p-0.5">
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
               )}
-            </aside>
+
+              {q.trim() && (
+                <Badge variant="secondary" className="gap-1.5 bg-slate-100 text-slate-800 border-slate-200 font-semibold rounded-full pr-1.5">
+                  "{q}"
+                  <button onClick={() => handleSearchChange("")} className="hover:bg-slate-200 rounded-full p-0.5">
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              )}
+
+              {(price[0] > 0 || price[1] < 100000) && (
+                <Badge variant="secondary" className="gap-1.5 bg-slate-100 text-slate-800 border-slate-200 font-semibold rounded-full pr-1.5">
+                  ₹{price[0].toLocaleString()} - ₹{price[1].toLocaleString()}
+                  <button onClick={() => setPrice([0, 100000])} className="hover:bg-slate-200 rounded-full p-0.5">
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              )}
+
+              {diffs.map(d => (
+                <Badge key={d} variant="secondary" className="gap-1.5 bg-slate-100 text-slate-800 border-slate-200 font-semibold rounded-full pr-1.5">
+                  {d}
+                  <button onClick={() => toggle(diffs, d, setDiffs)} className="hover:bg-slate-200 rounded-full p-0.5">
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              ))}
+
+              {techs.map(t => (
+                <Badge key={t} variant="secondary" className="gap-1.5 bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold rounded-full pr-1.5">
+                  {t}
+                  <button onClick={() => toggle(techs, t, setTechs)} className="hover:bg-indigo-200/60 rounded-full p-0.5">
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              ))}
+
+              <button
+                onClick={resetFilters}
+                className="ml-auto text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer pl-2"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+
+          {/* MAIN GRID: Sidebar is hidden on mobile so it NEVER pushes products! */}
+          <div className={`grid gap-8 items-start ${desktopSidebarOpen ? "lg:grid-cols-[280px_1fr]" : "grid-cols-1"}`}>
+            {/* Desktop Filter Sidebar (Always hidden on mobile, toggled on desktop) */}
+            {desktopSidebarOpen && (
+              <aside className="hidden lg:block space-y-4 sticky top-28">
+                {renderFilterModules()}
+              </aside>
+            )}
 
             {/* Results Grid */}
-            <div>
+            <div className="w-full">
               {isLoading ? (
                 <div className="bento-card p-16 text-center bg-white">
                   <div className="w-8 h-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin mx-auto mb-3" />
@@ -319,7 +544,11 @@ export default function Marketplace() {
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className={`grid gap-5 ${
+                  desktopSidebarOpen 
+                    ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3" 
+                    : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
+                }`}>
                   {filtered.map(p => <ProjectCard key={p.id} project={p} />)}
                 </div>
               )}
@@ -327,6 +556,63 @@ export default function Marketplace() {
           </div>
         </div>
       </section>
+
+      {/* MOBILE FULL-BLEED SLIDE-OVER SHEET (Never pushes products down) */}
+      <Sheet open={mobileDrawerOpen} onOpenChange={setMobileDrawerOpen}>
+        <SheetContent 
+          side="bottom" 
+          className="lg:hidden max-h-[88vh] p-0 rounded-t-3xl bg-white border-t border-slate-200/90 shadow-2xl flex flex-col z-50 focus:outline-none"
+        >
+          {/* Top Drag Indicator */}
+          <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mt-3 mb-1 shrink-0" />
+
+          {/* Sheet Header */}
+          <SheetHeader className="px-6 py-3 border-b border-slate-100 flex flex-row items-center justify-between space-y-0 text-left shrink-0">
+            <div className="flex items-center gap-2">
+              <SheetTitle className="text-base font-black text-slate-900">
+                Filters & Refinements
+              </SheetTitle>
+              {activeFilterCount > 0 && (
+                <Badge className="bg-indigo-100 text-indigo-700 font-bold text-xs">
+                  {activeFilterCount}
+                </Badge>
+              )}
+            </div>
+            {activeFilterCount > 0 && (
+              <button 
+                onClick={resetFilters}
+                className="text-xs font-bold text-rose-600 hover:text-rose-700 pr-6"
+              >
+                Reset
+              </button>
+            )}
+          </SheetHeader>
+
+          {/* Scrollable Filter Modules */}
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            {renderFilterModules()}
+          </div>
+
+          {/* Sticky Bottom Apply Action Bar */}
+          <div className="p-4 border-t border-slate-100 bg-white/95 backdrop-blur-md flex items-center gap-3 shrink-0">
+            {activeFilterCount > 0 && (
+              <Button
+                variant="outline"
+                onClick={resetFilters}
+                className="rounded-full text-xs font-bold text-slate-600 border-slate-200 h-12 px-4"
+              >
+                Clear
+              </Button>
+            )}
+            <Button
+              onClick={() => setMobileDrawerOpen(false)}
+              className="flex-1 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm h-12 shadow-lg shadow-indigo-600/25"
+            >
+              Show {filtered.length} Blueprints
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </Layout>
   );
 }
