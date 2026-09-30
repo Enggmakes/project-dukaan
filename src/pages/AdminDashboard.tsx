@@ -15,6 +15,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { CATEGORIES } from "@/lib/mockData";
 import { toast } from "sonner";
+import { isUserAdmin } from "@/lib/authUtils";
 
 
 
@@ -36,8 +37,7 @@ export default function AdminDashboard() {
         navigate("/login");
         return;
       }
-      const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
-      if (session.user.email !== adminEmail) {
+      if (!isUserAdmin(session.user)) {
         navigate("/");
       }
     };

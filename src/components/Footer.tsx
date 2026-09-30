@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { isUserAdmin } from "@/lib/authUtils";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -13,11 +14,11 @@ export default function Footer() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAdmin(session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL);
+      setIsAdmin(isUserAdmin(session?.user));
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAdmin(session?.user?.email === import.meta.env.VITE_ADMIN_EMAIL);
+      setIsAdmin(isUserAdmin(session?.user));
     });
 
     return () => subscription.unsubscribe();

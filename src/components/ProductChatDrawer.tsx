@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { isUserAdmin } from "@/lib/authUtils";
 import { 
   Send, 
   MessageSquare, 
@@ -193,7 +194,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
       id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       conversation_id: conversation.id,
       sender_id: user.id,
-      sender_role: user.email === import.meta.env.VITE_ADMIN_EMAIL ? "admin" : "user",
+      sender_role: isUserAdmin(user) ? "admin" : "user",
       sender_name: user.user_metadata?.full_name || user.email.split("@")[0],
       message: msgText,
       created_at: new Date().toISOString(),

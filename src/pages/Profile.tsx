@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProjectCard from "@/components/ProjectCard";
+import { isUserAdmin } from "@/lib/authUtils";
 import { 
   User, 
   ShoppingBag, 
@@ -177,7 +178,7 @@ export default function Profile() {
 
             {/* Actions */}
             <div className="w-full md:w-auto flex md:flex-col justify-center gap-3">
-              {user?.email === import.meta.env.VITE_ADMIN_EMAIL && (
+              {isUserAdmin(user) && (
                 <Button 
                   onClick={() => navigate("/admin")}
                   className="bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-full px-6 py-2 border border-slate-200 font-medium text-xs shadow-none"
@@ -204,7 +205,7 @@ export default function Profile() {
                 <h2 className="text-2xl font-bold tracking-tight hidden md:block text-slate-900">My Project Registry</h2>
                 <TabsList className="bg-slate-100 border border-slate-200 p-1 rounded-full">
                   <TabsTrigger value="purchases" className="text-slate-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-full px-5 py-1.5 font-medium transition-all">Purchases ({orders.length})</TabsTrigger>
-                  {user?.email !== import.meta.env.VITE_ADMIN_EMAIL && (
+                  {!isUserAdmin(user) && (
                     <TabsTrigger value="wishlist" className="text-slate-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-full px-5 py-1.5 font-medium transition-all">Wishlist ({wishlist.length})</TabsTrigger>
                   )}
                 </TabsList>
@@ -529,7 +530,7 @@ export default function Profile() {
             )}
               </TabsContent>
 
-              {user?.email !== import.meta.env.VITE_ADMIN_EMAIL && (
+              {!isUserAdmin(user) && (
                 <TabsContent value="wishlist" className="mt-0">
                   {wishlist.length === 0 ? (
                     <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center max-w-xl mx-auto space-y-4 shadow-sm">

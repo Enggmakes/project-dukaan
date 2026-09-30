@@ -21,6 +21,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { supabase } from "@/lib/supabase";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import NotificationBell from "@/components/NotificationBell";
+import { isUserAdmin } from "@/lib/authUtils";
 
 const desktopLinks = [
   { to: "/", label: "Home" },
@@ -48,7 +49,7 @@ const getInitialAuth = (): { user: SupabaseUser | null; isAdmin: boolean; hasChe
           const parsed = JSON.parse(item);
           if (parsed?.user) {
             cachedUser = parsed.user;
-            cachedIsAdmin = parsed.user.email === import.meta.env.VITE_ADMIN_EMAIL;
+            cachedIsAdmin = isUserAdmin(parsed.user);
             hasCheckedAuth = true;
             return { user: cachedUser, isAdmin: cachedIsAdmin, hasChecked: true };
           }
@@ -83,7 +84,7 @@ export default function Navbar() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const currentUser = session?.user ?? null;
-      const admin = currentUser?.email === import.meta.env.VITE_ADMIN_EMAIL;
+      const admin = isUserAdmin(currentUser);
       cachedUser = currentUser;
       cachedIsAdmin = admin;
       hasCheckedAuth = true;
@@ -94,7 +95,7 @@ export default function Navbar() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const currentUser = session?.user ?? null;
-      const admin = currentUser?.email === import.meta.env.VITE_ADMIN_EMAIL;
+      const admin = isUserAdmin(currentUser);
       cachedUser = currentUser;
       cachedIsAdmin = admin;
       hasCheckedAuth = true;

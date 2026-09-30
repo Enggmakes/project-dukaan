@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { isUserAdmin } from "@/lib/authUtils";
 
 export default function Auth({ mode }: { mode: "login" | "register" }) {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -31,17 +32,16 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
     setLoading(true);
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({
           email: form.email,
           password: form.password,
         });
         if (error) throw error;
         toast.success("Welcome back!");
 
-        const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
         if (redirectUrl) {
           navigate(redirectUrl);
-        } else if (form.email === adminEmail) {
+        } else if (isUserAdmin(signInData?.user)) {
           navigate("/admin");
         } else {
           navigate("/profile");
