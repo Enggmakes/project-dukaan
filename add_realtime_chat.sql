@@ -134,3 +134,25 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN
     NULL;
 END $$;
+
+-- ==============================================================
+-- 5. Soft Delete (Admin Side Only) & 5-Day Auto-Purge
+-- ==============================================================
+ALTER TABLE product_conversations ADD COLUMN IF NOT EXISTS admin_deleted BOOLEAN DEFAULT FALSE;
+
+-- Automatically purge chats older than 5 days
+CREATE OR REPLACE FUNCTION purge_expired_chats()
+RETURNS trigger AS $$
+BEGIN
+    DELETE FROM product_conversations 
+    WHERE last_message_at < NOW() - INTERVAL '5 days';
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS trigger_purge_expired_chats ON product_conversations;
+CREATE TRIGGER trigger_purge_expired_chats
+AFTER INSERT OR UPDATE ON product_conversations
+FOR EACH STATEMENT
+EXECUTE FUNCTION purge_expired_chats();
+

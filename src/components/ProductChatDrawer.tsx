@@ -78,6 +78,15 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
 
         let activeConvo = existing;
 
+        if (existing) {
+          const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
+          if (new Date(existing.last_message_at).getTime() < fiveDaysAgo.getTime()) {
+            // Purge expired conversation after 5 days
+            await supabase.from("product_conversations").delete().eq("id", existing.id);
+            activeConvo = null;
+          }
+        }
+
         if (!activeConvo) {
           // Create new conversation
           const { data: created, error: createError } = await supabase

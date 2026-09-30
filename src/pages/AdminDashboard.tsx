@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { CATEGORIES } from "@/lib/mockData";
 import { toast } from "sonner";
@@ -109,12 +110,15 @@ export default function AdminDashboard() {
 
   const fetchConversations = async () => {
     try {
+      const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
       const { data, error } = await supabase
         .from('product_conversations')
         .select('*')
+        .gte('last_message_at', fiveDaysAgo)
         .order('last_message_at', { ascending: false });
       if (!error && data) {
-        setConversations(data);
+        const activeForAdmin = data.filter((c: any) => !c.admin_deleted);
+        setConversations(activeForAdmin);
       }
     } catch (e) {
       console.warn("Could not fetch conversations:", e);
@@ -270,6 +274,31 @@ export default function AdminDashboard() {
       }
     } catch (err: any) {
       toast.error("Could not update conversation status");
+    }
+  };
+
+  const handleDeleteForAdmin = async (convoId: string) => {
+    try {
+      // Soft delete from admin view only: client still sees admin messages in their wishlist
+      const { error } = await supabase
+        .from('product_conversations')
+        .update({ admin_deleted: true, updated_at: new Date().toISOString() })
+        .eq('id', convoId);
+
+      if (error) {
+        await supabase
+          .from('product_conversations')
+          .update({ status: 'archived', updated_at: new Date().toISOString() })
+          .eq('id', convoId);
+      }
+
+      setConversations((prev) => prev.filter((c) => c.id !== convoId));
+      if (selectedConvo?.id === convoId) {
+        setSelectedConvo(null);
+      }
+      toast.success("Inquiry removed from Admin view (Client retains full chat)");
+    } catch (err: any) {
+      toast.error("Failed to remove inquiry");
     }
   };
 
@@ -1403,44 +1432,95 @@ export default function AdminDashboard() {
                           filteredConversations.map((c) => {
                             const isSelected = selectedConvo?.id === c.id;
                             return (
-                              <button
-                                key={c.id}
-                                onClick={() => setSelectedConvo(c)}
-                                className={`w-full text-left p-3.5 transition-all flex items-start gap-3 hover:bg-white cursor-pointer ${
-                                  isSelected ? "bg-white border-l-4 border-l-indigo-600 shadow-sm" : ""
-                                }`}
-                              >
-                                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
-                                  {c.user_name ? c.user_name.charAt(0).toUpperCase() : (c.user_email?.charAt(0).toUpperCase() || "U")}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center justify-between gap-1 mb-1">
-                                    <h4 className="text-xs font-semibold text-slate-900 truncate">
-                                      {c.user_name || c.user_email}
-                                    </h4>
-                                    <span className="text-[10px] text-slate-400 shrink-0">
-                                      {c.last_message_at ? new Date(c.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
-                                    </span>
+                              <ContextMenu key={c.id}>
+                                <ContextMenuTrigger asChild>
+                                  <div
+                                    onClick={() => setSelectedConvo(c)}
+                                    className={`w-full text-left p-3.5 transition-all flex items-start gap-3 hover:bg-white cursor-pointer select-none relative group ${
+                                      isSelected ? "bg-white border-l-4 border-l-indigo-600 shadow-sm" : ""
+                                    }`}
+                                  >
+                                    <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                                      {c.user_name ? c.user_name.charAt(0).toUpperCase() : (c.user_email?.charAt(0).toUpperCase() || "U")}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center justify-between gap-1 mb-1">
+                                        <h4 className="text-xs font-semibold text-slate-900 truncate">
+                                          {c.user_name || c.user_email}
+                                        </h4>
+                                        <div className="flex items-center gap-1 shrink-0">
+                                          <span className="text-[10px] text-slate-400">
+                                            {c.last_message_at ? new Date(c.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                                          </span>
+                                          {/* Options button (Also accessible via right-click or long-press) */}
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                              <button
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors opacity-70 group-hover:opacity-100"
+                                                title="Inquiry options"
+                                              >
+                                                <MoreHorizontal className="w-3.5 h-3.5" />
+                                              </button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="w-48 bg-white border-slate-200 text-slate-900 shadow-xl rounded-xl p-1 z-50">
+                                              <DropdownMenuItem
+                                                onClick={() => updateConvoStatus(c.id, c.status === 'archived' ? 'active' : 'archived')}
+                                                className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-slate-50 text-slate-700"
+                                              >
+                                                <Archive className="w-4 h-4 text-slate-500" />
+                                                {c.status === 'archived' ? 'Unarchive Inquiry' : 'Archive Inquiry'}
+                                              </DropdownMenuItem>
+                                              <DropdownMenuSeparator className="bg-slate-100 my-1" />
+                                              <DropdownMenuItem
+                                                onClick={() => handleDeleteForAdmin(c.id)}
+                                                className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-rose-50 text-rose-600 focus:text-rose-600 focus:bg-rose-50"
+                                              >
+                                                <Trash2 className="w-4 h-4 text-rose-600" />
+                                                Delete from Admin View
+                                              </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                                        <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4 border-indigo-100 bg-indigo-50/60 text-indigo-700 truncate max-w-[170px]">
+                                          {c.project_title}
+                                        </Badge>
+                                        <span className={`text-[9px] font-semibold uppercase px-1.5 py-0.2 rounded-full ${
+                                          c.status === 'purchased'
+                                            ? 'bg-blue-50 text-blue-700'
+                                            : c.status === 'archived'
+                                            ? 'bg-slate-100 text-slate-600'
+                                            : 'bg-emerald-50 text-emerald-700'
+                                        }`}>
+                                          {c.status || 'active'}
+                                        </span>
+                                      </div>
+                                      <p className="text-[11px] text-slate-500 truncate">
+                                        {c.last_message || "New inquiry started..."}
+                                      </p>
+                                    </div>
                                   </div>
-                                  <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                                    <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4 border-indigo-100 bg-indigo-50/60 text-indigo-700 truncate max-w-[170px]">
-                                      {c.project_title}
-                                    </Badge>
-                                    <span className={`text-[9px] font-semibold uppercase px-1.5 py-0.2 rounded-full ${
-                                      c.status === 'purchased'
-                                        ? 'bg-blue-50 text-blue-700'
-                                        : c.status === 'archived'
-                                        ? 'bg-slate-100 text-slate-600'
-                                        : 'bg-emerald-50 text-emerald-700'
-                                    }`}>
-                                      {c.status || 'active'}
-                                    </span>
-                                  </div>
-                                  <p className="text-[11px] text-slate-500 truncate">
-                                    {c.last_message || "New inquiry started..."}
-                                  </p>
-                                </div>
-                              </button>
+                                </ContextMenuTrigger>
+                                <ContextMenuContent className="w-52 bg-white border-slate-200 text-slate-900 shadow-xl rounded-xl p-1 z-50">
+                                  <ContextMenuItem
+                                    onClick={() => updateConvoStatus(c.id, c.status === 'archived' ? 'active' : 'archived')}
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-slate-50 text-slate-700"
+                                  >
+                                    <Archive className="w-4 h-4 text-slate-500" />
+                                    {c.status === 'archived' ? 'Unarchive Inquiry' : 'Archive Inquiry'}
+                                  </ContextMenuItem>
+                                  <ContextMenuSeparator className="bg-slate-100 my-1" />
+                                  <ContextMenuItem
+                                    onClick={() => handleDeleteForAdmin(c.id)}
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-rose-50 text-rose-600 focus:text-rose-600 focus:bg-rose-50"
+                                  >
+                                    <Trash2 className="w-4 h-4 text-rose-600" />
+                                    Delete from Admin View
+                                  </ContextMenuItem>
+                                </ContextMenuContent>
+                              </ContextMenu>
                             );
                           })
                         )}
@@ -1516,6 +1596,32 @@ export default function AdminDashboard() {
                                   <SelectItem value="archived">📁 Archived</SelectItem>
                                 </SelectContent>
                               </Select>
+
+                              {/* More Options for selected chat */}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900 border border-slate-200">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48 bg-white border-slate-200 text-slate-900 shadow-xl rounded-xl p-1 z-50">
+                                  <DropdownMenuItem
+                                    onClick={() => updateConvoStatus(selectedConvo.id, selectedConvo.status === 'archived' ? 'active' : 'archived')}
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-slate-50 text-slate-700"
+                                  >
+                                    <Archive className="w-4 h-4 text-slate-500" />
+                                    {selectedConvo.status === 'archived' ? 'Unarchive Inquiry' : 'Archive Inquiry'}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator className="bg-slate-100 my-1" />
+                                  <DropdownMenuItem
+                                    onClick={() => handleDeleteForAdmin(selectedConvo.id)}
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-rose-50 text-rose-600 focus:text-rose-600 focus:bg-rose-50"
+                                  >
+                                    <Trash2 className="w-4 h-4 text-rose-600" />
+                                    Delete from Admin View
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           </div>
 
