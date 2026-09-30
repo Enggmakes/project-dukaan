@@ -15,7 +15,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { CATEGORIES } from "@/lib/mockData";
 import { toast } from "sonner";
-import { isUserAdmin } from "@/lib/authUtils";
+import { isUserAdmin, checkAdminStatus } from "@/lib/authUtils";
 
 
 
@@ -32,12 +32,13 @@ const statusColor: Record<string, string> = {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   useEffect(() => {
-    const checkAdminAccess = (session: any) => {
+    const checkAdminAccess = async (session: any) => {
       if (!session) {
         navigate("/login");
         return;
       }
-      if (!isUserAdmin(session.user)) {
+      const admin = await checkAdminStatus(session.user);
+      if (!admin) {
         navigate("/");
       }
     };

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { isUserAdmin } from "@/lib/authUtils";
+import { isUserAdmin, checkAdminStatus } from "@/lib/authUtils";
 
 export default function Auth({ mode }: { mode: "login" | "register" }) {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -39,9 +39,10 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
         if (error) throw error;
         toast.success("Welcome back!");
 
+        const admin = await checkAdminStatus(signInData?.user);
         if (redirectUrl) {
           navigate(redirectUrl);
-        } else if (isUserAdmin(signInData?.user)) {
+        } else if (admin) {
           navigate("/admin");
         } else {
           navigate("/profile");

@@ -21,7 +21,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { supabase } from "@/lib/supabase";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import NotificationBell from "@/components/NotificationBell";
-import { isUserAdmin } from "@/lib/authUtils";
+import { isUserAdmin, checkAdminStatus } from "@/lib/authUtils";
 
 const desktopLinks = [
   { to: "/", label: "Home" },
@@ -82,28 +82,33 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const currentUser = session?.user ?? null;
-      const admin = isUserAdmin(currentUser);
+    const verifyUser = async (currentUser: any) => {
+      if (!currentUser) {
+        cachedUser = null;
+        cachedIsAdmin = false;
+        hasCheckedAuth = true;
+        setUser(null);
+        setIsAdmin(false);
+        setAuthChecked(true);
+        return;
+      }
       cachedUser = currentUser;
+      setUser(currentUser);
+      const admin = await checkAdminStatus(currentUser);
       cachedIsAdmin = admin;
       hasCheckedAuth = true;
-      setUser(currentUser);
       setIsAdmin(admin);
       setAuthChecked(true);
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      verifyUser(session?.user ?? null);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      const currentUser = session?.user ?? null;
-      const admin = isUserAdmin(currentUser);
-      cachedUser = currentUser;
-      cachedIsAdmin = admin;
-      hasCheckedAuth = true;
-      setUser(currentUser);
-      setIsAdmin(admin);
-      setAuthChecked(true);
+      verifyUser(session?.user ?? null);
     });
-    
+
     return () => {
       subscription.unsubscribe();
     };
