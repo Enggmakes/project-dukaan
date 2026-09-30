@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, TrendingUp, Users, IndianRupee, Activity, MoreHorizontal, Bell, ChevronDown, Plus, Image as ImageIcon, Mail, Trash2, CheckCircle, LogOut, Globe, ShoppingBag, Truck, Download, Pencil, ExternalLink, RefreshCw, Layers, Edit3, MessageSquare, Send, Sparkles, CheckCircle2, Clock, User, Filter, Archive, ArrowLeft } from "lucide-react";
+import { Search, TrendingUp, Users, IndianRupee, Activity, MoreHorizontal, Bell, ChevronDown, Plus, Image as ImageIcon, Mail, Trash2, CheckCircle, LogOut, Globe, ShoppingBag, Truck, Download, Pencil, ExternalLink, RefreshCw, Layers, Edit3, MessageSquare, Send, Sparkles, CheckCircle2, Clock, User, Filter, Archive, ArrowLeft, FolderGit2, HardDrive, Video, FileText, FileCode, PackageCheck, Copy } from "lucide-react";
 import Layout from "@/components/Layout";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
@@ -66,6 +66,18 @@ export default function AdminDashboard() {
   const [isTrackingDialogOpen, setIsTrackingDialogOpen] = useState(false);
   const [trackingOrderInfo, setTrackingOrderInfo] = useState<{ id: string, currentTracking: string | null } | null>(null);
   const [trackingIdInput, setTrackingIdInput] = useState("");
+
+  // Custom Deliverables Dialog state (GitHub, Drive, Video, PDF, Notes)
+  const [isDeliverablesDialogOpen, setIsDeliverablesDialogOpen] = useState(false);
+  const [selectedOrderForDeliverables, setSelectedOrderForDeliverables] = useState<any | null>(null);
+  const [deliverablesForm, setDeliverablesForm] = useState({
+    github_url: "",
+    drive_url: "",
+    video_url: "",
+    pdf_url: "",
+    admin_notes: ""
+  });
+  const [isSavingDeliverables, setIsSavingDeliverables] = useState(false);
 
   // Real-time Product Inquiries / Chat state
   const [conversations, setConversations] = useState<any[]>([]);
@@ -469,6 +481,50 @@ export default function AdminDashboard() {
 
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...payload } : o));
     toast.success(`Order marked as ${newStatus}`);
+  };
+
+  const openDeliverablesModal = (order: any) => {
+    setSelectedOrderForDeliverables(order);
+    const existing = order.deliverables || {};
+    setDeliverablesForm({
+      github_url: existing.github_url || order.github_url || "",
+      drive_url: existing.drive_url || "",
+      video_url: existing.video_url || "",
+      pdf_url: existing.pdf_url || "",
+      admin_notes: existing.admin_notes || ""
+    });
+    setIsDeliverablesDialogOpen(true);
+  };
+
+  const handleSaveDeliverables = async () => {
+    if (!selectedOrderForDeliverables) return;
+    setIsSavingDeliverables(true);
+    const orderId = selectedOrderForDeliverables.id;
+
+    try {
+      const payload: any = {
+        deliverables: deliverablesForm,
+      };
+      if (deliverablesForm.github_url) {
+        payload.github_url = deliverablesForm.github_url;
+      }
+
+      const { error } = await supabase
+        .from('orders')
+        .update(payload)
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...payload } : o));
+      toast.success("Order deliverables saved & available to buyer!");
+      setIsDeliverablesDialogOpen(false);
+    } catch (err: any) {
+      console.error("Failed to update deliverables:", err);
+      toast.error(err.message || "Failed to save deliverables");
+    } finally {
+      setIsSavingDeliverables(false);
+    }
   };
 
   const updateLeadStatus = async (lead: any, newStatus: string) => {
@@ -1244,12 +1300,15 @@ export default function AdminDashboard() {
                           <th className="text-left py-3 px-3 font-semibold text-[11px]">Shipping Address / Details</th>
                           <th className="text-left py-3 px-3 font-semibold text-[11px]">Status</th>
                           <th className="text-left py-3 px-3 font-semibold text-[11px]">Tracking ID</th>
+                          <th className="text-left py-3 px-3 font-semibold text-[11px]">Deliverables</th>
                           <th className="text-right py-3 px-3 font-semibold text-[11px]"></th>
                         </tr>
                       </thead>
                       <tbody>
                         {orders.map(o => {
                           const isPhysical = o.delivery_type === "physical";
+                          const dev = o.deliverables || {};
+                          const devCount = [dev.github_url || o.github_url, dev.drive_url, dev.video_url, dev.pdf_url, dev.admin_notes].filter(Boolean).length;
                           return (
                             <tr key={o.id} className="border-t border-slate-100 hover:bg-slate-50/60 transition-colors">
                               <td className="py-4 px-3 text-slate-500 font-mono text-xs truncate max-w-[80px]" title={o.id}>
@@ -1294,6 +1353,31 @@ export default function AdminDashboard() {
                                   <span className="text-slate-300">—</span>
                                 )}
                               </td>
+                              <td className="py-4 px-3">
+                                {devCount > 0 ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openDeliverablesModal(o)}
+                                    className="h-7 text-[11px] font-semibold border-indigo-200 bg-indigo-50/70 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800 gap-1.5 px-2.5 rounded-full"
+                                    title="View or update client deliverables"
+                                  >
+                                    <PackageCheck className="w-3.5 h-3.5 text-indigo-600" />
+                                    <span>{devCount} Attached</span>
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openDeliverablesModal(o)}
+                                    className="h-7 text-[11px] font-medium border-dashed border-slate-300 text-slate-500 hover:text-indigo-600 hover:border-indigo-300 gap-1 px-2.5 rounded-full"
+                                    title="Attach GitHub repo, Google Drive link, video walkthrough, or thesis PDF"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                    <span>Add Links</span>
+                                  </Button>
+                                )}
+                              </td>
                               <td className="py-4 px-3 text-right">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
@@ -1301,7 +1385,15 @@ export default function AdminDashboard() {
                                       <MoreHorizontal className="w-4 h-4" />
                                     </button>
                                   </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="w-52 bg-white border-slate-200 text-slate-900 p-2 shadow-xl rounded-xl">
+                                  <DropdownMenuContent align="end" className="w-56 bg-white border-slate-200 text-slate-900 p-2 shadow-xl rounded-xl">
+                                    <DropdownMenuItem 
+                                      onClick={() => openDeliverablesModal(o)}
+                                      className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-medium cursor-pointer rounded-md"
+                                    >
+                                      <FolderGit2 className="w-4 h-4 text-indigo-600" /> Deliver Assets & Links
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator className="bg-slate-100" />
+                                    
                                     <div className="px-2 py-1 text-slate-400 text-[10px] uppercase tracking-wider font-semibold">Set Order Status</div>
                                     <DropdownMenuSeparator className="bg-slate-100" />
                                     
@@ -1978,6 +2070,145 @@ export default function AdminDashboard() {
               Save Tracking & Ship
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Order Deliverables & Custom Links Dialog */}
+      <Dialog open={isDeliverablesDialogOpen} onOpenChange={setIsDeliverablesDialogOpen}>
+        <DialogContent className="bg-white border border-slate-200 text-slate-900 sm:max-w-xl shadow-2xl rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <FolderGit2 className="w-4 h-4" />
+              </span>
+              <div>
+                <DialogTitle className="text-slate-900 font-bold text-lg">
+                  Order Deliverables & Custom Links
+                </DialogTitle>
+                <DialogDescription className="text-slate-500 text-xs">
+                  Allocate personalized repositories, cloud folders, walkthrough videos, and engineering notes to this client.
+                </DialogDescription>
+              </div>
+            </div>
+            {selectedOrderForDeliverables && (
+              <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 mt-3 flex items-center justify-between text-xs">
+                <div>
+                  <span className="text-slate-400 font-mono">Order #{selectedOrderForDeliverables.id.substring(0, 8)}</span>
+                  <div className="font-semibold text-slate-800">{selectedOrderForDeliverables.project_title}</div>
+                  <div className="text-slate-500 text-[11px]">{selectedOrderForDeliverables.customer_name} ({selectedOrderForDeliverables.customer_email})</div>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedOrderForDeliverables.customer_email);
+                    toast.success("Buyer email copied to clipboard!");
+                  }}
+                  className="h-7 text-[11px] text-slate-600 hover:text-indigo-600 gap-1 border border-slate-200"
+                >
+                  <Copy className="w-3 h-3" /> Copy Email
+                </Button>
+              </div>
+            )}
+          </DialogHeader>
+
+          <form onSubmit={(e) => { e.preventDefault(); handleSaveDeliverables(); }} className="space-y-4 pt-3">
+            {/* GitHub Repo Link */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <FolderGit2 className="w-3.5 h-3.5 text-slate-700" />
+                Private GitHub Repository / Invite Link
+              </Label>
+              <Input
+                value={deliverablesForm.github_url}
+                onChange={(e) => setDeliverablesForm({ ...deliverablesForm, github_url: e.target.value })}
+                placeholder="https://github.com/your-org/custom-project-repo"
+                className="bg-white border-slate-200 text-slate-900 h-9 text-xs font-mono"
+              />
+              <p className="text-[10px] text-slate-400">Buyer will receive a direct 1-click button to open or accept their private repository.</p>
+            </div>
+
+            {/* Google Drive / Cloud Link */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <HardDrive className="w-3.5 h-3.5 text-blue-600" />
+                Google Drive / Cloud Folder Link
+              </Label>
+              <Input
+                value={deliverablesForm.drive_url}
+                onChange={(e) => setDeliverablesForm({ ...deliverablesForm, drive_url: e.target.value })}
+                placeholder="https://drive.google.com/drive/folders/..."
+                className="bg-white border-slate-200 text-slate-900 h-9 text-xs font-mono"
+              />
+              <p className="text-[10px] text-slate-400">Share datasets, 3D printing STL files, PCB Gerber zip, or large archives.</p>
+            </div>
+
+            {/* Video Walkthrough Link */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <Video className="w-3.5 h-3.5 text-rose-500" />
+                Hardware Demo / Video Walkthrough URL
+              </Label>
+              <Input
+                value={deliverablesForm.video_url}
+                onChange={(e) => setDeliverablesForm({ ...deliverablesForm, video_url: e.target.value })}
+                placeholder="https://youtu.be/... or Google Drive video link"
+                className="bg-white border-slate-200 text-slate-900 h-9 text-xs font-mono"
+              />
+              <p className="text-[10px] text-slate-400">Unlisted YouTube, Loom, or Drive video tutorial showing setup and demo.</p>
+            </div>
+
+            {/* Project Synopsis / Thesis PDF Link */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-amber-600" />
+                Project Report / Thesis Synopsis PDF URL
+              </Label>
+              <Input
+                value={deliverablesForm.pdf_url}
+                onChange={(e) => setDeliverablesForm({ ...deliverablesForm, pdf_url: e.target.value })}
+                placeholder="https://drive.google.com/... or public PDF link"
+                className="bg-white border-slate-200 text-slate-900 h-9 text-xs font-mono"
+              />
+              <p className="text-[10px] text-slate-400">Direct link to customized IEEE documentation or report.</p>
+            </div>
+
+            {/* Engineer Handover Notes */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <FileCode className="w-3.5 h-3.5 text-emerald-600" />
+                Engineer Handover Instructions & Credentials
+              </Label>
+              <Textarea
+                rows={3}
+                value={deliverablesForm.admin_notes}
+                onChange={(e) => setDeliverablesForm({ ...deliverablesForm, admin_notes: e.target.value })}
+                placeholder="e.g., Default WiFi: ProjectNet / pass1234. LoRa frequency is set to 868MHz. Connect sensor trigger to GPIO 4. For viva, remember to explain the Kalman filter equations."
+                className="bg-white border-slate-200 text-slate-900 text-xs leading-relaxed"
+              />
+              <p className="text-[10px] text-slate-400">Displayed in an authorized Engineer Callout Box on the buyer's purchases page.</p>
+            </div>
+
+            <DialogFooter className="flex gap-2 sm:justify-end pt-3 border-t border-slate-100">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsDeliverablesDialogOpen(false)}
+                className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSavingDeliverables}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 h-9 rounded-full text-xs font-semibold shadow-sm border-0 gap-1.5"
+              >
+                <PackageCheck className="w-4 h-4" />
+                {isSavingDeliverables ? "Saving..." : "Save & Deliver to Client"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </Layout>

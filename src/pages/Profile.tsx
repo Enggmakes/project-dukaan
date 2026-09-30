@@ -19,7 +19,12 @@ import {
   FileText, 
   LogOut, 
   ChevronRight,
-  Heart
+  Heart,
+  FolderGit2,
+  HardDrive,
+  Video,
+  Sparkles,
+  ShieldCheck
 } from "lucide-react";
 
 export default function Profile() {
@@ -349,32 +354,173 @@ export default function Profile() {
                         </div>
                       )}
 
-                      {/* DIGITAL ASSETS AND LIFETIME DOWNLOAD OPTIONS (Both Digital & Physical Kits get this!) */}
-                      <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-sm font-semibold text-emerald-600">
-                            <CheckCircle className="w-4 h-4" />
-                            Lifetime Digital Access Unlocked
-                          </div>
-                          <p className="text-xs text-slate-500 max-w-xl leading-relaxed">
-                            Includes complete microcontroller source code, circuit wiring diagrams, step-by-step assembly manual, 3D printing STL files (if applicable), and component datasheet lists.
-                          </p>
-                          <div className="pt-2 flex items-center gap-3">
-                            <span className="text-[10px] font-mono bg-white border border-slate-200 rounded-full px-2.5 py-0.5 text-slate-500">
-                              License Key: PD-{o.id.substring(0,4).toUpperCase()}-{o.id.substring(4,8).toUpperCase()}-LIFETIME
-                            </span>
-                          </div>
-                        </div>
+                      {/* CUSTOM PROJECT DELIVERABLES (GitHub, Drive, Video, PDF, Handover Notes) */}
+                      {(() => {
+                        const dev = o.deliverables || {};
+                        const githubUrl = dev.github_url || o.github_url;
+                        const driveUrl = dev.drive_url;
+                        const videoUrl = dev.video_url;
+                        const pdfUrl = dev.pdf_url;
+                        const adminNotes = dev.admin_notes;
+                        const hasAnyCustom = Boolean(githubUrl || driveUrl || videoUrl || pdfUrl || adminNotes);
 
-                        <div className="w-full md:w-auto">
-                          <Button 
-                            onClick={() => handleDownload(o)}
-                            className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-full px-6 h-11 flex items-center justify-center gap-2 shadow-sm transition-all border-0"
-                          >
-                            <Download className="w-4 h-4" /> Download Files (ZIP)
-                          </Button>
-                        </div>
-                      </div>
+                        return (
+                          <div className="space-y-4">
+                            {hasAnyCustom ? (
+                              <div className="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/40 border border-indigo-100 rounded-2xl p-5 space-y-4 shadow-xs">
+                                <div className="flex items-center justify-between flex-wrap gap-2">
+                                  <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                                    <Sparkles className="w-4 h-4 text-indigo-600" />
+                                    <span>Personalized Project Package & Access</span>
+                                  </div>
+                                  <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-semibold">
+                                    Allocated by Lead Engineer
+                                  </Badge>
+                                </div>
+
+                                {/* Deliverable Action Buttons */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
+                                  {githubUrl && (
+                                    <a
+                                      href={githubUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 hover:border-slate-800 hover:shadow-xs transition-all group"
+                                    >
+                                      <div className="flex items-center gap-2.5 min-w-0">
+                                        <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0">
+                                          <FolderGit2 className="w-4 h-4" />
+                                        </div>
+                                        <div className="min-w-0 text-left">
+                                          <div className="text-xs font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
+                                            GitHub Repo
+                                          </div>
+                                          <div className="text-[10px] text-slate-400 truncate">Source Code & Branch</div>
+                                        </div>
+                                      </div>
+                                      <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 shrink-0 ml-1" />
+                                    </a>
+                                  )}
+
+                                  {driveUrl && (
+                                    <a
+                                      href={driveUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 hover:border-blue-400 hover:shadow-xs transition-all group"
+                                    >
+                                      <div className="flex items-center gap-2.5 min-w-0">
+                                        <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                          <HardDrive className="w-4 h-4" />
+                                        </div>
+                                        <div className="min-w-0 text-left">
+                                          <div className="text-xs font-semibold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
+                                            Google Drive
+                                          </div>
+                                          <div className="text-[10px] text-slate-400 truncate">Datasets & 3D Files</div>
+                                        </div>
+                                      </div>
+                                      <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 shrink-0 ml-1" />
+                                    </a>
+                                  )}
+
+                                  {videoUrl && (
+                                    <a
+                                      href={videoUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 hover:border-rose-400 hover:shadow-xs transition-all group"
+                                    >
+                                      <div className="flex items-center gap-2.5 min-w-0">
+                                        <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                                          <Video className="w-4 h-4" />
+                                        </div>
+                                        <div className="min-w-0 text-left">
+                                          <div className="text-xs font-semibold text-slate-900 group-hover:text-rose-600 transition-colors truncate">
+                                            Video Tutorial
+                                          </div>
+                                          <div className="text-[10px] text-slate-400 truncate">Setup & Demo Video</div>
+                                        </div>
+                                      </div>
+                                      <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-rose-600 shrink-0 ml-1" />
+                                    </a>
+                                  )}
+
+                                  {pdfUrl && (
+                                    <a
+                                      href={pdfUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 hover:border-amber-400 hover:shadow-xs transition-all group"
+                                    >
+                                      <div className="flex items-center gap-2.5 min-w-0">
+                                        <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                                          <FileText className="w-4 h-4" />
+                                        </div>
+                                        <div className="min-w-0 text-left">
+                                          <div className="text-xs font-semibold text-slate-900 group-hover:text-amber-600 transition-colors truncate">
+                                            Thesis & PDF
+                                          </div>
+                                          <div className="text-[10px] text-slate-400 truncate">Report & Synopsis</div>
+                                        </div>
+                                      </div>
+                                      <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-600 shrink-0 ml-1" />
+                                    </a>
+                                  )}
+                                </div>
+
+                                {/* Engineer Notes Callout */}
+                                {adminNotes && (
+                                  <div className="bg-white/90 backdrop-blur-xs border border-indigo-100 rounded-xl p-3.5 space-y-1.5">
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-900">
+                                      <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+                                      <span>Engineer's Handover & Setup Instructions:</span>
+                                    </div>
+                                    <p className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed font-mono bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                                      {adminNotes}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3 text-xs text-slate-500 flex items-center justify-between flex-wrap gap-2">
+                                <span className="flex items-center gap-1.5">
+                                  <Clock className="w-3.5 h-3.5 text-amber-500" />
+                                  Personalized GitHub repo, Google Drive assets, and video demo are being prepared by your assigned engineer.
+                                </span>
+                                <span className="text-[11px] font-medium text-slate-400">Available shortly</span>
+                              </div>
+                            )}
+
+                            {/* DIGITAL ASSETS AND LIFETIME DOWNLOAD OPTIONS */}
+                            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-emerald-600">
+                                  <CheckCircle className="w-4 h-4" />
+                                  Lifetime Digital Access Unlocked
+                                </div>
+                                <p className="text-xs text-slate-500 max-w-xl leading-relaxed">
+                                  Includes complete microcontroller source code, circuit wiring diagrams, step-by-step assembly manual, 3D printing STL files (if applicable), and component datasheet lists.
+                                </p>
+                                <div className="pt-2 flex items-center gap-3">
+                                  <span className="text-[10px] font-mono bg-white border border-slate-200 rounded-full px-2.5 py-0.5 text-slate-500">
+                                    License Key: PD-{o.id.substring(0,4).toUpperCase()}-{o.id.substring(4,8).toUpperCase()}-LIFETIME
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="w-full md:w-auto">
+                                <Button 
+                                  onClick={() => handleDownload(o)}
+                                  className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-full px-6 h-11 flex items-center justify-center gap-2 shadow-sm transition-all border-0"
+                                >
+                                  <Download className="w-4 h-4" /> Download Files (ZIP)
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                     </div>
                   );
