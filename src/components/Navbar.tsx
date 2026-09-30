@@ -12,7 +12,8 @@ import {
   ShieldCheck, 
   ArrowUpRight,
   MoreHorizontal,
-  X
+  X,
+  Heart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -177,7 +178,14 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Right Side: Actions & Profile */}
-          <div className="flex items-center gap-2.5 pr-1">
+          <div className="flex items-center gap-2 pr-1">
+            <Link 
+              to="/wishlist" 
+              className="p-2 rounded-full text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+              title="Saved Wishlist"
+            >
+              <Heart className="w-4 h-4" />
+            </Link>
             <NotificationBell />
 
             {!authChecked && !user ? (
@@ -198,6 +206,9 @@ export default function Navbar() {
                   </div>
                   <DropdownMenuItem className="rounded-xl cursor-pointer py-2 hover:bg-slate-50 text-slate-800 font-medium text-xs" onClick={() => navigate("/profile")}>
                     <User className="w-4 h-4 mr-2 text-indigo-600" /> My Profile & Orders
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="rounded-xl cursor-pointer py-2 hover:bg-slate-50 text-slate-800 font-medium text-xs" onClick={() => navigate("/wishlist")}>
+                    <Heart className="w-4 h-4 mr-2 text-rose-500" /> My Saved Wishlist
                   </DropdownMenuItem>
                   {isAdmin && (
                     <DropdownMenuItem className="rounded-xl cursor-pointer py-2 hover:bg-slate-50 text-slate-800 font-medium text-xs" onClick={() => navigate("/admin")}>
@@ -238,7 +249,10 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <Link to="/wishlist" className="p-1 text-slate-600 hover:text-rose-600" title="Wishlist">
+            <Heart className="w-4 h-4" />
+          </Link>
           <NotificationBell />
           {user ? (
             <Link to="/profile" className="w-8 h-8 rounded-full bg-indigo-600 text-white grid place-items-center text-xs font-bold shadow-xs">
@@ -432,6 +446,34 @@ export default function Navbar() {
 
               {/* Navigation Grid */}
               <div className="grid grid-cols-2 gap-2.5 mt-5">
+                <Link 
+                  to="/wishlist" 
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-3.5 rounded-2xl bg-rose-50/60 border border-rose-200/80 hover:bg-rose-100/60 transition-all flex items-center gap-3"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-white grid place-items-center text-rose-500 shadow-2xs">
+                    <Heart className="w-4 h-4 fill-rose-500/20" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-900 block">Wishlist</span>
+                    <span className="text-[10px] text-slate-500">Saved projects</span>
+                  </div>
+                </Link>
+
+                <Link 
+                  to="/profile" 
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-indigo-50/50 hover:border-indigo-200 transition-all flex items-center gap-3"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-white grid place-items-center text-indigo-600 shadow-2xs">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-900 block">Orders</span>
+                    <span className="text-[10px] text-slate-500">Track shipments</span>
+                  </div>
+                </Link>
+
                 <Link 
                   to="/about" 
                   onClick={() => setMobileMenuOpen(false)}

@@ -12,6 +12,7 @@ import Contact from "./pages/Contact.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import Auth from "./pages/Auth.tsx";
 import Profile from "./pages/Profile.tsx";
+import Wishlist from "./pages/Wishlist.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Terms from "./pages/Terms.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/login" element={<Auth mode="login" />} />
           <Route path="/register" element={<Auth mode="register" />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<NotFound />} />

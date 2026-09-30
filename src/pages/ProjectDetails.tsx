@@ -1,10 +1,11 @@
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot, Heart, Headphones, Terminal, Layers, Cpu, Code2, Wrench } from "lucide-react";
+import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot, Heart, Headphones, Terminal, Layers, Cpu, Code2, Wrench, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
 import { load } from '@cashfreepayments/cashfree-js';
 import { Helmet } from 'react-helmet-async';
 import Layout from "@/components/Layout";
 import ProjectCard from "@/components/ProjectCard";
+import ProductChatDrawer from "@/components/ProductChatDrawer";
 import { Project } from "@/lib/mockData";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,7 @@ export default function ProjectDetails() {
   
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const handlePurchaseClick = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -415,6 +417,14 @@ export default function ProjectDetails() {
                 >
                   <Heart className={`w-4 h-4 ${isWishlisted ? "fill-rose-500" : ""}`} /> 
                   {isWishlisted ? "Saved to Wishlist" : "Add to wishlist"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full rounded-full h-11 mt-2.5 flex items-center justify-center gap-2 border-indigo-200 text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100/80 text-xs font-semibold shadow-2xs transition-all cursor-pointer"
+                  onClick={() => setIsChatOpen(true)}
+                >
+                  <MessageSquare className="w-4 h-4 text-indigo-600" /> 
+                  Inquire / Custom Upgrade
                 </Button>
                 <div className="mt-6 pt-5 border-t border-slate-100">
                   <h4 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">What's included</h4>
@@ -868,6 +878,13 @@ export default function ProjectDetails() {
           </div>
         </div>
       )}
+
+      {/* Real-time Product Contextual Chat Drawer */}
+      <ProductChatDrawer
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        project={project}
+      />
     </Layout>
   );
 }
