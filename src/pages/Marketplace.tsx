@@ -644,21 +644,6 @@ export default function Marketplace() {
                 <span>{tech}</span>
               </button>
             ))}
-
-            {/* Slide-over Bento Hub Trigger */}
-            <button
-              type="button"
-              onClick={() => setMobileDrawerOpen(true)}
-              className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-all shrink-0 flex items-center gap-1.5 ml-auto cursor-pointer"
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>Bento Filter Hub</span>
-              {activeFilterCount > 0 && (
-                <span className="w-4 h-4 rounded-full bg-indigo-600 text-white text-[9px] grid place-items-center">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
           </div>
 
           {/* ACTIVE FILTER CHIPS BAR (Quick 1-tap dismissal) */}
