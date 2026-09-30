@@ -228,9 +228,9 @@ export default function Navbar() {
       </header>
 
       {/* ========================================================================= */}
-      {/* 2. MOBILE TOP MINIMAL BRAND HEADER                                        */}
+      {/* 2. MOBILE TOP MINIMAL BRAND HEADER (Scrolls naturally with content)       */}
       {/* ========================================================================= */}
-      <header className="fixed top-2.5 inset-x-3 z-40 flex md:hidden items-center justify-between px-3.5 py-2 rounded-2xl bg-white/95 border border-slate-200/90 shadow-xs transform-gpu will-change-transform">
+      <header className="absolute top-2.5 inset-x-3 z-40 flex md:hidden items-center justify-between px-3.5 py-2 rounded-2xl bg-white/95 border border-slate-200/90 shadow-xs">
         <Link to="/" className="flex items-center gap-2 select-none">
           <img src="/logo.png" alt="ProjectDukaan" className="w-7 h-7 object-contain" />
           <span className="font-extrabold text-slate-900 tracking-tight text-base">
