@@ -21,7 +21,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 1.1 MediPredict: Multimodal Early Disease Risk Assessment Engine
 - **Difficulty**: Intermediate
-- **Price**: ₹4,999
+- **Price**: ₹16,999 (MRP: ₹27,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Biomedical students, Healthcare AI researchers, Final year capstone
 - **Tech Stack**: Python 3.11, Scikit-Learn, XGBoost, SHAP (Explainable AI), FastAPI, Streamlit, PostgreSQL
@@ -37,7 +37,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 1.2 Algorithmic Quantitative Trading & Sentiment Engine
 - **Difficulty**: Advanced
-- **Price**: ₹6,499
+- **Price**: ₹23,999 (MRP: ₹38,999 — 38% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: FinTech engineers, CS/IT students, Quant enthusiasts
 - **Tech Stack**: Python, Pandas, Statsmodels, FinBERT, Alpaca / Zerodha Kite Connect API, Streamlit, Redis
@@ -53,7 +53,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 1.3 CropYield AI: Hyperlocal Precision Agriculture Yield Predictor
 - **Difficulty**: Beginner
-- **Price**: ₹2,999
+- **Price**: ₹8,999 (MRP: ₹14,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Agritech innovators, 3rd year mini-project teams
 - **Tech Stack**: Python, Random Forest Regressor, Flask, Leaflet.js, OpenWeatherMap API, SQLite
@@ -69,7 +69,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 1.4 IntelliResume: LLM-Powered ATS Score & Gap Analysis Agent
 - **Difficulty**: Beginner
-- **Price**: ₹3,499
+- **Price**: ₹9,999 (MRP: ₹16,999 — 41% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: CS & HRTech students, Hackathon participants
 - **Tech Stack**: Python, LangChain, OpenAI / Ollama (Llama 3), PyPDF2, FastAPI, React.js
@@ -85,7 +85,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 1.5 SmartGrid: Renewable Energy Load Balancing & Forecasting
 - **Difficulty**: Intermediate
-- **Price**: ₹5,299
+- **Price**: ₹17,999 (MRP: ₹29,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Electrical & CS Dual-Degree students, Clean Energy researchers
 - **Tech Stack**: Python, Prophet, LightGBM, Pandas, Dash by Plotly, PostgreSQL
@@ -101,7 +101,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 1.6 FakeNews Radar: Cross-Lingual Misinformation Detector
 - **Difficulty**: Intermediate
-- **Price**: ₹3,999
+- **Price**: ₹14,999 (MRP: ₹24,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Data science students, NLP enthusiasts
 - **Tech Stack**: Python, RoBERTa, Hugging Face Transformers, BeautifulSoup4, FastAPI, Chrome Extension
@@ -117,7 +117,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 1.7 SupplyChain Pro: Demand Forecasting & Automated Replenishment
 - **Difficulty**: Intermediate
-- **Price**: ₹4,799
+- **Price**: ₹16,499 (MRP: ₹26,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Industrial Engineering & Data Science students
 - **Tech Stack**: Python, AutoARIMA, CatBoost, Streamlit, Docker, SQLite
@@ -133,7 +133,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 1.8 EduPath: AI Personalized Learning Trajectory & Dropout Prevention
 - **Difficulty**: Intermediate
-- **Price**: ₹4,299
+- **Price**: ₹14,999 (MRP: ₹24,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: EdTech innovators, Final year CS teams
 - **Tech Stack**: Python, Collaborative Filtering, Decision Trees, Django, Tailwind CSS
@@ -149,7 +149,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 1.9 FlightFare Pulse: Real-Time Airfare Prediction & Booking Advisor
 - **Difficulty**: Beginner
-- **Price**: ₹2,799
+- **Price**: ₹7,999 (MRP: ₹13,999 — 43% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: 2nd/3rd year engineering students, Python beginners
 - **Tech Stack**: Python, ExtraTreesRegressor, Scikit-Learn, Streamlit, BeautifulSoup (Scraper)
@@ -165,7 +165,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 1.10 CreditGuard: Real-Time Bank Fraud Detection with Graph Analytics
 - **Difficulty**: Advanced
-- **Price**: ₹7,499
+- **Price**: ₹26,999 (MRP: ₹42,999 — 37% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Cyber-forensics students, FinTech innovators, M.Tech scholars
 - **Tech Stack**: Python, NetworkX, Isolation Forests, PyTorch Geometric, Neo4j, FastAPI
@@ -183,7 +183,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 2.1 NeuroScan: 3D Brain Tumor MRI Segmentation via UNet3D
 - **Difficulty**: Advanced
-- **Price**: ₹8,999
+- **Price**: ₹29,999 (MRP: ₹49,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Biomedical Engineering, M.Tech/Ph.D. candidates, Medical AI
 - **Tech Stack**: PyTorch, MONAI, UNet3D, SimpleITK, Gradio, BraTS 2023 Dataset
@@ -199,7 +199,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 2.2 AudioGenie: Real-Time Multi-Speaker Voice Separation & Diarization
 - **Difficulty**: Advanced
-- **Price**: ₹7,899
+- **Price**: ₹26,999 (MRP: ₹42,999 — 37% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Signal Processing, Speech AI students, Capstone innovators
 - **Tech Stack**: Python, PyTorch, PyAnnote.Audio, Asteroid (Conv-TasNet), Librosa, Streamlit
@@ -215,7 +215,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 2.3 SignLanguage-GPT: Continuous Sign-to-Text Video Translation
 - **Difficulty**: Advanced
-- **Price**: ₹8,499
+- **Price**: ₹28,999 (MRP: ₹46,999 — 38% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Accessibility researchers, CS Capstone teams
 - **Tech Stack**: Python, MediaPipe (Holistic), PyTorch, Transformer / Bi-LSTM, OpenCV, React
@@ -231,7 +231,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 2.4 DeepFake Sentinel: Frame-Level Spatial-Frequency Video Forensics
 - **Difficulty**: Advanced
-- **Price**: ₹7,999
+- **Price**: ₹27,499 (MRP: ₹44,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Cyber forensics scholars, Computer Vision researchers
 - **Tech Stack**: PyTorch, EfficientNet-B4, Discrete Cosine Transform (DCT), OpenCV, Streamlit
@@ -247,7 +247,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 2.5 DocWhisperer: Enterprise Multimodal RAG with Local DeepSeek/Llama
 - **Difficulty**: Intermediate
-- **Price**: ₹5,999
+- **Price**: ₹21,999 (MRP: ₹35,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Generative AI engineers, Final year CS/IT students
 - **Tech Stack**: LangChain, ChromaDB, Hugging Face sentence-transformers, Ollama, Next.js, FastAPI
@@ -263,7 +263,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 2.6 ProteinFold: Sequence-to-Secondary-Structure Prediction Engine
 - **Difficulty**: Advanced
-- **Price**: ₹8,499
+- **Price**: ₹28,999 (MRP: ₹46,999 — 38% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Bioinformatics students, Computational Biology researchers
 - **Tech Stack**: Python, PyTorch, BioPython, ESM-2 Transformer embeddings, 3Dmol.js
@@ -279,7 +279,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 2.7 SuperRes: Real-Time Video Super-Resolution via ESRGAN
 - **Difficulty**: Intermediate
-- **Price**: ₹5,499
+- **Price**: ₹18,999 (MRP: ₹31,999 — 41% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Multimedia engineering students, Gaming & graphics researchers
 - **Tech Stack**: Python, PyTorch, Real-ESRGAN, TensorRT / ONNX, OpenCV, FastAPI
@@ -295,7 +295,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 2.8 MindWave: EEG Signal Classification for Brain-Computer Interfaces (BCI)
 - **Difficulty**: Advanced
-- **Price**: ₹7,299
+- **Price**: ₹26,999 (MRP: ₹42,999 — 37% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Neuroscience, Biomedical & Embedded CS students
 - **Tech Stack**: Python, MNE-Python, PyTorch (EEGNet), PhysioNet BCI Dataset, Dash
@@ -311,7 +311,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 2.9 CodeSynth: Context-Aware Code Vulnerability Auto-Fixer
 - **Difficulty**: Intermediate
-- **Price**: ₹4,999
+- **Price**: ₹17,999 (MRP: ₹29,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Software Engineering & Cybersecurity students
 - **Tech Stack**: Python, CodeLlama / StarCoder, Tree-sitter, Flask, Monaco Code Editor
@@ -327,7 +327,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 2.10 SentimentSphere: Multimodal Video Emotion Recognition
 - **Difficulty**: Intermediate
-- **Price**: ₹5,299
+- **Price**: ₹18,499 (MRP: ₹29,999 — 38% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Human-Computer Interaction (HCI) & AI students
 - **Tech Stack**: PyTorch, Wav2Vec 2.0 (Audio), ResNet-50 (Facial), BERT (Text), CMU-MOSEI Dataset
@@ -345,7 +345,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 3.1 VisionTraffic: Real-Time Traffic Density & Smart Red Light Control
 - **Difficulty**: Intermediate
-- **Price**: ₹4,999
+- **Price**: ₹17,999 (MRP: ₹29,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Smart Cities & CS/ECE Final Year students
 - **Tech Stack**: Python, YOLOv8 / YOLOv11, ByteTrack, OpenCV, Flask, WebSockets
@@ -361,7 +361,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 3.2 SafeSite: AI Industrial Safety Helmet & PPE Compliance Monitor
 - **Difficulty**: Beginner
-- **Price**: ₹3,499
+- **Price**: ₹10,999 (MRP: ₹17,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Computer Vision beginners, 3rd year mini-projects
 - **Tech Stack**: Python, YOLOv8-Nano, OpenCV, PyTorch, Twilio (SMS/WhatsApp Alerts)
@@ -377,7 +377,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 3.3 RetailEye: Automated Checkout & Autonomous Cashierless Store
 - **Difficulty**: Advanced
-- **Price**: ₹8,299
+- **Price**: ₹28,999 (MRP: ₹46,999 — 38% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Retail Tech, Advanced Capstone, M.Tech scholars
 - **Tech Stack**: Python, YOLOv8, DeepSORT, OpenCV, FastSAM (Segment Anything), React, Stripe/Cashfree
@@ -393,7 +393,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 3.4 AgriDrone: Aerial Crop Disease & Weed Detection via Multispectral Imaging
 - **Difficulty**: Intermediate
-- **Price**: ₹5,799
+- **Price**: ₹19,999 (MRP: ₹32,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Agritech & Drone Robotics students
 - **Tech Stack**: Python, PyTorch, Mask R-CNN, OpenCV, GDAL, Streamlit, Folium
@@ -409,7 +409,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 3.5 DriveGuard: Driver Fatigue, Drowsiness & Distraction Alert System
 - **Difficulty**: Beginner
-- **Price**: ₹3,299
+- **Price**: ₹9,999 (MRP: ₹16,999 — 41% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Automotive safety, 3rd year engineering students
 - **Tech Stack**: Python, MediaPipe Face Mesh, OpenCV, SciPy, Pygame (Audio Alarm)
@@ -425,7 +425,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 3.6 OCR-InvoiceGenie: Complex Table & Receipt Extraction via Donut/TrOCR
 - **Difficulty**: Intermediate
-- **Price**: ₹4,699
+- **Price**: ₹16,999 (MRP: ₹27,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Enterprise automation & FinTech students
 - **Tech Stack**: Python, Donut Transformer / TrOCR, Tesseract, FastAPI, Vue.js / React
@@ -441,7 +441,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 3.7 SportsVision: Real-Time Player Tracking & Shot Heatmap Analytics
 - **Difficulty**: Advanced
-- **Price**: ₹7,499
+- **Price**: ₹24,999 (MRP: ₹39,999 — 37% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Sports analytics, Computer Vision engineers
 - **Tech Stack**: Python, YOLOv8, BoT-SORT, Homography Transformation, OpenCV, Streamlit
@@ -457,7 +457,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 3.8 CrowdSurge: Stampede Risk & Anomaly Detection in Dense Gatherings
 - **Difficulty**: Advanced
-- **Price**: ₹7,899
+- **Price**: ₹26,999 (MRP: ₹43,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Public safety, Smart city capstone, Research scholars
 - **Tech Stack**: Python, CSRNet (Congested Scene Recognition), PyTorch, Optical Flow, FastAPI
@@ -473,7 +473,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 3.9 SkinLesion AI: Dermatological Melanoma Early Screening Tool
 - **Difficulty**: Intermediate
-- **Price**: ₹5,499
+- **Price**: ₹18,999 (MRP: ₹31,999 — 41% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Healthcare AI, Biomedical capstone teams
 - **Tech Stack**: Python, EfficientNet-V2, PyTorch, Grad-CAM, FastAPI, Mobile PWA
@@ -489,7 +489,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 3.10 AutoPlate: High-Speed Automated License Plate Recognition (ANPR)
 - **Difficulty**: Beginner
-- **Price**: ₹3,499
+- **Price**: ₹11,999 (MRP: ₹19,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: ECE/CS students, Toll booth automation mini-projects
 - **Tech Stack**: Python, YOLOv8-Plate, EasyOCR / PaddleOCR, SQLite, Flask
@@ -507,7 +507,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 4.1 AutoNav: ROS2 Autonomous Mobile Robot (AMR) with SLAM & Nav2
 - **Difficulty**: Advanced
-- **Price**: ₹12,999 (Digital) / ₹24,999 (Hardware Kit + Digital)
+- **Price**: ₹24,999 (Digital) / ₹54,999 (Hardware Kit + Digital) (MRP: ₹39,999 / ₹84,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Mechatronics, Robotics Final Year students, M.Tech scholars
 - **Tech Stack**: ROS2 Humble, Gazebo, Cartographer (2D LiDAR SLAM), Nav2, Python, C++, ESP32
@@ -523,7 +523,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 4.2 RoboArm: 6-DOF Industrial Robotic Arm with Inverse Kinematics & Vision
 - **Difficulty**: Advanced
-- **Price**: ₹14,999 (Digital) / ₹28,999 (Hardware Kit + Digital)
+- **Price**: ₹27,999 (Digital) / ₹62,999 (Hardware Kit + Digital) (MRP: ₹44,999 / ₹94,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Mechanical & Robotics engineers, Automation capstones
 - **Tech Stack**: MoveIt2, ROS2, Python, PyBullet, OpenCV, PCA9685 Servo Controller, Arduino
@@ -539,7 +539,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 4.3 AgriBot: Autonomous Solar-Powered Weeding & Soil Profiling Rover
 - **Difficulty**: Intermediate
-- **Price**: ₹8,999 (Digital) / ₹21,999 (Hardware Kit + Digital)
+- **Price**: ₹19,999 (Digital) / ₹46,999 (Hardware Kit + Digital) (MRP: ₹32,999 / ₹72,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Agricultural Robotics & Embedded engineering teams
 - **Tech Stack**: Arduino Mega, Raspberry Pi 4, OpenCV, GPS NEO-6M, NPK Sensor, Python, C++
@@ -555,7 +555,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 4.4 QuadSim: Autonomous Drone Waypoint Navigation & Obstacle Avoidance
 - **Difficulty**: Advanced
-- **Price**: ₹9,499
+- **Price**: ₹24,999 (MRP: ₹39,999 — 38% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Aerospace, Drone engineers, Final year CS/ECE
 - **Tech Stack**: ArduPilot, MAVProxy, Python (DroneKit), PX4, Gazebo, QGroundControl
@@ -571,7 +571,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 4.5 BioProsthetic: EMG-Controlled 3D-Printed Bionic Hand
 - **Difficulty**: Intermediate
-- **Price**: ₹7,499 (Digital) / ₹18,499 (Hardware Kit + Digital)
+- **Price**: ₹18,999 (Digital) / ₹39,999 (Hardware Kit + Digital) (MRP: ₹29,999 / ₹64,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Biomedical Robotics, Prosthetics researchers, ECE teams
 - **Tech Stack**: MyoWare EMG Sensor, Arduino Nano, Python (Signal Filter), MG996R Servos, C++
@@ -587,7 +587,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 4.6 TelePresence: WebRTC Autonomous Hospital Sanitization & Patrol Bot
 - **Difficulty**: Intermediate
-- **Price**: ₹6,999
+- **Price**: ₹19,999 (Digital) / ₹42,999 (Hardware Kit + Digital) (MRP: ₹32,999 / ₹68,999)
 - **Delivery Type**: Digital
 - **Target Audience**: Healthcare automation, IoT & Robotics students
 - **Tech Stack**: Raspberry Pi 4, Python, WebRTC, Vue.js, L298N Motor Driver, UV-C Relay
@@ -603,7 +603,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 4.7 SpiderBot: 12-DOF Quadruped Walking Robot with Inverse Kinematics
 - **Difficulty**: Advanced
-- **Price**: ₹8,499 (Digital) / ₹19,999 (Hardware Kit + Digital)
+- **Price**: ₹19,999 (Digital) / ₹44,999 (Hardware Kit + Digital) (MRP: ₹32,999 / ₹69,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Biomechanics, Robotics locomotion enthusiasts
 - **Tech Stack**: ESP32, PCA9685, C++, Inverse Kinematics Gait Engine, Bluetooth / WiFi App
@@ -619,7 +619,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 4.8 SwarmRobo: Distributed Multi-Agent Cooperative Foraging System
 - **Difficulty**: Advanced
-- **Price**: ₹9,999
+- **Price**: ₹26,999 (MRP: ₹42,999 — 37% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Distributed Systems, Swarm Robotics researchers
 - **Tech Stack**: Python, Webots Robot Simulator, PyTorch, MQTT, Decentralized Consensus
@@ -635,7 +635,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 4.9 LineTrack-Extreme: PID Industrial Automated Guided Vehicle (AGV)
 - **Difficulty**: Beginner
-- **Price**: ₹2,499 (Digital) / ₹6,999 (Hardware Kit + Digital)
+- **Price**: ₹6,999 (Digital) / ₹16,999 (Hardware Kit + Digital) (MRP: ₹11,999 / ₹26,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: 2nd/3rd year ECE & Mechatronics beginners
 - **Tech Stack**: Arduino Uno, 8-Channel IR Sensor Array, PID Algorithm, L298N, C++
@@ -651,7 +651,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 4.10 FireFighter: Autonomous Flame-Extinguishing Robot with Thermal Camera
 - **Difficulty**: Intermediate
-- **Price**: ₹5,499 (Digital) / ₹12,499 (Hardware Kit + Digital)
+- **Price**: ₹14,999 (Digital) / ₹32,999 (Hardware Kit + Digital) (MRP: ₹24,999 / ₹49,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Disaster management robotics, ECE/CS students
 - **Tech Stack**: Arduino Mega / ESP32, MLX90614 Infrared Thermal Sensor, Water Pump, C++
@@ -669,7 +669,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 5.1 SmartCampus: LoRaWAN Long-Range Water & Energy Telemetry Mesh
 - **Difficulty**: Intermediate
-- **Price**: ₹6,499 (Digital) / ₹15,999 (Hardware Kit + Digital)
+- **Price**: ₹16,999 (Digital) / ₹36,999 (Hardware Kit + Digital) (MRP: ₹26,999 / ₹59,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Smart infrastructure, ECE/CS IoT capstone teams
 - **Tech Stack**: ESP32, SX1276 LoRa Modules (868/915 MHz), ChirpStack / The Things Network, Grafana, InfluxDB
@@ -685,7 +685,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 5.2 AquaPonics IoT: Closed-Loop Sustainable Fish & Plant Ecosystem
 - **Difficulty**: Intermediate
-- **Price**: ₹5,499 (Digital) / ₹13,499 (Hardware Kit + Digital)
+- **Price**: ₹14,999 (Digital) / ₹32,999 (Hardware Kit + Digital) (MRP: ₹24,999 / ₹49,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Environmental & Agritech IoT engineers
 - **Tech Stack**: NodeMCU (ESP8266), pH Sensor, TDS Sensor, DS18B20 Temp, Blynk / MQTT, C++
@@ -701,7 +701,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 5.3 HealthNode: Continuous ICU Vital Signs Telemetry & Fall Detector
 - **Difficulty**: Beginner
-- **Price**: ₹3,999 (Digital) / ₹9,999 (Hardware Kit + Digital)
+- **Price**: ₹9,999 (Digital) / ₹22,999 (Hardware Kit + Digital) (MRP: ₹16,999 / ₹36,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Tele-health innovators, 3rd year biomedical/CS students
 - **Tech Stack**: ESP32, MAX30102 (SpO2 & Heart Rate), MPU6050 (Accelerometer), Firebase, Flutter
@@ -717,7 +717,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 5.4 Industrial Predict: Motor Vibration & Temperature Fault Predictor
 - **Difficulty**: Advanced
-- **Price**: ₹7,299 (Digital) / ₹16,999 (Hardware Kit + Digital)
+- **Price**: ₹18,999 (Digital) / ₹39,999 (Hardware Kit + Digital) (MRP: ₹29,999 / ₹62,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Industry 4.0, Mechanical/ECE predictive maintenance
 - **Tech Stack**: ESP32, ADXL345 High-G Accelerometer, Edge Impulse (TinyML), Node-RED, MQTT
@@ -733,7 +733,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 5.5 AgroSense: Solar IoT Weather Station with Microclimate Prediction
 - **Difficulty**: Beginner
-- **Price**: ₹3,499 (Digital) / ₹8,499 (Hardware Kit + Digital)
+- **Price**: ₹8,999 (Digital) / ₹19,999 (Hardware Kit + Digital) (MRP: ₹14,999 / ₹32,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: ECE/CS mini-projects, Agritech students
 - **Tech Stack**: ESP8266, BME280 (Temp/Humidity/Pressure), Rain Gauge, Anemometer, ThingSpeak
@@ -749,7 +749,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 5.6 ColdChain IoT: Vaccine Storage Temperature Compliance & GPS Tracker
 - **Difficulty**: Intermediate
-- **Price**: ₹5,299 (Digital) / ₹11,999 (Hardware Kit + Digital)
+- **Price**: ₹15,999 (Digital) / ₹34,999 (Hardware Kit + Digital) (MRP: ₹24,999 / ₹52,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Pharmaceutical logistics, Supply Chain IoT students
 - **Tech Stack**: ESP32, SIM7600 4G LTE/GPS Module, DS18B20 Temp, Supabase, Next.js
@@ -765,7 +765,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 5.7 HomeMesh: Matter & ESP-NOW Offline Smart Home Automation Hub
 - **Difficulty**: Intermediate
-- **Price**: ₹4,999 (Digital) / ₹11,499 (Hardware Kit + Digital)
+- **Price**: ₹13,999 (Digital) / ₹28,999 (Hardware Kit + Digital) (MRP: ₹22,999 / ₹44,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Smart Home makers, CS/ECE Final year teams
 - **Tech Stack**: ESP32, ESP-NOW Protocol, Relays, Home Assistant, WebSockets, Tailwind
@@ -781,7 +781,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 5.8 SafeMine: Underground Miner Safety Helmet with Toxic Gas Alerts
 - **Difficulty**: Intermediate
-- **Price**: ₹5,999 (Digital) / ₹13,999 (Hardware Kit + Digital)
+- **Price**: ₹16,999 (Digital) / ₹35,999 (Hardware Kit + Digital) (MRP: ₹26,999 / ₹56,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Mining engineering, Occupational safety & IoT capstone
 - **Tech Stack**: ESP32, MQ-4 (Methane), MQ-7 (Carbon Monoxide), MPU6050, LoRa SX1276, Python Dashboard
@@ -797,7 +797,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 5.9 SmartParking IoT: Ultrasonic Space Guidance & Automated QR Reservation
 - **Difficulty**: Beginner
-- **Price**: ₹2,999 (Digital) / ₹7,499 (Hardware Kit + Digital)
+- **Price**: ₹7,999 (Digital) / ₹18,999 (Hardware Kit + Digital) (MRP: ₹12,999 / ₹29,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Smart City mini-projects, 2nd/3rd year engineering
 - **Tech Stack**: ESP8266, Ultrasonic HC-SR04 Sensors, RGB LEDs, Firebase, Web App
@@ -813,7 +813,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 5.10 TrashSense: Municipal Smart Waste Bins with Route Optimization
 - **Difficulty**: Intermediate
-- **Price**: ₹4,799 (Digital) / ₹10,999 (Hardware Kit + Digital)
+- **Price**: ₹14,999 (Digital) / ₹29,999 (Hardware Kit + Digital) (MRP: ₹24,999 / ₹46,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Urban sanitation, Smart city logistics students
 - **Tech Stack**: ESP8266, Ultrasonic Sensor, Load Cell (Weight), Leaflet.js, OSRM (Routing Engine), Flask
@@ -831,7 +831,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 6.1 DevCollab: Real-Time Collaborative Cloud IDE with Sandboxed Execution
 - **Difficulty**: Advanced
-- **Price**: ₹7,999
+- **Price**: ₹26,999 (MRP: ₹42,999 — 37% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Full-Stack engineers, Final year CS capstone teams
 - **Tech Stack**: Next.js 14 (App Router), Monaco Editor, Yjs (CRDTs), WebSockets, Docker, Judge0 API, PostgreSQL
@@ -847,7 +847,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 6.2 EduSphere: Enterprise Learning Management System (LMS) with AI Grading
 - **Difficulty**: Intermediate
-- **Price**: ₹5,499
+- **Price**: ₹18,999 (MRP: ₹29,999 — 37% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: EdTech innovators, Web development students
 - **Tech Stack**: React 18, Node.js, Express, PostgreSQL, Prisma ORM, Stripe / Cashfree, Tailwind CSS
@@ -863,7 +863,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 6.3 FreelanceHub: Escrow-Protected Marketplace for Independent Engineers
 - **Difficulty**: Intermediate
-- **Price**: ₹5,999
+- **Price**: ₹19,999 (MRP: ₹32,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: E-commerce & marketplace developers
 - **Tech Stack**: Next.js 14, Supabase (Postgres & RLS), Cashfree Payment Gateway, Tailwind CSS, Resend
@@ -879,7 +879,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 6.4 EventHorizon: High-Concurrency Virtual Conference & Ticketing Engine
 - **Difficulty**: Advanced
-- **Price**: ₹7,499
+- **Price**: ₹24,999 (MRP: ₹39,999 — 38% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: High-scale web architecture students, Backend specialists
 - **Tech Stack**: Go (Golang) / Node.js, Redis, Next.js, WebSockets, PostgreSQL, Docker
@@ -895,7 +895,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 6.5 MediVault: HIPAA-Compliant Electronic Health Record (EHR) Portal
 - **Difficulty**: Intermediate
-- **Price**: ₹4,999
+- **Price**: ₹17,999 (MRP: ₹28,999 — 38% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Healthcare informatics & Security-minded web developers
 - **Tech Stack**: React, TypeScript, Node.js, MongoDB (Field-Level Encryption), JWT, Tailwind
@@ -911,7 +911,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 6.6 PropMatch: AI Real Estate Discovery with 360° Virtual Tour Viewer
 - **Difficulty**: Beginner
-- **Price**: ₹3,499
+- **Price**: ₹9,999 (MRP: ₹16,999 — 41% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: 2nd/3rd year web development mini-projects
 - **Tech Stack**: React, Pannellum.js (360° Panorama), Leaflet.js, Firebase, Tailwind CSS
@@ -927,7 +927,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 6.7 OpenForge: Open-Source Project Crowdfunding & Grant Platform
 - **Difficulty**: Intermediate
-- **Price**: ₹4,799
+- **Price**: ₹16,999 (MRP: ₹27,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Social tech, Web3/Web2 hybrid engineering teams
 - **Tech Stack**: Next.js, Express, PostgreSQL, Prisma, Cashfree / Razorpay, Chart.js
@@ -943,7 +943,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 6.8 OmniCart: Ultra-Fast Headless E-Commerce Platform with Microservices
 - **Difficulty**: Advanced
-- **Price**: ₹6,999
+- **Price**: ₹25,999 (MRP: ₹41,999 — 38% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Cloud computing & Microservices architecture students
 - **Tech Stack**: Next.js 14, NestJS, RabbitMQ, Redis, PostgreSQL, Docker Compose
@@ -959,7 +959,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 6.9 FeedbackFlow: Micro-SaaS Customer Survey & Sentiment Analytics Tool
 - **Difficulty**: Beginner
-- **Price**: ₹2,999
+- **Price**: ₹8,999 (MRP: ₹14,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Indie hackers, 3rd year web developers
 - **Tech Stack**: Vite + React, Tailwind CSS, Supabase, VADER Sentiment, Recharts
@@ -975,7 +975,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 6.10 AuditLog: Automated Web Accessibility (a11y) & SEO Crawler
 - **Difficulty**: Intermediate
-- **Price**: ₹4,299
+- **Price**: ₹14,999 (MRP: ₹24,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Web accessibility & QA engineering students
 - **Tech Stack**: Node.js, Puppeteer, Axe-Core, React, Tailwind CSS, SQLite
@@ -993,7 +993,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 7.1 FitPulse: On-Device AI Workout Form Coach & Rep Counter
 - **Difficulty**: Advanced
-- **Price**: ₹7,499
+- **Price**: ₹24,999 (MRP: ₹39,999 — 38% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Mobile AI, Flutter/React Native developers
 - **Tech Stack**: Flutter / React Native, Google ML Kit (Pose Detection), SQLite, Riverpod / Redux
@@ -1009,7 +1009,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 7.2 SafeWalk: Women & Solo Traveler Safety App with Voice SOS Trigger
 - **Difficulty**: Intermediate
-- **Price**: ₹4,999
+- **Price**: ₹16,999 (MRP: ₹27,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Social safety, Mobile app Final year teams
 - **Tech Stack**: React Native (Expo), Background Geolocation, Porcupine Wake-Word, Twilio, Node.js
@@ -1025,7 +1025,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 7.3 BudgetWise: Automated SMS Expense Tracker & Financial Intelligence
 - **Difficulty**: Beginner
-- **Price**: ₹3,299
+- **Price**: ₹9,999 (MRP: ₹16,999 — 41% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Android developers, FinTech mobile mini-projects
 - **Tech Stack**: Kotlin / Android Native, Room Database, Jetpack Compose, MPAndroidChart
@@ -1041,7 +1041,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 7.4 MediRemind: Smart Prescription Scanner & Pill Schedule Companion
 - **Difficulty**: Beginner
-- **Price**: ₹3,499
+- **Price**: ₹10,499 (MRP: ₹17,999 — 42% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Healthcare mobile developers, 3rd year projects
 - **Tech Stack**: Flutter, Google ML Kit OCR, Local Notifications, Hive DB
@@ -1057,7 +1057,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 7.5 DisasterMesh: P2P Bluetooth Low Energy (BLE) Offline SOS Messenger
 - **Difficulty**: Advanced
-- **Price**: ₹7,899
+- **Price**: ₹26,999 (MRP: ₹44,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Emergency networks, Advanced mobile communication students
 - **Tech Stack**: React Native, Bluetooth Low Energy (BLE), Bridgefy/Nearby API, SQLite
@@ -1073,7 +1073,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 7.6 CampusMate: Hyperlocal College Super-App with Attendance & Canteen
 - **Difficulty**: Intermediate
-- **Price**: ₹4,799
+- **Price**: ₹17,999 (MRP: ₹29,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Campus tech, Full-stack mobile teams
 - **Tech Stack**: Flutter, Firebase (Auth, Firestore, Cloud Functions), Razorpay, Push Notifications
@@ -1089,7 +1089,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 7.7 ScanMenu: AR Restaurant Menu Visualizer in Augmented Reality
 - **Difficulty**: Intermediate
-- **Price**: ₹5,299
+- **Price**: ₹18,999 (MRP: ₹31,999 — 41% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: AR/VR & Mobile graphics innovators
 - **Tech Stack**: Unity 3D, AR Foundation (ARCore / ARKit), C#, Firebase
@@ -1105,7 +1105,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 7.8 SoundScape: AI Ambient Sound Classifier for the Hearing Impaired
 - **Difficulty**: Intermediate
-- **Price**: ₹4,899
+- **Price**: ₹16,999 (MRP: ₹27,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Accessibility & Edge AI mobile students
 - **Tech Stack**: Android Native (Kotlin), TensorFlow Lite (YAMNet), Android Haptic Feedback
@@ -1121,7 +1121,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 7.9 HabitArc: Gamified Habit Tracker with Social Accountability Duels
 - **Difficulty**: Beginner
-- **Price**: ₹2,899
+- **Price**: ₹8,999 (MRP: ₹14,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: 2nd/3rd year mobile beginners, UI/UX enthusiasts
 - **Tech Stack**: React Native, Expo, Supabase, Lottie Animations, Zustand
@@ -1137,7 +1137,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 7.10 FleetTrack: Real-Time Logistics Driver Telematics & Geo-Fencing
 - **Difficulty**: Intermediate
-- **Price**: ₹5,699
+- **Price**: ₹19,999 (MRP: ₹32,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Transportation logistics & Enterprise mobile developers
 - **Tech Stack**: Flutter, Google Maps SDK, Background Location Tracking, Node.js, WebSockets
@@ -1155,7 +1155,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 8.1 PharmaTrace: Anti-Counterfeit Pharmaceutical Supply Chain on Polygon
 - **Difficulty**: Advanced
-- **Price**: ₹7,999
+- **Price**: ₹27,999 (MRP: ₹44,999 — 38% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Web3, Supply Chain, M.Tech/B.Tech Capstone teams
 - **Tech Stack**: Solidity, Hardhat, Polygon / Sepolia, Ethers.js, Next.js, IPFS
@@ -1171,7 +1171,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 8.2 CredentialLedger: Academic Degree & Transcript Verification via Soulbound NFTs
 - **Difficulty**: Intermediate
-- **Price**: ₹5,999
+- **Price**: ₹19,999 (MRP: ₹32,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: EdTech & Web3 identity developers
 - **Tech Stack**: Solidity (ERC-5192 Soulbound Tokens), Hardhat, Next.js, Wagmi / Viem, Pinata (IPFS)
@@ -1187,7 +1187,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 8.3 DeVote: Zero-Knowledge Privacy-Preserving Voting Protocol
 - **Difficulty**: Advanced
-- **Price**: ₹8,999
+- **Price**: ₹29,999 (MRP: ₹49,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Cryptography, Cyber governance & Advanced Web3 scholars
 - **Tech Stack**: Circom (zk-SNARKs), SnarkJS, Solidity, Ethereum/Polygon, Next.js
@@ -1203,7 +1203,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 8.4 LandRegistry: Decentralized Property Title Deed & Escrow Transfer
 - **Difficulty**: Intermediate
-- **Price**: ₹5,499
+- **Price**: ₹18,999 (MRP: ₹31,999 — 41% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: GovTech & Blockchain real estate capstones
 - **Tech Stack**: Solidity (ERC-721), Hardhat, Polygon, The Graph, React, IPFS
@@ -1219,7 +1219,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 8.5 MicroLend: Decentralized P2P Lending Protocol with On-Chain Credit Scoring
 - **Difficulty**: Advanced
-- **Price**: ₹7,499
+- **Price**: ₹26,499 (MRP: ₹42,999 — 38% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: DeFi & FinTech blockchain scholars
 - **Tech Stack**: Solidity, Hardhat, Ethers.js, Chainlink Oracles, React, Tailwind CSS
@@ -1235,7 +1235,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 8.6 CarbonCredit: Transparent Verified Carbon Offset & Green Tokenization
 - **Difficulty**: Intermediate
-- **Price**: ₹5,299
+- **Price**: ₹17,999 (MRP: ₹29,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: CleanTech & ESG Blockchain students
 - **Tech Stack**: Solidity (ERC-1155), Polygon, IPFS, Next.js, Chart.js
@@ -1251,7 +1251,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 8.7 PatentVault: Decentralized Intellectual Property (IP) Protection & Licensing
 - **Difficulty**: Beginner
-- **Price**: ₹3,999
+- **Price**: ₹11,999 (MRP: ₹19,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: LegalTech & Web3 beginners
 - **Tech Stack**: Solidity, Hardhat, IPFS, Web3.js, React
@@ -1267,7 +1267,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 8.8 MultiSigSafe: Enterprise Treasury Multi-Signature Smart Contract Wallet
 - **Difficulty**: Intermediate
-- **Price**: ₹4,999
+- **Price**: ₹18,999 (MRP: ₹31,999 — 41% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Web3 security & Smart contract developers
 - **Tech Stack**: Solidity, Hardhat, TypeChain, Ethers.js, Next.js
@@ -1283,7 +1283,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 8.9 CharityChain: 100% Transparent Donation Tracking to Disaster Victims
 - **Difficulty**: Beginner
-- **Price**: ₹3,499
+- **Price**: ₹10,999 (MRP: ₹17,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Social impact Web3 mini-projects
 - **Tech Stack**: Solidity, Polygon / BSC, Metamask, React, Tailwind CSS
@@ -1299,7 +1299,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 8.10 GameGuild: Decentralized Web3 Gaming Asset Marketplace & Rental
 - **Difficulty**: Intermediate
-- **Price**: ₹5,799
+- **Price**: ₹19,499 (MRP: ₹32,999 — 41% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Gaming & Web3 entertainment developers
 - **Tech Stack**: Solidity (ERC-4907 Rentable NFTs), Hardhat, Next.js, Tailwind, IPFS
@@ -1317,7 +1317,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 9.1 ZeroTrust: Continuous Identity & Behavioral Biometric Access Gateway
 - **Difficulty**: Advanced
-- **Price**: ₹7,999
+- **Price**: ₹27,999 (MRP: ₹44,999 — 38% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Enterprise Security, M.Tech/B.Tech Cyber Capstone teams
 - **Tech Stack**: Python, FastAPI, Redis, Keystroke Dynamics ML, WebAuthn (FIDO2), Docker
@@ -1333,7 +1333,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 9.2 HoneyNet: Distributed SSH & Web Honeypot with Threat Intelligence Feeds
 - **Difficulty**: Intermediate
-- **Price**: ₹5,499
+- **Price**: ₹18,999 (MRP: ₹31,999 — 41% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Threat hunting & Network defense students
 - **Tech Stack**: Python, Docker, Cowrie, ElasticSearch, Logstash, Kibana (ELK Stack)
@@ -1349,7 +1349,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 9.3 RansomGuard: Kernel-Level Behavioral Ransomware Detection & Auto-Rollback
 - **Difficulty**: Advanced
-- **Price**: ₹8,499
+- **Price**: ₹29,999 (MRP: ₹49,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Malware analysis & OS security scholars
 - **Tech Stack**: C++, Python, Windows Minifilter Driver / Linux eBPF, Shannon Entropy Analysis
@@ -1365,7 +1365,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 9.4 PacketSentry: AI Network Intrusion Detection System (NIDS) via CIC-IDS
 - **Difficulty**: Intermediate
-- **Price**: ₹4,999
+- **Price**: ₹17,999 (MRP: ₹29,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Network security & ECE/CS students
 - **Tech Stack**: Python, Scapy, XGBoost / Random Forest, CIC-IDS2017 Dataset, Streamlit
@@ -1381,7 +1381,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 9.5 DarkWeb-Radar: Automated Threat Intelligence & Leaked Credential Harvester
 - **Difficulty**: Intermediate
-- **Price**: ₹5,899
+- **Price**: ₹19,999 (MRP: ₹32,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: OSINT, Cyber threat intelligence capstones
 - **Tech Stack**: Python, Tor SOCKS5 Proxy, BeautifulSoup, Regular Expressions, PostgreSQL, Next.js
@@ -1397,7 +1397,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 9.6 SafeCode: Automated CI/CD DevSecOps Static Analysis & Secret Scanner
 - **Difficulty**: Beginner
-- **Price**: ₹3,499
+- **Price**: ₹9,999 (MRP: ₹16,999 — 41% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: 2nd/3rd year software engineering & DevOps students
 - **Tech Stack**: Python, Semgrep, TruffleHog, GitHub Actions, Docker, SQLite
@@ -1413,7 +1413,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 9.7 CloudPosture: Multi-Cloud Security Posture Management (CSPM) Auditor
 - **Difficulty**: Advanced
-- **Price**: ₹7,299
+- **Price**: ₹25,999 (MRP: ₹42,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Cloud computing & Enterprise cyber defense scholars
 - **Tech Stack**: Python, Boto3 (AWS SDK), CIS Benchmark Rules, FastAPI, React, Tailwind CSS
@@ -1429,7 +1429,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 9.8 StegoShield: Deep Neural Steganography & Steganalysis Forensic Engine
 - **Difficulty**: Intermediate
-- **Price**: ₹4,799
+- **Price**: ₹16,999 (MRP: ₹27,999 — 39% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Cryptography, Digital forensics & Multimedia security
 - **Tech Stack**: Python, PyTorch, SteganoCNN, OpenCV, Streamlit
@@ -1445,7 +1445,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 9.9 PhishCatcher: Computer Vision + NLP Domain Typosquatting & Phishing Radar
 - **Difficulty**: Beginner
-- **Price**: ₹3,299
+- **Price**: ₹8,999 (MRP: ₹14,999 — 40% Off)
 - **Delivery Type**: Digital
 - **Target Audience**: Cyber safety beginners, 3rd year mini-projects
 - **Tech Stack**: Python, Playwright, Tesseract OCR, Levenshtein Distance, Flask, Chrome Extension
@@ -1461,7 +1461,7 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ### 9.10 WiFiSpectre: Enterprise Rogue Access Point & Evil Twin Deauth Shield
 - **Difficulty**: Intermediate
-- **Price**: ₹5,299 (Digital) / ₹11,499 (Hardware Kit + Digital)
+- **Price**: ₹15,999 (Digital) / ₹32,999 (Hardware Kit + Digital) (MRP: ₹24,999 / ₹49,999)
 - **Delivery Type**: Digital / Physical Kit
 - **Target Audience**: Wireless network security, ECE/CS hardware capstone
 - **Tech Stack**: ESP8266 / ESP32, Scapy, Python, 802.11 Monitor Mode, WebSockets
@@ -1477,19 +1477,17 @@ Comprehensive, production-ready engineering project blueprints categorized acros
 
 ## 10. Summary Matrix & ProjectDukaan Catalog Statistics
 
-| Category | Blueprints Available | Price Range (INR ₹) | Hardware Kits Available |
-| :--- | :---: | :---: | :---: |
-| **1. AI & Machine Learning** | 10 | ₹2,799 – ₹7,499 | Software / Cloud |
-| **2. Deep Learning** | 10 | ₹4,999 – ₹8,999 | GPU Cloud / Local |
-| **3. Computer Vision** | 10 | ₹3,299 – ₹8,299 | Webcam / Edge Pi |
-| **4. Robotics** | 10 | ₹2,499 – ₹28,999 | Physical Kits Available |
-| **5. IoT (Internet of Things)** | 10 | ₹2,999 – ₹16,999 | Physical Kits Available |
-| **6. Web Development** | 10 | ₹2,999 – ₹7,999 | Full-Stack Repositories |
-| **7. Mobile Apps** | 10 | ₹2,899 – ₹7,899 | Android / iOS / Flutter |
-| **8. Blockchain & Web3** | 10 | ₹3,499 – ₹8,999 | Testnets / Solidity |
-| **9. Cybersecurity & Defense** | 10 | ₹3,299 – ₹8,499 | Virtual Labs / Scripts |
-| **Total** | **90 Blueprints** | **₹2,499 – ₹28,999** | **Full Digital + Kits** |
-
----
+| Category | Blueprints Available | Price Range (INR ₹) | Anchor MRP Range | Hardware Kits Available |
+| :--- | :---: | :---: | :---: | :---: |
+| **1. AI & Machine Learning** | 10 | ₹7,999 – ₹26,999 | ₹13,999 – ₹42,999 | Software / Cloud |
+| **2. Deep Learning** | 10 | ₹17,999 – ₹29,999 | ₹29,999 – ₹49,999 | GPU Cloud / Local |
+| **3. Computer Vision** | 10 | ₹9,999 – ₹28,999 | ₹16,999 – ₹46,999 | Webcam / Edge Pi |
+| **4. Robotics** | 10 | ₹6,999 – ₹27,999 *(Hardware: ₹16,999 – ₹62,999)* | ₹11,999 – ₹94,999 | Physical Kits Available |
+| **5. IoT (Internet of Things)** | 10 | ₹7,999 – ₹18,999 *(Hardware: ₹18,999 – ₹39,999)* | ₹12,999 – ₹62,999 | Physical Kits Available |
+| **6. Web Development** | 10 | ₹8,999 – ₹26,999 | ₹14,999 – ₹42,999 | Full-Stack Repositories |
+| **7. Mobile Apps** | 10 | ₹8,999 – ₹26,999 | ₹14,999 – ₹44,999 | Android / iOS / Flutter |
+| **8. Blockchain & Web3** | 10 | ₹10,999 – ₹29,999 | ₹17,999 – ₹49,999 | Testnets / Solidity |
+| **9. Cybersecurity & Defense** | 10 | ₹8,999 – ₹29,999 *(Hardware: ₹32,999)* | ₹14,999 – ₹49,999 | Virtual Labs / Hardware |
+| **Total** | **90 Blueprints** | **₹6,999 – ₹29,999** *(Hardware up to ₹62,999)* | **₹11,999 – ₹94,999** | **Full Digital + Kits** |
 
 *Compiled and maintained for ProjectDukaan. All blueprints adhere strictly to IEEE publication formatting, production code hygiene, and verified evaluation standards.*
