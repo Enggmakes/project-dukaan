@@ -28,7 +28,8 @@ import {
   Code2,
   Terminal,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  X
 } from "lucide-react";
 import { useState, useEffect, useRef, Component, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -149,11 +150,11 @@ export default function Home() {
               initial={{ opacity: 0, y: -10 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ duration: 0.35 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/95 border border-slate-200/90 shadow-xs mb-8"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200/90 shadow-2xs mb-8"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
               <span className="text-xs font-semibold text-slate-800 tracking-tight">
-                Verified Blueprints • Instant Download • IEEE Thesis Docs
+                100% Compiles on First Run • IEEE Thesis Docs Included
               </span>
             </motion.div>
 
@@ -162,10 +163,10 @@ export default function Home() {
               initial={{ opacity: 0, y: 16 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ duration: 0.45, delay: 0.05 }}
-              className="text-display text-5xl sm:text-6xl md:text-7xl lg:text-[84px] text-slate-900 font-black tracking-[-0.035em] leading-[1.05]"
+              className="text-display text-5xl sm:text-6xl md:text-7xl lg:text-[82px] text-slate-950 font-black tracking-[-0.035em] leading-[1.04]"
             >
               Engineering projects, <br />
-              <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-indigo-600 font-black">
                 built to ship.
               </span>
             </motion.h1>
@@ -193,14 +194,13 @@ export default function Home() {
                 </Button>
               </Link>
               <Link to="/custom-request">
-                <Button size="lg" variant="outline" className="bento-pill text-slate-800 rounded-full px-7 h-12 text-sm font-semibold active:scale-98 transition-all hover:bg-white shadow-xs">
+                <Button size="lg" variant="outline" className="text-slate-800 rounded-full px-7 h-12 text-sm font-semibold active:scale-98 transition-all hover:bg-white hover:border-slate-300 shadow-xs border-slate-200">
                   Request Custom Build
-                  <span className="ml-2 text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full border border-indigo-100">7-Day</span>
                 </Button>
               </Link>
             </motion.div>
 
-            {/* Search Spotlight Bar with Cmd+K */}
+            {/* Search Spotlight Bar with Clear & OS-aware shortcut */}
             <motion.form 
               initial={{ opacity: 0, y: 12 }} 
               animate={{ opacity: 1, y: 0 }} 
@@ -216,8 +216,18 @@ export default function Home() {
                 placeholder="Search projects (e.g. YOLO, Drone, ESP32, Blockchain)..."
                 className="border-0 bg-transparent focus-visible:ring-0 text-slate-900 flex-1 placeholder:text-slate-400 text-sm h-10"
               />
+              {q && (
+                <button
+                  type="button"
+                  onClick={() => setQ("")}
+                  className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors mr-1"
+                  aria-label="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
               <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono font-medium text-slate-400 bg-slate-100 rounded-md border border-slate-200/80 shrink-0 select-none">
-                ⌘K
+                {typeof navigator !== "undefined" && navigator.platform?.toUpperCase().includes("MAC") ? "⌘K" : "Ctrl+K"}
               </kbd>
               <Select value={cat} onValueChange={setCat}>
                 <SelectTrigger className="w-36 sm:w-40 rounded-full border-0 bg-slate-100/90 text-xs font-semibold shrink-0 text-slate-700 h-10">
@@ -232,6 +242,24 @@ export default function Home() {
                 Search
               </Button>
             </motion.form>
+
+            {/* Popular quick tags */}
+            <div className="mt-3 flex items-center justify-center gap-2 flex-wrap text-xs">
+              <span className="text-slate-400 font-medium text-[11px]">Popular:</span>
+              {["Computer Vision", "IoT", "Robotics", "Deep Learning"].map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => {
+                    setCat(tag);
+                    navigate(`/marketplace?cat=${encodeURIComponent(tag)}`);
+                  }}
+                  className="px-2.5 py-0.5 rounded-full bg-white text-slate-600 hover:text-indigo-600 border border-slate-200 text-[11px] font-medium transition-colors shadow-2xs cursor-pointer"
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* ========================================================================= */}
@@ -339,7 +367,6 @@ export default function Home() {
 
               {/* Bento Tile 3: Dark Custom Studio Fast-Lane */}
               <div className="bento-card-dark p-6 flex flex-col justify-between relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none group-hover:bg-indigo-600/25 transition-all" />
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 bg-indigo-950/80 border border-indigo-800/80 px-2 py-0.5 rounded-full">
@@ -372,8 +399,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
-              <div className="text-indigo-600 text-xs font-bold uppercase tracking-wider">Browse by Domain</div>
-              <h2 className="text-display text-3xl sm:text-4xl md:text-5xl text-slate-900 font-bold mt-1">
+              <h2 className="text-display text-3xl sm:text-4xl md:text-5xl text-slate-900 font-bold">
                 Pick your engineering stack
               </h2>
             </div>
@@ -408,7 +434,7 @@ export default function Home() {
                         </span>
                       </div>
 
-                      <h3 className="font-extrabold text-slate-900 mt-5 text-lg group-hover:text-indigo-600 transition-colors">
+                      <h3 className="font-extrabold text-slate-900 mt-5 text-lg">
                         {c}
                       </h3>
                       <p className="text-xs sm:text-sm text-slate-600 mt-1.5 leading-relaxed">
@@ -435,8 +461,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
             <div>
-              <div className="text-indigo-600 text-xs font-bold uppercase tracking-wider">Hand-Crafted & Tested</div>
-              <h2 className="text-display text-3xl sm:text-4xl md:text-5xl text-slate-900 font-bold mt-1">
+              <h2 className="text-display text-3xl sm:text-4xl md:text-5xl text-slate-900 font-bold">
                 Featured Blueprints
               </h2>
             </div>
