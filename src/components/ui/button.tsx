@@ -17,7 +17,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         liquid: "liquid-glass-btn text-slate-900",
         "liquid-primary": "liquid-glass-primary text-white",
-        "liquid-outline": "liquid-glass text-slate-900 hover:text-indigo-600",
+        "liquid-outline": "liquid-glass text-slate-900 hover:text-blue-600",
       },
       size: {
         default: "h-10 px-4 py-2",

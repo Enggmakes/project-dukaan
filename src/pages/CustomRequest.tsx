@@ -196,14 +196,14 @@ export default function CustomRequest() {
       <Layout>
         <section className="container-px py-20">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="max-w-2xl mx-auto bg-white rounded-3xl p-12 border border-slate-200 shadow-sm text-center">
-            <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 grid place-items-center mx-auto text-emerald-600">
-              <Check className="w-8 h-8" />
+            className="max-w-2xl mx-auto bg-white rounded-xl p-10 border border-slate-200 shadow-xs text-center tech-card">
+            <div className="w-14 h-14 rounded-xl bg-emerald-50 border border-emerald-200 grid place-items-center mx-auto text-emerald-600">
+              <Check className="w-7 h-7" />
             </div>
-            <h1 className="text-display text-4xl text-slate-900 font-bold mt-6">Thank you.</h1>
-            <p className="text-slate-600 mt-3 text-lg font-medium">Our team will contact you shortly.</p>
-            <p className="text-slate-500 text-sm mt-2">We typically reply within 24 hours with a scoped quote and timeline.</p>
-            <Button className="mt-8 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6" onClick={() => { setSubmitted(false); setStep(0); }}>Submit another</Button>
+            <h1 className="text-3xl text-slate-900 font-extrabold mt-6">Request Dispatched</h1>
+            <p className="text-slate-600 mt-2 text-base font-medium">Our engineering team will inspect your requirements.</p>
+            <p className="text-slate-500 text-xs sm:text-sm mt-1">We typically reply within 24 hours with architectural breakdown, hardware BOM, and delivery schedule.</p>
+            <Button className="mt-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 h-10 shadow-xs" onClick={() => { setSubmitted(false); setStep(0); }}>Submit Another Blueprint</Button>
           </motion.div>
         </section>
       </Layout>
@@ -218,13 +218,13 @@ export default function CustomRequest() {
         <meta name="keywords" content="request custom project, custom AI development, custom ML development, IoT prototype build, robotics custom project, engineering support" />
         <link rel="canonical" href="https://projectdukaan.vercel.app/custom-request" />
       </Helmet>
-      <div className="py-16 bg-slate-50 border-b border-slate-200/80">
+      <div className="py-14 bg-slate-50 border-b border-slate-200/80">
         <div className="container-px max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200 text-sm text-slate-800 font-medium mb-6 shadow-sm">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-600" /> Custom builds
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-white border border-slate-200 text-xs text-slate-800 font-mono font-medium mb-5 shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Custom Architecture Studio
           </div>
-          <h1 className="text-display text-5xl md:text-6xl text-slate-900 font-bold">Request a custom project</h1>
-          <p className="text-slate-600 mt-3 text-lg font-medium">Tell us what you need — we'll design, build & deliver.</p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl text-slate-900 font-extrabold tracking-tight">Request a Custom Engineering Build</h1>
+          <p className="text-slate-600 mt-3 text-base sm:text-lg font-medium">Tell us what you need — our technical leads will design, build & deliver.</p>
         </div>
       </div>
 
@@ -238,7 +238,7 @@ export default function CustomRequest() {
               <div className="absolute inset-0 bg-slate-200" />
               {/* Active Progress Line */}
               <div 
-                className="absolute left-0 top-0 bottom-0 bg-indigo-600 transition-all duration-500 ease-in-out"
+                className="absolute left-0 top-0 bottom-0 bg-blue-600 transition-all duration-500 ease-in-out"
                 style={{ width: `${(step / (steps.length - 1)) * 100}%` }}
               />
             </div>
@@ -247,10 +247,10 @@ export default function CustomRequest() {
             <div className="flex items-center justify-between relative z-10">
               {steps.map((s, i) => (
                 <div key={s} className="flex flex-col items-center gap-2">
-                  <div className={`w-9 h-9 rounded-full grid place-items-center text-sm font-semibold transition-all ${
-                    i < step ? "bg-indigo-600 text-white shadow-sm" : i === step ? "bg-slate-900 text-white scale-110 shadow-sm" : "bg-slate-100 text-slate-400 border border-slate-200"
+                  <div className={`w-8 h-8 rounded-lg grid place-items-center text-xs font-mono font-bold transition-all ${
+                    i < step ? "bg-blue-600 text-white shadow-xs" : i === step ? "bg-slate-900 text-white shadow-xs" : "bg-white text-slate-500 border border-slate-200"
                   }`}>
-                    {i < step ? <Check className="w-4 h-4" /> : i + 1}
+                    {i < step ? <Check className="w-3.5 h-3.5" /> : i + 1}
                   </div>
                   <span className="text-xs text-slate-700 hidden sm:block font-medium">{s}</span>
                 </div>
@@ -258,7 +258,7 @@ export default function CustomRequest() {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-8 md:p-10 border border-slate-200 shadow-sm">
+          <div className="bg-white rounded-xl p-6 sm:p-8 md:p-10 border border-slate-200 shadow-xs tech-card">
             <AnimatePresence mode="wait">
               <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
                 {step === 0 && (
@@ -299,7 +299,7 @@ export default function CustomRequest() {
                       <Field label="Budget range *" error={errors.budget}>
                         <Select value={data.budget} onValueChange={v => set("budget", v)}>
                           <SelectTrigger className="bg-slate-50 border-slate-200"><SelectValue placeholder="Select budget" /></SelectTrigger>
-                          <SelectContent className="bg-white border-slate-200 rounded-2xl shadow-xl">
+                          <SelectContent className="bg-white border-slate-200 rounded-xl shadow-xl">
                             <SelectItem value="<5k">Under ₹5,000</SelectItem>
                             <SelectItem value="5k-15k">₹5,000 – ₹15,000</SelectItem>
                             <SelectItem value="15k-50k">₹15,000 – ₹50,000</SelectItem>
@@ -315,8 +315,8 @@ export default function CustomRequest() {
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
-                        className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer relative ${
-                          isDragging ? "border-indigo-600 bg-indigo-50/50 scale-[1.01]" : "border-slate-200 hover:border-indigo-600 bg-slate-50/50"
+                        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer relative ${
+                          isDragging ? "border-blue-600 bg-blue-50/50 scale-[1.01]" : "border-slate-200 hover:border-blue-600 bg-slate-50/50"
                         }`}
                       >
                         {selectedFile ? (
@@ -400,11 +400,11 @@ export default function CustomRequest() {
             </AnimatePresence>
 
             <div className="flex justify-between mt-8 pt-6 border-t border-slate-100">
-              <Button variant="ghost" className="rounded-full text-slate-700 font-semibold" onClick={prev} disabled={step === 0}><ArrowLeft className="w-4 h-4 mr-1" /> Back</Button>
+              <Button variant="ghost" className="rounded-lg text-slate-700 font-semibold" onClick={prev} disabled={step === 0}><ArrowLeft className="w-4 h-4 mr-1" /> Back</Button>
               {step < steps.length - 1 ? (
-                <Button onClick={next} className="rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 shadow-sm">Next <ArrowRight className="w-4 h-4 ml-1" /></Button>
+                <Button onClick={next} className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 shadow-xs">Next <ArrowRight className="w-4 h-4 ml-1" /></Button>
               ) : (
-                <Button onClick={submit} disabled={isSubmitting} className="rounded-full bg-slate-900 hover:bg-slate-800 text-white font-semibold px-6 shadow-sm">
+                <Button onClick={submit} disabled={isSubmitting} className="rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold px-6 shadow-xs">
                   {isSubmitting ? "Submitting..." : "Submit request"}
                 </Button>
               )}

@@ -271,7 +271,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
                   Live Engineer Desk
                 </span>
                 {project?.price && (
-                  <Badge className="ml-auto bg-indigo-50 text-indigo-700 font-bold text-xs border border-indigo-200/60">
+                  <Badge className="ml-auto bg-blue-50 text-blue-700 font-bold text-xs border border-blue-200/60">
                     ₹{project.price.toLocaleString()}
                   </Badge>
                 )}
@@ -289,7 +289,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
         {/* Auth Barrier if user not logged in */}
         {!user ? (
           <div className="flex-1 p-8 flex flex-col items-center justify-center text-center space-y-4 bg-white m-4 rounded-3xl border border-slate-200/90 shadow-2xs">
-            <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 grid place-items-center">
+            <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 grid place-items-center">
               <MessageSquare className="w-7 h-7" />
             </div>
             <div className="space-y-1">
@@ -299,7 +299,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
               </p>
             </div>
             <Link to="/login" className="w-full">
-              <Button className="w-full rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs h-10 shadow-sm">
+              <Button className="w-full rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-10 shadow-sm">
                 Sign in to Open Chat
               </Button>
             </Link>
@@ -313,7 +313,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
             >
               {isLoading ? (
                 <div className="py-20 text-center space-y-3">
-                  <Loader2 className="w-6 h-6 animate-spin text-indigo-600 mx-auto" />
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600 mx-auto" />
                   <p className="text-xs text-slate-500 font-medium">Connecting to live chat stream...</p>
                 </div>
               ) : (
@@ -342,7 +342,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
                       >
                         <div className="flex items-center gap-1.5 mb-1 px-1">
                           {isAdmin ? (
-                            <Badge className="bg-indigo-600 text-white text-[9px] px-1.5 py-0 h-4 font-bold flex items-center gap-0.5">
+                            <Badge className="bg-blue-600 text-white text-[9px] px-1.5 py-0 h-4 font-bold flex items-center gap-0.5">
                               <Sparkles className="w-2.5 h-2.5" />
                               Lead Engineer
                             </Badge>
@@ -362,7 +362,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
                               ? "bg-slate-900 text-white rounded-tr-xs"
                               : isAdmin
                               ? "bg-white text-slate-900 border border-slate-200/90 rounded-tl-xs"
-                              : "bg-indigo-50 text-indigo-950 border border-indigo-100 rounded-tl-xs"
+                              : "bg-blue-50 text-blue-950 border border-blue-100 rounded-tl-xs"
                           }`}
                         >
                           <p className="whitespace-pre-wrap">{m.message}</p>
@@ -386,7 +386,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
                       key={q}
                       type="button"
                       onClick={() => handleSendMessage(q)}
-                      className="text-[11px] font-medium text-slate-700 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 border border-slate-200/80 rounded-full px-2.5 py-1 whitespace-nowrap transition-all cursor-pointer shrink-0"
+                      className="text-[11px] font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 hover:text-blue-700 hover:border-blue-200 border border-slate-200/80 rounded-md px-2.5 py-1 whitespace-nowrap transition-all cursor-pointer shrink-0"
                     >
                       {q}
                     </button>
@@ -408,13 +408,13 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Ask about components, hardware, or code..."
-                  className="rounded-full bg-slate-50 border-slate-200 text-xs sm:text-sm h-10 px-4 focus-visible:ring-indigo-500/20 flex-1"
+                  className="rounded-lg bg-slate-50 border-slate-200 text-xs sm:text-sm h-10 px-3.5 focus-visible:ring-blue-500/20 flex-1"
                   disabled={isSending}
                 />
                 <Button
                   type="submit"
                   disabled={!newMessage.trim() || isSending}
-                  className="rounded-full bg-indigo-600 hover:bg-indigo-700 text-white w-10 h-10 p-0 shrink-0 shadow-sm transition-all"
+                  className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white w-10 h-10 p-0 shrink-0 shadow-sm transition-all"
                 >
                   {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 </Button>

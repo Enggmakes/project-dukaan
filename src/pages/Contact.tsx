@@ -55,44 +55,44 @@ export default function Contact() {
         <meta name="keywords" content="contact projectdukaan, project support, final year project help, sales contact" />
         <link rel="canonical" href="https://projectdukaan.vercel.app/contact" />
       </Helmet>
-      <div className="py-20 bg-slate-50 border-b border-slate-200/80">
+      <div className="py-14 bg-slate-50 border-b border-slate-200/80">
         <div className="container-px max-w-3xl mx-auto text-center">
-          <h1 className="text-display text-5xl md:text-6xl text-slate-900 font-bold">Get in touch</h1>
-          <p className="text-slate-600 mt-4 text-lg font-medium">Sales, support, partnerships — we read every message.</p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl text-slate-900 font-extrabold tracking-tight">Direct Engineering Support</h1>
+          <p className="text-slate-600 mt-3 text-base sm:text-lg font-medium">Architecture consultation, hardware logistics, or custom requests — we inspect every inquiry.</p>
         </div>
       </div>
 
-      <section className="container-px py-16">
+      <section className="container-px py-14">
         <div className="max-w-5xl mx-auto grid lg:grid-cols-[1fr_360px] gap-8">
-          <form onSubmit={submit} className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-5">
-            <h2 className="text-2xl font-bold text-slate-900">Send us a message</h2>
+          <form onSubmit={submit} className="tech-card bg-white rounded-xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-5">
+            <h2 className="text-xl font-bold text-slate-900">Transmit Message</h2>
             <div>
-              <Label className="text-slate-700 font-medium text-sm">Name</Label>
-              <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Your name" className="mt-1.5 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400" />
+              <Label className="text-slate-700 font-semibold text-xs mb-1 block">Full Name</Label>
+              <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Engineering Lead / Student Name" className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-lg text-sm" />
             </div>
             <div>
-              <Label className="text-slate-700 font-medium text-sm">Email</Label>
-              <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="you@example.com" className="mt-1.5 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400" />
+              <Label className="text-slate-700 font-semibold text-xs mb-1 block">Work / College Email</Label>
+              <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="engineer@domain.com" className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-lg text-sm" />
             </div>
             <div>
-              <Label className="text-slate-700 font-medium text-sm">Message</Label>
-              <Textarea rows={5} value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} placeholder="How can we help?" className="mt-1.5 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400" />
+              <Label className="text-slate-700 font-semibold text-xs mb-1 block">Project Scope / Technical Inquiry</Label>
+              <Textarea rows={5} value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} placeholder="Specify required models, dataset sizes, target embedded hardware (e.g. Jetson Orin / ESP32), or thesis guidelines..." className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-lg text-sm" />
             </div>
-            <Button type="submit" disabled={isSubmitting} className="rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 shadow-sm">
-              <Send className="w-4 h-4 mr-2" /> {isSubmitting ? "Sending..." : "Send message"}
+            <Button type="submit" disabled={isSubmitting} className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 h-10 shadow-xs transition-all">
+              <Send className="w-4 h-4 mr-2" /> {isSubmitting ? "Transmitting..." : "Send Message"}
             </Button>
           </form>
 
           <aside className="space-y-4">
             {[
-              { icon: Mail, label: "Email", value: "team@projectdukaan.vercel.app" },
-              { icon: Phone, label: "Phone", value: "+91 77569 37861" },
-              { icon: MapPin, label: "HQ", value: "Pune, India" },
+              { icon: Mail, label: "Direct Inquiries", value: "team@projectdukaan.vercel.app" },
+              { icon: Phone, label: "Technical Hotline", value: "+91 77569 37861" },
+              { icon: MapPin, label: "Hardware Lab & Logistics", value: "Pune, Maharashtra, India" },
             ].map(i => (
-              <div key={i.label} className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 grid place-items-center text-indigo-600"><i.icon className="w-4 h-4" /></div>
-                <div className="text-xs text-slate-500 font-medium mt-3">{i.label}</div>
-                <div className="text-slate-900 font-semibold mt-0.5">{i.value}</div>
+              <div key={i.label} className="tech-card bg-white rounded-xl p-5 border border-slate-200 shadow-xs">
+                <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 grid place-items-center text-blue-600"><i.icon className="w-4 h-4" /></div>
+                <div className="text-xs text-slate-400 font-mono mt-3">{i.label}</div>
+                <div className="text-slate-900 font-semibold text-sm mt-0.5">{i.value}</div>
               </div>
             ))}
           </aside>

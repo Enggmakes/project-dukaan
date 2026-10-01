@@ -25,7 +25,8 @@ import {
   HardDrive,
   Video,
   Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  Loader2
 } from "lucide-react";
 
 export default function Profile() {
@@ -137,7 +138,7 @@ export default function Profile() {
     return (
       <Layout>
         <div className="min-h-[70vh] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-glow"></div>
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
         </div>
       </Layout>
     );
@@ -151,7 +152,7 @@ export default function Profile() {
           {/* PROFILE SUMMARY HERO CARD */}
           <div className="bg-white rounded-3xl p-6 sm:p-8 mb-10 flex flex-col md:flex-row items-center md:items-start gap-6 relative overflow-hidden border border-slate-200/80 shadow-sm">
             {/* User Avatar */}
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-600 to-indigo-700 grid place-items-center text-3xl font-bold tracking-wider text-white shadow-sm">
+            <div className="w-20 h-20 rounded-xl bg-slate-900 grid place-items-center text-2xl font-mono font-bold text-white shadow-xs">
               {getInitials()}
             </div>
 
@@ -161,7 +162,7 @@ export default function Profile() {
                 <h1 className="text-3xl font-bold tracking-tight text-slate-900">
                   {user?.user_metadata?.full_name || "Dukaan Builder"}
                 </h1>
-                <Badge className="bg-indigo-50 text-indigo-700 border border-indigo-200/80 rounded-full px-3 py-0.5 text-xs font-semibold">
+                <Badge className="bg-blue-50 text-blue-700 border border-blue-200/80 rounded-full px-3 py-0.5 text-xs font-semibold">
                   Verified Builder
                 </Badge>
               </div>
@@ -169,7 +170,7 @@ export default function Profile() {
               
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 pt-4 text-sm text-slate-500">
                 <div className="flex items-center gap-2">
-                  <ShoppingBag className="w-4 h-4 text-indigo-600" />
+                  <ShoppingBag className="w-4 h-4 text-blue-600" />
                   <span className="text-slate-900 font-semibold">{orders.length}</span> Projects Purchased
                 </div>
                 <div className="flex items-center gap-2">
@@ -207,9 +208,9 @@ export default function Profile() {
               <div className="flex items-center justify-between border-b border-slate-200 pb-4 mb-6">
                 <h2 className="text-2xl font-bold tracking-tight hidden md:block text-slate-900">My Project Registry</h2>
                 <TabsList className="bg-slate-100 border border-slate-200 p-1 rounded-full">
-                  <TabsTrigger value="purchases" className="text-slate-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-full px-5 py-1.5 font-medium transition-all">Purchases ({orders.length})</TabsTrigger>
+                  <TabsTrigger value="purchases" className="text-slate-600 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-full px-5 py-1.5 font-medium transition-all">Purchases ({orders.length})</TabsTrigger>
                   {!isAdmin && (
-                    <TabsTrigger value="wishlist" className="text-slate-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-full px-5 py-1.5 font-medium transition-all">Wishlist ({wishlist.length})</TabsTrigger>
+                    <TabsTrigger value="wishlist" className="text-slate-600 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-full px-5 py-1.5 font-medium transition-all">Wishlist ({wishlist.length})</TabsTrigger>
                   )}
                 </TabsList>
               </div>
@@ -230,7 +231,7 @@ export default function Profile() {
                 </div>
                 <Button 
                   onClick={() => navigate("/marketplace")}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-8 h-11 text-sm font-semibold shadow-sm transition-all"
+                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8 h-11 text-sm font-semibold shadow-sm transition-all"
                 >
                   Browse Marketplace <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
@@ -263,7 +264,7 @@ export default function Profile() {
                         </div>
                         
                         <div className="flex items-center gap-3">
-                          <Badge className={isPhysical ? "bg-sky-50 text-sky-700 border-sky-200 rounded-full py-1 px-3" : "bg-purple-50 text-purple-700 border-purple-200 rounded-full py-1 px-3"}>
+                          <Badge className={isPhysical ? "bg-sky-50 text-sky-700 border-sky-200 rounded-md py-1 px-2.5 font-mono text-[11px]" : "bg-blue-50 text-blue-700 border-blue-200 rounded-md py-1 px-2.5 font-mono text-[11px]"}>
                             {isPhysical ? "Physical Hardware Kit" : "Digital Blueprint"}
                           </Badge>
                         </div>
@@ -274,15 +275,15 @@ export default function Profile() {
                         <div className="space-y-6">
                           <div className="flex items-center justify-between flex-wrap gap-3">
                             <span className="text-sm font-semibold text-slate-800 flex items-center gap-2">
-                              <Truck className="w-4 h-4 text-indigo-600 animate-pulse" />
+                              <Truck className="w-4 h-4 text-blue-600 animate-pulse" />
                               Kit Shipping Tracker
                             </span>
                             
                             {/* Tracking ID Badge with copy */}
                             {o.tracking_id ? (
-                              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-full px-3 py-1 text-xs">
+                              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1 text-xs">
                                 <span className="text-slate-500">Courier:</span>
-                                <span className="text-indigo-600 font-mono font-bold">{o.tracking_id}</span>
+                                <span className="text-blue-600 font-mono font-bold">{o.tracking_id}</span>
                                 <button 
                                   onClick={() => copyToClipboard(o.tracking_id)}
                                   className="text-slate-400 hover:text-slate-700 p-0.5 rounded transition-colors ml-1"
@@ -302,7 +303,7 @@ export default function Profile() {
                             {/* Step 1: Placed */}
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
-                                <div className={`w-8 h-8 rounded-full grid place-items-center text-xs font-bold ${activeStep >= 1 ? "bg-indigo-600 text-white shadow-sm" : "bg-slate-100 text-slate-400"}`}>
+                                <div className={`w-8 h-8 rounded-full grid place-items-center text-xs font-bold ${activeStep >= 1 ? "bg-blue-600 text-white shadow-sm" : "bg-slate-100 text-slate-400"}`}>
                                   1
                                 </div>
                                 <div className="h-0.5 flex-1 bg-slate-200 hidden md:block" />
@@ -316,7 +317,7 @@ export default function Profile() {
                             {/* Step 2: Testing */}
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
-                                <div className={`w-8 h-8 rounded-full grid place-items-center text-xs font-bold ${activeStep >= 2 ? "bg-indigo-600 text-white shadow-sm" : "bg-slate-100 text-slate-400"}`}>
+                                <div className={`w-8 h-8 rounded-full grid place-items-center text-xs font-bold ${activeStep >= 2 ? "bg-blue-600 text-white shadow-sm" : "bg-slate-100 text-slate-400"}`}>
                                   2
                                 </div>
                                 <div className="h-0.5 flex-1 bg-slate-200 hidden md:block" />
@@ -330,7 +331,7 @@ export default function Profile() {
                             {/* Step 3: Shipped */}
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
-                                <div className={`w-8 h-8 rounded-full grid place-items-center text-xs font-bold ${activeStep >= 3 ? "bg-indigo-600 text-white shadow-sm" : "bg-slate-100 text-slate-400"}`}>
+                                <div className={`w-8 h-8 rounded-full grid place-items-center text-xs font-bold ${activeStep >= 3 ? "bg-blue-600 text-white shadow-sm" : "bg-slate-100 text-slate-400"}`}>
                                   3
                                 </div>
                                 <div className="h-0.5 flex-1 bg-slate-200 hidden md:block" />
@@ -371,10 +372,10 @@ export default function Profile() {
                         return (
                           <div className="space-y-4">
                             {hasAnyCustom ? (
-                              <div className="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/40 border border-indigo-100 rounded-2xl p-5 space-y-4 shadow-xs">
+                              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4 shadow-2xs">
                                 <div className="flex items-center justify-between flex-wrap gap-2">
                                   <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
-                                    <Sparkles className="w-4 h-4 text-indigo-600" />
+                                    <Sparkles className="w-4 h-4 text-blue-600" />
                                     <span>Personalized Project Package & Access</span>
                                   </div>
                                   <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-semibold">
@@ -396,13 +397,13 @@ export default function Profile() {
                                           <FolderGit2 className="w-4 h-4" />
                                         </div>
                                         <div className="min-w-0 text-left">
-                                          <div className="text-xs font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
+                                          <div className="text-xs font-semibold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
                                             GitHub Repo
                                           </div>
                                           <div className="text-[10px] text-slate-400 truncate">Source Code & Branch</div>
                                         </div>
                                       </div>
-                                      <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 shrink-0 ml-1" />
+                                      <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 shrink-0 ml-1" />
                                     </a>
                                   )}
 
@@ -475,9 +476,9 @@ export default function Profile() {
 
                                 {/* Engineer Notes Callout */}
                                 {adminNotes && (
-                                  <div className="bg-white/90 backdrop-blur-xs border border-indigo-100 rounded-xl p-3.5 space-y-1.5">
-                                    <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-900">
-                                      <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+                                  <div className="bg-white/90 backdrop-blur-xs border border-blue-100 rounded-xl p-3.5 space-y-1.5">
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900">
+                                      <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
                                       <span>Engineer's Handover & Setup Instructions:</span>
                                     </div>
                                     <p className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed font-mono bg-slate-50 p-2.5 rounded-lg border border-slate-100">
@@ -516,7 +517,7 @@ export default function Profile() {
                               <div className="w-full md:w-auto">
                                 <Button 
                                   onClick={() => handleDownload(o)}
-                                  className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-full px-6 h-11 flex items-center justify-center gap-2 shadow-sm transition-all border-0"
+                                  className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full px-6 h-11 flex items-center justify-center gap-2 shadow-sm transition-all border-0"
                                 >
                                   <Download className="w-4 h-4" /> Download Files (ZIP)
                                 </Button>
@@ -542,7 +543,7 @@ export default function Profile() {
                       </div>
                       <h3 className="text-xl font-bold text-slate-900">Your wishlist is empty</h3>
                       <p className="text-slate-500 text-sm">Save projects you like by clicking the "Add to wishlist" button on the project details page.</p>
-                      <Button onClick={() => navigate("/marketplace")} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-8 mt-2 shadow-sm border-0 transition-all font-semibold">
+                      <Button onClick={() => navigate("/marketplace")} className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8 mt-2 shadow-sm border-0 transition-all font-semibold">
                         Browse Projects
                       </Button>
                     </div>

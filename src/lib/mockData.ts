@@ -8,15 +8,15 @@ export const CATEGORIES: Category[] = [
 ];
 
 export const CATEGORY_META: Record<Category, { icon: string; gradient: string; desc: string }> = {
-  "AI & Machine Learning": { icon: "Brain", gradient: "from-indigo-400 to-purple-500", desc: "Predictive models, NLP & smart systems" },
-  "Deep Learning":          { icon: "Network", gradient: "from-fuchsia-400 to-pink-500", desc: "Neural networks & transformer architectures" },
-  "Computer Vision":        { icon: "Eye", gradient: "from-orange-400 to-rose-500", desc: "Image, video & real-time recognition" },
-  "Robotics":               { icon: "Bot", gradient: "from-emerald-400 to-teal-500", desc: "Autonomous systems & embedded control" },
-  "IoT":                    { icon: "Cpu", gradient: "from-amber-400 to-orange-500", desc: "Sensors, edge devices & telemetry" },
-  "Web Development":        { icon: "Globe", gradient: "from-sky-400 to-indigo-500", desc: "Full-stack production-grade apps" },
-  "Mobile Apps":            { icon: "Smartphone", gradient: "from-violet-400 to-indigo-500", desc: "Cross-platform iOS & Android" },
-  "Blockchain":             { icon: "Link2", gradient: "from-yellow-400 to-amber-500", desc: "Smart contracts & DeFi protocols" },
-  "Cybersecurity":          { icon: "Shield", gradient: "from-rose-400 to-red-500", desc: "Pen-testing, detection & defense" },
+  "AI & Machine Learning": { icon: "Brain", gradient: "from-blue-600 to-cyan-600", desc: "Predictive models, NLP & smart systems" },
+  "Deep Learning":          { icon: "Network", gradient: "from-slate-900 to-blue-600", desc: "Neural networks & transformer architectures" },
+  "Computer Vision":        { icon: "Eye", gradient: "from-cyan-600 to-blue-600", desc: "Image, video & real-time recognition" },
+  "Robotics":               { icon: "Bot", gradient: "from-emerald-500 to-teal-600", desc: "Autonomous systems & embedded control" },
+  "IoT":                    { icon: "Cpu", gradient: "from-amber-500 to-orange-600", desc: "Sensors, edge devices & telemetry" },
+  "Web Development":        { icon: "Globe", gradient: "from-sky-500 to-blue-600", desc: "Full-stack production-grade apps" },
+  "Mobile Apps":            { icon: "Smartphone", gradient: "from-blue-600 to-slate-700", desc: "Cross-platform iOS & Android" },
+  "Blockchain":             { icon: "Link2", gradient: "from-amber-500 to-emerald-600", desc: "Smart contracts & DeFi protocols" },
+  "Cybersecurity":          { icon: "Shield", gradient: "from-rose-500 to-slate-800", desc: "Pen-testing, detection & defense" },
 };
 
 export interface Project {

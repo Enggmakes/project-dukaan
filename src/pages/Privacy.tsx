@@ -35,7 +35,7 @@ export default function Privacy() {
       </Helmet>
       <div className="py-20 bg-slate-50 border-b border-slate-200/80">
         <div className="container-px max-w-4xl mx-auto text-center">
-          <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest bg-indigo-50 border border-indigo-200/80 px-3 py-1 rounded-full">Legal</span>
+          <span className="text-xs font-semibold text-blue-600 uppercase tracking-widest bg-blue-50 border border-blue-200/80 px-3 py-1 rounded-full">Legal</span>
           <h1 className="text-display text-5xl md:text-7xl text-slate-900 font-bold mt-4">Privacy Policy</h1>
           <p className="text-slate-600 mt-6 text-lg max-w-2xl mx-auto leading-relaxed">
             Last Updated: May 23, 2026. Learn how we handle, secure, and protect your digital library assets and personal registry.
@@ -48,7 +48,7 @@ export default function Privacy() {
           <div className="grid gap-10">
             {sections.map((s, idx) => (
               <div key={idx} className="flex flex-col md:flex-row gap-6 items-start p-6 bg-slate-50/50 rounded-2xl border border-slate-200/60">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 grid place-items-center text-indigo-600 shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 grid place-items-center text-blue-600 shrink-0">
                   <s.icon className="w-5 h-5" />
                 </div>
                 <div className="space-y-2">
@@ -62,7 +62,7 @@ export default function Privacy() {
           <div className="mt-16 p-8 bg-slate-50 rounded-3xl border border-slate-200">
             <h4 className="text-lg font-bold text-slate-900 mb-2">Have questions about your data?</h4>
             <p className="text-sm text-slate-600">
-              If you have any questions, concerns, or requests regarding this Privacy Policy or your personal registry, please reach out via our <a href="/contact" className="text-indigo-600 hover:underline font-semibold">Contact Form</a>.
+              If you have any questions, concerns, or requests regarding this Privacy Policy or your personal registry, please reach out via our <a href="/contact" className="text-blue-600 hover:underline font-semibold">Contact Form</a>.
             </p>
           </div>
         </div>

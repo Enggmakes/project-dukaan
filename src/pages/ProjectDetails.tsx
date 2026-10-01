@@ -316,21 +316,27 @@ export default function ProjectDetails() {
 
           <div className="grid lg:grid-cols-[1fr_360px] gap-8 mt-6">
             <div>
-              <div className="aspect-[16/10] rounded-3xl shadow-elegant relative overflow-hidden bg-black/5" style={project.thumb?.startsWith('http') ? undefined : { background: project.thumb || '#ccc' }}>
+              <div className="rounded-xl shadow-xs border border-slate-200/90 relative overflow-hidden bg-slate-50/70 p-2 sm:p-5 flex items-center justify-center min-h-[280px] sm:min-h-[380px] md:min-h-[440px]">
                 {project.video_url ? (
-                  <video src={project.video_url} controls poster={project.thumb} className="absolute inset-0 w-full h-full object-contain" />
+                  <video src={project.video_url} controls poster={project.thumb} className="w-full max-h-[480px] object-contain rounded-lg shadow-xs" />
                 ) : (
-                  project.thumb?.startsWith('http') && <img src={project.thumb} alt={project.title} className="absolute inset-0 w-full h-full object-contain" />
+                  project.thumb?.startsWith('http') && (
+                    <img 
+                      src={project.thumb} 
+                      alt={project.title} 
+                      className="w-full max-h-[480px] object-contain rounded-lg shadow-xs transition-transform duration-300 hover:scale-[1.01]" 
+                    />
+                  )
                 )}
               </div>
 
               <div className="mt-6">
-                <Badge className="bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-200">{project.category}</Badge>
-                <h1 className="text-display text-4xl md:text-5xl text-slate-900 font-bold mt-3">{project.title}</h1>
+                <Badge className="bg-slate-100 text-slate-800 hover:bg-slate-200 border border-slate-200 rounded-md font-mono text-xs">{project.category}</Badge>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl text-slate-900 font-extrabold tracking-tight mt-3">{project.title}</h1>
                 <div className="flex items-center gap-4 mt-4 text-sm">
-                  <Badge variant="outline" className="rounded-full border-slate-300 text-slate-700">{project.difficulty}</Badge>
+                  <Badge variant="outline" className="rounded-md border-slate-200 text-slate-700 font-mono text-xs">{project.difficulty}</Badge>
                 </div>
-                <p className="text-slate-600 mt-5 text-lg leading-relaxed">{project.description}</p>
+                <p className="text-slate-600 mt-5 text-base sm:text-lg leading-relaxed">{project.description}</p>
               </div>
 
               {project.price_note && (
@@ -345,25 +351,25 @@ export default function ProjectDetails() {
               )}
 
               <div className="mt-8">
-                <h3 className="font-bold text-slate-900 mb-3">Tech stack</h3>
+                <h3 className="font-bold text-slate-900 mb-3 text-sm uppercase tracking-wider text-slate-500 font-mono">Tech Stack & Dependencies</h3>
                 <div className="flex flex-wrap gap-2">
-                  {(project.tech || []).map(t => <span key={t} className="px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-sm font-medium">{t}</span>)}
+                  {(project.tech || []).map(t => <span key={t} className="px-3 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-700 font-mono text-xs">{t}</span>)}
                 </div>
               </div>
 
               {((project.features || []).length > 0 || (project.screenshots || []).length > 0) && (
                 <Tabs defaultValue={(project.features || []).length > 0 ? "features" : "screens"} className="mt-10">
-                  <TabsList className="rounded-full bg-slate-100 p-1 border border-slate-200">
-                    {(project.features || []).length > 0 && <TabsTrigger value="features" className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm">Features</TabsTrigger>}
-                    {(project.screenshots || []).length > 0 && <TabsTrigger value="screens" className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm">Screenshots</TabsTrigger>}
+                  <TabsList className="rounded-lg bg-slate-100 p-1 border border-slate-200">
+                    {(project.features || []).length > 0 && <TabsTrigger value="features" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-xs text-xs font-semibold">Features</TabsTrigger>}
+                    {(project.screenshots || []).length > 0 && <TabsTrigger value="screens" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-xs text-xs font-semibold">Screenshots</TabsTrigger>}
                   </TabsList>
                   
                   {(project.features || []).length > 0 && (
-                    <TabsContent value="features" className="mt-6 bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+                    <TabsContent value="features" className="mt-6 bg-white rounded-xl p-6 border border-slate-200/90 shadow-xs">
                       <ul className="space-y-3">
                         {project.features!.map(f => (
-                          <li key={f} className="flex items-start gap-3 text-slate-800">
-                            <div className="w-5 h-5 rounded-full bg-indigo-50 border border-indigo-100 grid place-items-center shrink-0 mt-0.5"><Check className="w-3 h-3 text-indigo-600" /></div>
+                          <li key={f} className="flex items-start gap-3 text-slate-800 text-sm">
+                            <div className="w-5 h-5 rounded-md bg-blue-50 border border-blue-100 grid place-items-center shrink-0 mt-0.5"><Check className="w-3 h-3 text-blue-600" /></div>
                             {f}
                           </li>
                         ))}
@@ -375,7 +381,7 @@ export default function ProjectDetails() {
                     <TabsContent value="screens" className="mt-6">
                       <div className="grid sm:grid-cols-2 gap-4">
                         {project.screenshots!.map((img, i) => (
-                          <div key={i} className="aspect-video rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                          <div key={i} className="aspect-video rounded-xl shadow-xs border border-slate-200 overflow-hidden">
                             <img src={img} alt="Screenshot" className="w-full h-full object-cover" />
                           </div>
                         ))}
@@ -388,11 +394,11 @@ export default function ProjectDetails() {
 
             {/* Sidebar */}
             <aside className="lg:sticky lg:top-28 self-start">
-              <div className="bg-white rounded-[2.5rem] p-7 border border-slate-200 shadow-sm">
-                <div className="text-4xl font-bold text-slate-900">₹{project.price.toLocaleString()}</div>
+              <div className="bg-white rounded-xl p-6 border border-slate-200/90 shadow-xs tech-card">
+                <div className="text-3xl font-mono font-bold text-slate-900">₹{project.price.toLocaleString()}</div>
                 <div className="text-xs text-slate-500 mt-1 font-medium">One-time purchase · Lifetime access & updates</div>
                 <Button 
-                  className="w-full rounded-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 mt-6 text-sm font-semibold flex items-center justify-center gap-2 shadow-sm" 
+                  className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white h-11 mt-6 text-sm font-semibold flex items-center justify-center gap-2 shadow-xs transition-all" 
                   onClick={handlePurchaseClick}
                 >
                   {project.delivery_type === "physical" ? (
@@ -409,7 +415,7 @@ export default function ProjectDetails() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className={`w-full rounded-full h-11 mt-2.5 flex items-center justify-center gap-2 transition-all text-xs font-semibold ${isWishlisted ? "bg-rose-50 text-rose-500 border-rose-200 hover:bg-rose-100" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
+                  className={`w-full rounded-lg h-10 mt-2.5 flex items-center justify-center gap-2 transition-all text-xs font-semibold ${isWishlisted ? "bg-rose-50 text-rose-500 border-rose-200 hover:bg-rose-100" : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"}`}
                   onClick={toggleWishlist}
                   disabled={isWishlistLoading}
                 >
@@ -417,14 +423,14 @@ export default function ProjectDetails() {
                   {isWishlisted ? "Saved to Wishlist" : "Add to wishlist"}
                 </Button>
                 <div className="mt-6 pt-5 border-t border-slate-100">
-                  <h4 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">What's included</h4>
+                  <h4 className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider font-mono">What's included</h4>
                   <ul className="space-y-2.5">
                     {(project.includes || []).length > 0 ? (project.includes || []).map(i => {
                       const Icon = getIncludeIcon(i);
                       return (
                         <li key={i} className="flex items-center gap-2.5 text-xs font-medium text-slate-700">
-                          <div className="w-6 h-6 rounded-full bg-indigo-50 border border-indigo-100 grid place-items-center shrink-0">
-                            <Icon className="w-3.5 h-3.5 text-indigo-600" />
+                          <div className="w-6 h-6 rounded-md bg-blue-50 border border-blue-100 grid place-items-center shrink-0">
+                            <Icon className="w-3.5 h-3.5 text-blue-600" />
                           </div>
                           <span>{i}</span>
                         </li>
@@ -451,12 +457,12 @@ export default function ProjectDetails() {
       </div>      {/* Checkout Modal */}
       {isCheckoutOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl w-full max-w-lg border border-slate-200 shadow-2xl relative overflow-hidden flex flex-col p-6 sm:p-8 animate-in zoom-in-95 duration-200 text-slate-900">
+          <div className="bg-white rounded-xl w-full max-w-lg border border-slate-200 shadow-2xl relative overflow-hidden flex flex-col p-6 sm:p-8 animate-in zoom-in-95 duration-200 text-slate-900">
             
             {/* Close Button */}
             <button 
               onClick={() => setIsCheckoutOpen(false)} 
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-full transition-all"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition-all"
             >
               <X className="w-5 h-5" />
             </button>
@@ -469,18 +475,18 @@ export default function ProjectDetails() {
                   <h3 className="text-2xl font-bold text-slate-900 mt-1 flex items-center gap-2">
                     {project.delivery_type === "physical" ? (
                       <>
-                        <Bot className="w-5 h-5 text-indigo-600 animate-pulse" />
+                        <Bot className="w-5 h-5 text-blue-600 animate-pulse" />
                         Ship Hardware Kit
                       </>
                     ) : (
                       <>
-                        <Laptop className="w-5 h-5 text-indigo-600 animate-pulse" />
+                        <Laptop className="w-5 h-5 text-blue-600 animate-pulse" />
                         Digital Download
                       </>
                     )}
                   </h3>
                   <p className="text-xs text-slate-500 mt-1">
-                    Project: <strong className="text-slate-900">{project.title}</strong> · Price: <strong className="text-indigo-600">₹{project.price.toLocaleString()}</strong>
+                    Project: <strong className="text-slate-900">{project.title}</strong> · Price: <strong className="text-blue-600">₹{project.price.toLocaleString()}</strong>
                   </p>
                 </div>
 
@@ -494,7 +500,7 @@ export default function ProjectDetails() {
                       value={form.name} 
                       onChange={e => setForm({ ...form, name: e.target.value })}
                       placeholder="Your Name" 
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder:text-slate-400"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-400"
                     />
                   </div>
 
@@ -507,14 +513,14 @@ export default function ProjectDetails() {
                       value={form.email} 
                       onChange={e => setForm({ ...form, email: e.target.value })}
                       placeholder="you@example.com" 
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder:text-slate-400"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-400"
                     />
                   </div>
 
                   {project.delivery_type === "physical" && (
                     /* --- Physical Shipping Fields --- */
                     <div className="space-y-4 pt-1 border-t border-slate-100">
-                      <span className="text-xs font-bold text-indigo-600 flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-blue-600 flex items-center gap-1.5">
                         <MapPin className="w-3.5 h-3.5" />
                         Shipping Details
                       </span>
@@ -528,7 +534,7 @@ export default function ProjectDetails() {
                           value={form.phone} 
                           onChange={e => setForm({ ...form, phone: e.target.value })}
                           placeholder="10-digit mobile number" 
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder:text-slate-400"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-400"
                         />
                       </div>
 
@@ -541,7 +547,7 @@ export default function ProjectDetails() {
                           value={form.address} 
                           onChange={e => setForm({ ...form, address: e.target.value })}
                           placeholder="House No, Building, Street, Area" 
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder:text-slate-400 resize-none"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-400 resize-none"
                         />
                       </div>
 
@@ -555,7 +561,7 @@ export default function ProjectDetails() {
                             value={form.city} 
                             onChange={e => setForm({ ...form, city: e.target.value })}
                             placeholder="City" 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder:text-slate-400"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-400"
                           />
                         </div>
                         <div>
@@ -566,7 +572,7 @@ export default function ProjectDetails() {
                             value={form.state} 
                             onChange={e => setForm({ ...form, state: e.target.value })}
                             placeholder="State" 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder:text-slate-400"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-400"
                           />
                         </div>
                         <div>
@@ -577,7 +583,7 @@ export default function ProjectDetails() {
                             value={form.pincode} 
                             onChange={e => setForm({ ...form, pincode: e.target.value })}
                             placeholder="6-digit" 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-900 placeholder:text-slate-400"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-900 placeholder:text-slate-400"
                           />
                         </div>
                       </div>
@@ -589,7 +595,7 @@ export default function ProjectDetails() {
                   <Button 
                     type="submit" 
                     disabled={isPaying} 
-                    className="w-full rounded-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 text-sm font-semibold flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+                    className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white h-11 text-sm font-semibold flex items-center justify-center gap-2 shadow-xs disabled:opacity-50"
                   >
                     {isPaying ? (
                       <>
@@ -622,7 +628,7 @@ export default function ProjectDetails() {
                 {project.delivery_type === "physical" ? (
                   /* --- Hardware Delivery Timeline Tracker --- */
                   <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-left space-y-4">
-                    <div className="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-wider">
+                    <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-wider">
                       <Truck className="w-4 h-4" />
                       Delivery Timeline Tracker
                     </div>
@@ -641,7 +647,7 @@ export default function ProjectDetails() {
 
                       {/* Step 2: Processing */}
                       <div className="relative flex gap-3 text-xs">
-                        <span className="absolute -left-[22px] w-3 h-3 rounded-full bg-indigo-600 border-2 border-white ring-2 ring-indigo-600/20" />
+                        <span className="absolute -left-[22px] w-3 h-3 rounded-full bg-blue-600 border-2 border-white ring-2 ring-blue-600/20" />
                         <div>
                           <strong className="text-slate-900 block font-semibold">Packing & Testing Hardware</strong>
                           <span className="text-slate-500 text-[10px]">Our engineers are checking sensors & microcontrollers.</span>
@@ -672,13 +678,13 @@ export default function ProjectDetails() {
                     <div className="border-t border-slate-200 pt-3 text-xs space-y-1">
                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Shipping to:</span>
                       <div className="flex items-start gap-1.5 text-slate-900 mt-1">
-                        <MapPin className="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5" />
+                        <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
                         <p className="leading-tight font-medium">
                           {form.address}, {form.city}, {form.state} - {form.pincode}
                         </p>
                       </div>
                       <div className="flex items-center gap-1.5 text-slate-600 mt-1">
-                        <Phone className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                        <Phone className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                         <span>{form.phone}</span>
                       </div>
                     </div>
@@ -686,7 +692,7 @@ export default function ProjectDetails() {
                 ) : (
                   /* --- Digital Download Action --- */
                   <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-3 text-center">
-                    <Package className="w-10 h-10 text-indigo-600 mx-auto opacity-80" />
+                    <Package className="w-10 h-10 text-blue-600 mx-auto opacity-80" />
                     <div className="text-xs">
                       <strong className="text-slate-900 block text-sm font-bold">Download is ready!</strong>
                       <span className="text-slate-500">Click below to fetch the production-ready source code ZIP and documentation PDF.</span>

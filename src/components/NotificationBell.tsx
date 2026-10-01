@@ -84,7 +84,7 @@ export default function NotificationBell() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-slate-900 truncate">{n.title}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-full font-semibold border border-indigo-100">
+                      <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-semibold border border-blue-100">
                         {n.category}
                       </span>
                       <span className="text-[10px] text-slate-500 font-medium">
@@ -107,7 +107,7 @@ export default function NotificationBell() {
             <Link
               to="/marketplace"
               onClick={() => setOpen(false)}
-              className="text-xs text-indigo-600 hover:underline font-semibold"
+              className="text-xs text-blue-600 hover:underline font-semibold"
             >
               Browse all projects →
             </Link>

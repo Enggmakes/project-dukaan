@@ -194,7 +194,7 @@ export default function Marketplace() {
               <button
                 type="button"
                 onClick={() => setPrice([0, 100000])}
-                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800"
+                className="text-[11px] font-bold text-blue-600 hover:text-blue-800"
               >
                 Reset
               </button>
@@ -206,7 +206,7 @@ export default function Marketplace() {
               ₹{price[0].toLocaleString()}
             </span>
             <span className="text-[11px] text-slate-400 font-semibold">to</span>
-            <span className="font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
+            <span className="font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100">
               ₹{price[1].toLocaleString()}
             </span>
           </div>
@@ -221,7 +221,7 @@ export default function Marketplace() {
             onClick={() => setPrice([0, 5000])}
             className={`px-2 py-1.5 text-[11px] font-semibold rounded-xl border transition-all text-center ${
               price[0] === 0 && price[1] === 5000
-                ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs font-bold"
+                ? "bg-blue-600 text-white border-blue-600 shadow-2xs font-bold"
                 : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
             }`}
           >
@@ -232,7 +232,7 @@ export default function Marketplace() {
             onClick={() => setPrice([5000, 20000])}
             className={`px-2 py-1.5 text-[11px] font-semibold rounded-xl border transition-all text-center ${
               price[0] === 5000 && price[1] === 20000
-                ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs font-bold"
+                ? "bg-blue-600 text-white border-blue-600 shadow-2xs font-bold"
                 : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
             }`}
           >
@@ -243,7 +243,7 @@ export default function Marketplace() {
             onClick={() => setPrice([20000, 100000])}
             className={`px-2 py-1.5 text-[11px] font-semibold rounded-xl border transition-all text-center ${
               price[0] === 20000 && price[1] === 100000
-                ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs font-bold"
+                ? "bg-blue-600 text-white border-blue-600 shadow-2xs font-bold"
                 : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
             }`}
           >
@@ -256,14 +256,14 @@ export default function Marketplace() {
       <div className="bento-card p-4 sm:p-5 bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 uppercase tracking-wider">
-            <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
+            <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
             <span>Difficulty Level</span>
           </div>
           {diffs.length > 0 && (
             <button
               type="button"
               onClick={() => setDiffs([])}
-              className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800"
+              className="text-[11px] font-bold text-blue-600 hover:text-blue-800"
             >
               Clear
             </button>
@@ -275,7 +275,7 @@ export default function Marketplace() {
             const isSelected = diffs.includes(d);
             const indicatorColor = 
               d === "Beginner" ? "bg-emerald-500" :
-              d === "Intermediate" ? "bg-amber-500" : "bg-purple-600";
+              d === "Intermediate" ? "bg-amber-500" : "bg-blue-600";
 
             return (
               <button
@@ -284,7 +284,7 @@ export default function Marketplace() {
                 onClick={() => toggle(diffs, d, setDiffs)}
                 className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all border flex items-center justify-between cursor-pointer select-none ${
                   isSelected
-                    ? "bg-indigo-600 text-white border-indigo-600 shadow-xs font-bold"
+                    ? "bg-blue-600 text-white border-blue-600 shadow-xs font-bold"
                     : "bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 border-slate-200/90"
                 }`}
               >
@@ -308,7 +308,7 @@ export default function Marketplace() {
       {isInsideDrawer && (
         <div className="bento-card p-4 sm:p-5 bg-white border border-slate-200/90 shadow-2xs md:col-span-2">
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 uppercase tracking-wider mb-2.5">
-            <ArrowUpDown className="w-3.5 h-3.5 text-indigo-600" />
+            <ArrowUpDown className="w-3.5 h-3.5 text-blue-600" />
             <span>Order & Prioritization</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -344,7 +344,7 @@ export default function Marketplace() {
       <div className={`bento-card p-4 sm:p-5 bg-white border border-slate-200/90 shadow-2xs ${isInsideDrawer ? "md:col-span-2" : ""}`}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 grid place-items-center">
+            <div className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 grid place-items-center">
               <Layers className="w-3.5 h-3.5" />
             </div>
             <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">Tech Stack Hub</h4>
@@ -356,7 +356,7 @@ export default function Marketplace() {
             <button
               type="button"
               onClick={() => setTechs([])}
-              className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800"
+              className="text-[11px] font-bold text-blue-600 hover:text-blue-800"
             >
               Clear Selected ({techs.length})
             </button>
@@ -379,8 +379,8 @@ export default function Marketplace() {
                     onClick={() => toggle(techs, t, setTechs)}
                     className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all border flex items-center gap-1 ${
                       isSelected
-                        ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs"
-                        : "bg-indigo-50/60 text-indigo-700 border-indigo-100 hover:bg-indigo-100/80"
+                        ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                        : "bg-blue-50/60 text-blue-700 border-blue-100 hover:bg-blue-100/80"
                     }`}
                   >
                     {isSelected ? <Check className="w-3 h-3" /> : <Sparkles className="w-2.5 h-2.5 opacity-60" />}
@@ -425,7 +425,7 @@ export default function Marketplace() {
                   onClick={() => toggle(techs, t, setTechs)}
                   className={`cursor-pointer rounded-full text-[11px] font-semibold transition-all py-1 px-2.5 ${
                     isSelected
-                      ? "bg-indigo-600 text-white shadow-2xs hover:bg-indigo-700 border-indigo-600"
+                      ? "bg-blue-600 text-white shadow-2xs hover:bg-blue-700 border-blue-600"
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-200/80"
                   }`}
                 >
@@ -465,8 +465,8 @@ export default function Marketplace() {
         <div className="container-px max-w-6xl mx-auto relative z-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-bold text-indigo-600 mb-3 shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-ping" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-bold text-blue-600 mb-3 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping" />
                 Verified Repositories
               </div>
               <h1 className="text-display text-4xl sm:text-5xl md:text-6xl text-slate-900 font-black tracking-tight">
@@ -500,7 +500,7 @@ export default function Marketplace() {
                 onClick={() => handleCatChange(c)}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   cat === c || cat.toLowerCase() === c.toLowerCase()
-                    ? "bg-indigo-600 text-white shadow-xs"
+                    ? "bg-blue-600 text-white shadow-xs"
                     : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-300"
                 }`}
               >
@@ -516,7 +516,7 @@ export default function Marketplace() {
           {/* Bento Search & Filter Dock */}
           <div className="bento-card p-3 md:p-3.5 flex flex-col md:flex-row gap-3 items-stretch md:items-center relative z-10 shadow-sm bg-white border border-slate-200/90 mb-4">
             {/* Search Input */}
-            <div className="flex-1 flex items-center gap-2 px-4 py-1 md:py-0 bg-slate-50 rounded-full border border-slate-200/90 focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-400 transition-all">
+            <div className="flex-1 flex items-center gap-2 px-4 py-1 md:py-0 bg-slate-50 rounded-full border border-slate-200/90 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-400 transition-all">
               <Search className="w-4 h-4 text-slate-400 shrink-0" />
               <Input 
                 value={q} 
@@ -564,15 +564,15 @@ export default function Marketplace() {
                 variant="outline" 
                 className={`w-full sm:w-auto rounded-full h-10 text-xs font-bold transition-all shadow-xs gap-1.5 ${
                   activeFilterCount > 0 
-                    ? "bg-indigo-50 text-indigo-700 border-indigo-200" 
+                    ? "bg-blue-50 text-blue-700 border-blue-200" 
                     : "bg-white text-slate-800 border-slate-200 hover:bg-slate-50"
                 }`} 
                 onClick={handleFilterToggle}
               >
-                <SlidersHorizontal className="w-4 h-4 text-indigo-600" />
+                <SlidersHorizontal className="w-4 h-4 text-blue-600" />
                 <span>Filters</span>
                 {activeFilterCount > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-black leading-none">
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-black leading-none">
                     {activeFilterCount}
                   </span>
                 )}
@@ -642,7 +642,7 @@ export default function Marketplace() {
                 onClick={() => toggle(techs, tech, setTechs)}
                 className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border shrink-0 flex items-center gap-1.5 cursor-pointer ${
                   techs.includes(tech)
-                    ? "bg-indigo-600 text-white border-indigo-600 shadow-2xs"
+                    ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
                     : "bg-white text-slate-700 hover:bg-slate-50 border-slate-200"
                 }`}
               >
@@ -659,9 +659,9 @@ export default function Marketplace() {
               </span>
 
               {cat !== "all" && (
-                <Badge variant="secondary" className="gap-1.5 bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold rounded-full pr-1.5">
+                <Badge variant="secondary" className="gap-1.5 bg-blue-50 text-blue-700 border-blue-200 font-semibold rounded-md pr-1.5">
                   Domain: {cat}
-                  <button onClick={() => handleCatChange("all")} className="hover:bg-indigo-200/60 rounded-full p-0.5">
+                  <button onClick={() => handleCatChange("all")} className="hover:bg-blue-200/60 rounded p-0.5">
                     <X className="w-3 h-3" />
                   </button>
                 </Badge>
@@ -704,9 +704,9 @@ export default function Marketplace() {
               ))}
 
               {techs.map(t => (
-                <Badge key={t} variant="secondary" className="gap-1.5 bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold rounded-full pr-1.5">
+                <Badge key={t} variant="secondary" className="gap-1.5 bg-blue-50 text-blue-700 border-blue-200 font-semibold rounded-md pr-1.5">
                   {t}
-                  <button onClick={() => toggle(techs, t, setTechs)} className="hover:bg-indigo-200/60 rounded-full p-0.5">
+                  <button onClick={() => toggle(techs, t, setTechs)} className="hover:bg-blue-200/60 rounded p-0.5">
                     <X className="w-3 h-3" />
                   </button>
                 </Badge>
@@ -734,7 +734,7 @@ export default function Marketplace() {
             <div className="w-full">
               {isLoading ? (
                 <div className="bento-card p-16 text-center bg-white">
-                  <div className="w-8 h-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin mx-auto mb-3" />
+                  <div className="w-8 h-8 rounded-full border-2 border-blue-600 border-t-transparent animate-spin mx-auto mb-3" />
                   <p className="text-slate-600 text-sm font-semibold">Loading marketplace blueprints...</p>
                 </div>
               ) : filtered.length === 0 ? (
@@ -748,7 +748,7 @@ export default function Marketplace() {
                   </p>
                   <Button 
                     onClick={resetFilters}
-                    className="mt-5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-6"
+                    className="mt-5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-6"
                   >
                     Clear All Filters
                   </Button>
@@ -779,7 +779,7 @@ export default function Marketplace() {
           {/* Sheet Header */}
           <SheetHeader className="px-6 py-3 border-b border-slate-200/70 bg-white/80 backdrop-blur-md flex flex-row items-center justify-between space-y-0 text-left shrink-0">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-indigo-600 text-white grid place-items-center shadow-xs">
+              <div className="w-7 h-7 rounded-xl bg-blue-600 text-white grid place-items-center shadow-xs">
                 <SlidersHorizontal className="w-4 h-4" />
               </div>
               <div>
@@ -812,14 +812,14 @@ export default function Marketplace() {
               <Button
                 variant="outline"
                 onClick={resetFilters}
-                className="rounded-full text-xs font-bold text-slate-600 border-slate-200 h-12 px-4 hover:bg-slate-100"
+                className="rounded-lg text-xs font-semibold text-slate-600 border-slate-200 h-11 px-4 hover:bg-slate-100"
               >
                 Clear
               </Button>
             )}
             <Button
               onClick={() => setMobileDrawerOpen(false)}
-              className="flex-1 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm h-12 shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2"
+              className="flex-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm h-11 shadow-sm flex items-center justify-center gap-2"
             >
               <span>Apply & Show {filtered.length} Blueprints</span>
             </Button>
