@@ -25,7 +25,7 @@ import { isUserAdmin, checkAdminStatus } from "@/lib/authUtils";
 
 const desktopLinks = [
   { to: "/", label: "Home" },
-  { to: "/marketplace", label: "Marketplace", badge: "100+" },
+  { to: "/marketplace", label: "Marketplace" },
   { to: "/custom-request", label: "Custom Build" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
