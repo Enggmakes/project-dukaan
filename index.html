@@ -10,12 +10,29 @@
     <meta name="author" content="ProjectDukaan" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://projectdukaan.vercel.app/" />
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="icon" type="image/png" sizes="256x256" href="/logo.png" />
-    <link rel="icon" type="image/png" href="/logo.png" media="(prefers-color-scheme: light)" />
-    <link rel="icon" type="image/png" href="/logo-white.png" media="(prefers-color-scheme: dark)" />
+    <link id="app-favicon" rel="icon" type="image/png" href="/logo-white.png?v=dukaan4" />
+    <link rel="shortcut icon" href="/favicon.ico?v=dukaan4" />
     <link rel="apple-touch-icon" sizes="180x180" href="/logo.png" />
+    <script>
+      (function() {
+        function updateFavicon() {
+          var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var link = document.getElementById('app-favicon');
+          if (link) {
+            link.href = isDark ? '/logo-white.png?v=dukaan4' : '/logo.png?v=dukaan4';
+          }
+        }
+        updateFavicon();
+        try {
+          var matcher = window.matchMedia('(prefers-color-scheme: dark)');
+          if (matcher.addEventListener) {
+            matcher.addEventListener('change', updateFavicon);
+          } else if (matcher.addListener) {
+            matcher.addListener(updateFavicon);
+          }
+        } catch (e) {}
+      })();
+    </script>
 
     <meta property="og:site_name" content="ProjectDukaan" />
     <meta property="og:url" content="https://projectdukaan.vercel.app/" />

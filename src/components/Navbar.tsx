@@ -26,7 +26,7 @@ import { isUserAdmin, checkAdminStatus } from "@/lib/authUtils";
 const desktopLinks = [
   { to: "/", label: "Home" },
   { to: "/marketplace", label: "Marketplace", badge: "100+" },
-  { to: "/custom-request", label: "Custom Build", badge: "Fast" },
+  { to: "/custom-request", label: "Custom Build" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
   { to: "/admin", label: "Admin" },
@@ -151,7 +151,7 @@ export default function Navbar() {
                   key={l.to}
                   to={l.to}
                   className={cn(
-                    "relative px-3.5 py-1.5 text-xs font-semibold rounded-full transition-colors duration-150 select-none flex items-center gap-1.5 z-10 cursor-pointer",
+                    "relative px-3.5 py-1.5 text-xs font-semibold rounded-full transition-colors duration-150 select-none flex items-center gap-1.5 z-10 cursor-pointer whitespace-nowrap shrink-0",
                     isActive
                       ? "text-indigo-600 font-bold"
                       : "text-slate-600 hover:text-slate-900"
@@ -169,10 +169,10 @@ export default function Navbar() {
                       }}
                     />
                   )}
-                  <span>{l.label}</span>
+                  <span className="whitespace-nowrap">{l.label}</span>
                   {l.badge && (
                     <span className={cn(
-                      "text-[9px] font-bold px-1.5 py-0.2 rounded-full leading-none",
+                      "text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap shrink-0",
                       isActive ? "bg-indigo-100 text-indigo-700" : "bg-slate-200 text-slate-600"
                     )}>
                       {l.badge}
