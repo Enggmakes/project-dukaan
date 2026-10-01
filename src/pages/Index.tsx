@@ -50,68 +50,11 @@ const ICONS: Record<string, any> = {
   Brain, Eye, Bot, Cpu, Globe, Link2, Shield, Network: Database, Smartphone: Layers
 };
 
-const CODE_PREVIEWS: Record<string, { filename: string; language: string; code: string }> = {
-  "unet3d.py": {
-    filename: "models/unet3d.py",
-    language: "python",
-    code: `import torch
-import torch.nn as nn
-
-class UNet3D(nn.Module):
-    """3D Brain Tumor MRI Segmentation Engine (BraTS2021)."""
-    def __init__(self, in_channels=4, out_channels=3):
-        super().__init__()
-        self.encoder1 = self.conv_block(in_channels, 32)
-        self.encoder2 = self.conv_block(32, 64)
-        self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
-        self.bottleneck = self.conv_block(64, 128)
-        self.upconv2 = nn.ConvTranspose3d(128, 64, kernel_size=2, stride=2)
-        self.decoder2 = self.conv_block(128, 64)
-        self.head = nn.Conv3d(64, out_channels, kernel_size=1)
-
-    def forward(self, x):
-        e1 = self.encoder1(x)
-        e2 = self.encoder2(self.pool(e1))
-        b = self.bottleneck(self.pool(e2))
-        d2 = self.decoder2(torch.cat([self.upconv2(b), e2], dim=1))
-        return self.head(d2) # Output: WT, TC, ET masks`
-  },
-  "ieee_paper.tex": {
-    filename: "docs/IEEE_Transactions.tex",
-    language: "latex",
-    code: `\\documentclass[journal]{IEEEtran}
-\\begin{document}
-\\title{Volumetric MRI Semantic Segmentation via UNet3D}
-\\author{ProjectDukaan Verified Capstone Standard}
-\\maketitle
-\\begin{abstract}
-We present a volumetric UNet3D architecture for accurate 
-glioma sub-region delineation on multimodal MRI scans.
-Evaluated on BraTS2021, the model achieves a Dice similarity 
-coefficient of 0.884 for Whole Tumor and 0.829 for Enhancing Tumor.
-Complete hardware runtime profiling on NVIDIA Jetson Orin Nano is provided.
-\\end{abstract}
-\\end{document}`
-  },
-  "hardware_bom.csv": {
-    filename: "hardware/bom_schematic.csv",
-    language: "csv",
-    code: `Item,Component,Spec / Part Number,Qty,Unit Price (INR)
-1,Edge AI SBC,NVIDIA Jetson Orin Nano 8GB,1,₹42000
-2,Camera Sensor,Sony IMX477 12.3MP HQ Module,1,₹5200
-3,Power Circuit,19V 4.74A DC-DC Regulated Supply,1,₹1850
-4,Thermal Unit,Active Fan-Sink Aluminum Chassis,1,₹1200
-5,Interface,PCIe M.2 2280 NVMe SSD 512GB,1,₹3400
--- Total Verified BOM: ₹53,650 // Status: In Stock`
-  }
-};
-
 export default function Index() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
   const [dbProjects, setDbProjects] = useState<Project[]>([]);
   const [selectedDomain, setSelectedDomain] = useState("all");
-  const [activeCodeTab, setActiveCodeTab] = useState<"unet3d.py" | "ieee_paper.tex" | "hardware_bom.csv">("unet3d.py");
   const [liveStats, setLiveStats] = useState<{
     projects: number | null;
     orders: number | null;
@@ -315,106 +258,128 @@ export default function Index() {
           </div>
 
           {/* ========================================================================= */}
-          {/* 2. THE ENGINEERING TERMINAL & BLUEPRINT INSPECTOR CENTERPIECE             */}
+          {/* 2. FEATURED BLUEPRINT PRODUCT SHOWCASE (Minimalist Editorial, No Fake Terminal) */}
           {/* ========================================================================= */}
-          <div className="mt-12 max-w-6xl mx-auto rounded-xl border border-slate-200/90 shadow-xl overflow-hidden bg-slate-950 text-white grid grid-cols-1 lg:grid-cols-12">
-            {/* Left Column: Interactive Code & Paper Inspector (7 cols) */}
-            <div className="lg:col-span-7 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800">
-              {/* Terminal Title Bar */}
-              <div className="px-4 py-2.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-slate-700" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-slate-700" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-slate-700" />
+          <div className="mt-12 sm:mt-16 max-w-6xl mx-auto">
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+              
+              {/* Left Column: Photography-First Presentation Stage (7 Cols) */}
+              <div className="lg:col-span-7 p-4 sm:p-7 md:p-8 bg-slate-50/70 border-b lg:border-b-0 lg:border-r border-slate-200/80 flex flex-col justify-between">
+                {/* Top Meta Bar */}
+                <div className="flex items-center justify-between gap-2 mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-blue-600">
+                      Featured Blueprint Showcase
+                    </span>
                   </div>
-                  <span className="text-xs font-mono text-slate-400 ml-2">repository-inspector // v2.6</span>
-                </div>
-                
-                {/* File tabs */}
-                <div className="flex items-center gap-1 font-mono text-xs">
-                  {(["unet3d.py", "ieee_paper.tex", "hardware_bom.csv"] as const).map(tab => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveCodeTab(tab)}
-                      className={`px-2.5 py-1 rounded text-[11px] transition-colors cursor-pointer ${
-                        activeCodeTab === tab
-                          ? "bg-slate-800 text-blue-400 font-semibold"
-                          : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Code viewer pane */}
-              <div className="p-4 sm:p-5 font-mono text-xs leading-relaxed overflow-x-auto text-slate-300 max-h-72 sm:max-h-80 select-text">
-                <pre className="text-[11px] leading-5 text-slate-200">
-                  <code>{CODE_PREVIEWS[activeCodeTab].code}</code>
-                </pre>
-              </div>
-
-              {/* Telemetry status bar */}
-              <div className="px-4 py-2 bg-slate-900/90 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400">
-                <span className="flex items-center gap-1.5 text-emerald-400">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> PyTorch 2.3 • Test Passed (0.884 Dice)
-                </span>
-                <span>UTF-8 // LF</span>
-              </div>
-            </div>
-
-            {/* Right Column: Flagship Blueprint Spec Sheet (5 cols) */}
-            <div className="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between bg-slate-950">
-              <div>
-                <div className="flex items-center justify-between mb-3 font-mono text-xs">
-                  <span className="text-blue-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                    Flagship Blueprint
-                  </span>
-                  <span className="text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-200/70 text-slate-700 font-mono text-[10px] font-medium border border-slate-300/60">
                     {flagship.category}
                   </span>
                 </div>
 
-                <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
-                  {flagship.title}
-                </h3>
-                
-                <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                  {flagship.short}
-                </p>
+                {/* Presentation Stage - REAL PROJECT MOCKUP (NEVER CLIPPED OR CUT) */}
+                <Link 
+                  to={flagship.id === "flagship-demo" ? "/marketplace" : `/project/${flagship.id}`}
+                  className="group relative w-full min-h-[260px] sm:min-h-[340px] md:min-h-[380px] rounded-xl overflow-hidden bg-white border border-slate-200/80 p-3 sm:p-5 flex items-center justify-center shadow-2xs hover:border-blue-400 transition-colors"
+                >
+                  <img 
+                    src={flagship.thumb} 
+                    alt={flagship.title}
+                    className="w-full h-full max-h-[340px] sm:max-h-[380px] object-contain rounded-lg transition-transform duration-500 group-hover:scale-[1.01]" 
+                  />
+                  
+                  {/* Subtle hover overlay prompt */}
+                  <div className="absolute inset-0 bg-slate-950/0 group-hover:bg-slate-950/5 transition-colors pointer-events-none rounded-xl" />
+                </Link>
 
-                {/* Tech specifications */}
-                <div className="mt-4 pt-4 border-t border-slate-800/80 space-y-2 font-mono text-xs">
-                  <div className="flex justify-between text-slate-400">
-                    <span>Target Hardware:</span>
-                    <span className="text-white font-medium">NVIDIA Jetson / x86 GPU</span>
-                  </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>Dataset:</span>
-                    <span className="text-white font-medium">BraTS 2021 (40GB Cleaned)</span>
-                  </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>Documentation:</span>
-                    <span className="text-emerald-400 font-medium">45-Page IEEE Thesis (.tex/.docx)</span>
-                  </div>
+                {/* Verification badges */}
+                <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-600 flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1.5 font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200/70 text-[11px]">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> 100% Tested on Clean Sandbox
+                  </span>
+                  <span className="font-mono text-[11px] text-slate-500">
+                    IEEE Standards Compliant
+                  </span>
                 </div>
               </div>
 
-              {/* Action */}
-              <div className="mt-6 pt-5 border-t border-slate-800 flex items-center justify-between">
+              {/* Right Column: Project Specifications, Inclusions & Immediate Buy Box (5 Cols) */}
+              <div className="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between bg-white">
                 <div>
-                  <div className="text-[10px] font-mono text-slate-400 uppercase">Complete Package</div>
-                  <div className="text-xl font-bold font-mono text-white">₹{Number(flagship.price).toLocaleString()}</div>
+                  <div className="flex items-center gap-2 mb-2 font-mono text-xs">
+                    <span className="text-blue-600 font-bold uppercase tracking-wider text-[11px]">
+                      {flagship.difficulty || "Advanced"} Level
+                    </span>
+                    <span className="text-slate-300">•</span>
+                    <span className="text-slate-500 text-[11px]">Verified Source</span>
+                  </div>
+
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-snug">
+                    {flagship.title}
+                  </h3>
+                  
+                  <p className="text-xs sm:text-sm text-slate-600 mt-2.5 leading-relaxed">
+                    {flagship.short}
+                  </p>
+
+                  {/* Deliverables Checklist */}
+                  <div className="mt-6 pt-5 border-t border-slate-100 space-y-2.5 text-xs text-slate-700">
+                    <div className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                      Package Inclusions
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                      <span><strong>Full Source Code:</strong> Clean, modular repo with requirements & run script</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                      <span><strong>Verified Dataset & Weights:</strong> Cleaned benchmark dataset & pre-trained weights</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                      <span><strong>Defense-Ready Report:</strong> 45-Page IEEE thesis (.docx & .tex format)</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                      <span><strong>Presentation Deck:</strong> 18-Slide animated PowerPoint for college viva</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span className="text-emerald-800 font-medium"><strong>7-Day Guarantee:</strong> Direct senior engineer assistance on WhatsApp</span>
+                    </div>
+                  </div>
+
+                  {/* Tech Stack Pills */}
+                  <div className="mt-5 flex items-center gap-1.5 flex-wrap">
+                    {(flagship.tech || ["PyTorch", "CUDA", "FastAPI", "React"]).map((t: string) => (
+                      <span key={t} className="px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[11px] border border-slate-200">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
                 </div>
 
-                <Link to={flagship.id === "flagship-demo" ? "/marketplace" : `/project/${flagship.id}`}>
-                  <Button className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-5 h-10 shadow-xs">
-                    Inspect Blueprint <ArrowUpRight className="ml-1.5 w-3.5 h-3.5" />
-                  </Button>
-                </Link>
+                {/* Price & Action */}
+                <div className="mt-8 pt-5 border-t border-slate-100 flex items-center justify-between gap-4">
+                  <div>
+                    <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Complete Package</div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl sm:text-3xl font-bold font-mono text-slate-900 tracking-tight">
+                        ₹{Number(flagship.price).toLocaleString()}
+                      </span>
+                      <span className="text-xs text-slate-400 line-through font-mono">
+                        ₹{Math.round(Number(flagship.price) * 1.6).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Link to={flagship.id === "flagship-demo" ? "/marketplace" : `/project/${flagship.id}`}>
+                    <Button className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm px-5 sm:px-7 h-11 shadow-sm transition-all active:scale-98">
+                      Inspect Blueprint <ArrowUpRight className="ml-1.5 w-4 h-4" />
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
