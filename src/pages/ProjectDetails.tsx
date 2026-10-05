@@ -771,19 +771,16 @@ export default function ProjectDetails() {
                     <div className="space-y-2.5">
                       <Button 
                         disabled={isRequestingBuild}
-                        className="w-full rounded bg-amber-500 hover:bg-amber-400 text-amber-950 h-12 text-sm font-black font-mono flex items-center justify-center gap-2 shadow-[0_4px_0_#92400e] border border-amber-300 transition-all active:translate-y-0.5 retro-btn cursor-pointer disabled:opacity-50" 
+                        className="w-full rounded bg-amber-500 hover:bg-amber-400 text-amber-950 h-12 text-xs sm:text-[13px] font-black font-mono tracking-wider flex items-center justify-center px-3 sm:px-4 shadow-[0_4px_0_#92400e] border border-amber-300 transition-all active:translate-y-0.5 retro-btn cursor-pointer disabled:opacity-50 text-center" 
                         onClick={handleRequestBuildClick}
                       >
                         {isRequestingBuild ? (
-                          <>
+                          <span className="flex items-center justify-center gap-2">
                             <Loader2 className="w-4 h-4 animate-spin text-amber-950" />
                             SYS:\CONNECTING_ENGINEER...
-                          </>
+                          </span>
                         ) : (
-                          <>
-                            <MessageSquare className="w-4 h-4 text-amber-950" />
-                            [+] REQUEST BUILD & INQUIRE ACCESS
-                          </>
+                          <span>[+] REQUEST BUILD & INQUIRE ACCESS</span>
                         )}
                       </Button>
                       <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 font-mono">
