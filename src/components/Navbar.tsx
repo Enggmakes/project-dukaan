@@ -159,7 +159,7 @@ export default function Navbar() {
       {/* 1. DESKTOP STICKY NAVBAR                                                  */}
       {/* ========================================================================= */}
       <header className="sticky top-0 z-50 w-full bg-[#070a12]/95 backdrop-blur-md border-b border-slate-800 shadow-md hidden md:block">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="w-full px-6 lg:px-8 h-16 flex items-center justify-between">
           
           {/* Brand Logo & Name with Retro Workstation LED */}
           <Link to="/" className="flex items-center gap-2.5 group select-none">
@@ -278,43 +278,64 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* Desktop-Only Gravity Mode Switch (Matches Image 2) */}
-            <div className="hidden md:flex items-center pl-1 border-l border-slate-800">
-              <button
+            {/* Desktop-Only Gravity Mode Switch (Extremely Right Side, Matching Image 2) */}
+            <div className="hidden md:flex items-center pl-2 border-l border-slate-800/80">
+              <motion.button
                 type="button"
                 onClick={toggleGravity}
-                title={gravityOn ? "Gravity Mode: ON (Click to toggle OFF)" : "Gravity Mode: OFF (Click to toggle ON)"}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.94 }}
+                title={gravityOn ? "Gravity Mode: ACTIVE (Click to turn OFF)" : "Gravity Mode: INACTIVE (Click to turn ON)"}
                 aria-label="Toggle Gravity Mode"
-                className="relative cursor-pointer select-none group focus:outline-none p-0.5"
+                className="relative cursor-pointer select-none focus:outline-none p-0.5"
               >
-                {/* Pill Track matching Image 2 */}
+                {/* Frosted Recessed Capsule Track matching Image 2 */}
                 <div
                   className={cn(
-                    "relative w-11 h-6 rounded-full transition-all duration-300 ease-out border p-0.5 flex items-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]",
+                    "relative w-[52px] h-[28px] rounded-full p-[2px] transition-colors duration-300 ease-out flex items-center shadow-[inset_0_3px_6px_rgba(0,0,0,0.85)]",
                     gravityOn
-                      ? "bg-[#141009] border-amber-500/60 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_0_10px_rgba(245,158,11,0.25)]"
-                      : "bg-[#0b0f19] border-slate-700/80 hover:border-slate-600"
+                      ? "bg-[#181105] border border-amber-500/60 shadow-[inset_0_3px_6px_rgba(0,0,0,0.9),0_0_14px_rgba(245,158,11,0.35)]"
+                      : "bg-[#090d16] border border-slate-700/80 hover:border-slate-500"
                   )}
                 >
-                  {/* Soft amber backlight on track when ON */}
+                  {/* Glowing Amber Track Halo behind knob when ON */}
                   {gravityOn && (
-                    <div className="absolute left-1.5 w-3.5 h-3.5 rounded-full bg-amber-500/35 blur-[2px] pointer-events-none" />
+                    <motion.div
+                      layoutId="amber-track-halo"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute left-1.5 w-4 h-4 rounded-full bg-amber-500/40 blur-[3px] pointer-events-none"
+                    />
                   )}
 
-                  {/* 3D Tactile Sliding Spherical Knob (Image 2 style) */}
-                  <div
+                  {/* 3D Tactile Sliding Spherical Knob with Spring Physics */}
+                  <motion.div
+                    animate={{
+                      x: gravityOn ? 24 : 0,
+                    }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 600,
+                      damping: 30,
+                    }}
                     className={cn(
-                      "w-4.5 h-4.5 rounded-full transition-transform duration-300 ease-out transform flex items-center justify-center relative",
+                      "w-[22px] h-[22px] rounded-full relative flex items-center justify-center pointer-events-none transition-shadow duration-300",
                       gravityOn
-                        ? "translate-x-5 bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 shadow-[0_1px_3px_rgba(0,0,0,0.5),0_0_10px_rgba(245,158,11,0.9)]"
-                        : "translate-x-0 bg-gradient-to-b from-white via-slate-200 to-slate-400 shadow-[0_1px_3px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.9)] group-hover:from-white group-hover:to-slate-200"
+                        ? "shadow-[0_0_14px_#f59e0b,0_2px_4px_rgba(0,0,0,0.6)]"
+                        : "shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
                     )}
+                    style={{
+                      background: gravityOn
+                        ? "radial-gradient(circle at 35% 30%, #fffbeb 0%, #fde047 25%, #f59e0b 60%, #b45309 100%)"
+                        : "radial-gradient(circle at 35% 30%, #ffffff 0%, #e2e8f0 45%, #94a3b8 80%, #64748b 100%)",
+                    }}
                   >
-                    {/* Spherical specular dome highlight */}
-                    <div className="absolute top-0.5 left-1 w-1.5 h-1.5 rounded-full bg-white/80 blur-[0.4px]" />
-                  </div>
+                    {/* Top-Left Specular Highlight Dot (3D Glossy Sphere) */}
+                    <div className="absolute top-[3px] left-[3px] w-[5px] h-[5px] rounded-full bg-white/95 blur-[0.3px]" />
+                  </motion.div>
                 </div>
-              </button>
+              </motion.button>
             </div>
           </div>
         </div>
