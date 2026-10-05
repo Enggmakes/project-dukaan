@@ -278,64 +278,24 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* Desktop-Only Gravity Mode Switch (Extremely Right Side, Matching Image 2) */}
-            <div className="hidden md:flex items-center pl-2 border-l border-slate-800/80">
-              <motion.button
-                type="button"
-                onClick={toggleGravity}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.94 }}
-                title={gravityOn ? "Gravity Mode: ACTIVE (Click to turn OFF)" : "Gravity Mode: INACTIVE (Click to turn ON)"}
-                aria-label="Toggle Gravity Mode"
-                className="relative cursor-pointer select-none focus:outline-none p-0.5"
-              >
-                {/* Frosted Recessed Capsule Track matching Image 2 */}
-                <div
-                  className={cn(
-                    "relative w-[52px] h-[28px] rounded-full p-[2px] transition-colors duration-300 ease-out flex items-center shadow-[inset_0_3px_6px_rgba(0,0,0,0.85)]",
-                    gravityOn
-                      ? "bg-[#181105] border border-amber-500/60 shadow-[inset_0_3px_6px_rgba(0,0,0,0.9),0_0_14px_rgba(245,158,11,0.35)]"
-                      : "bg-[#090d16] border border-slate-700/80 hover:border-slate-500"
-                  )}
+            {/* Desktop-Only Gravity Mode Switch (Uiverse.io tactile button at extreme right) */}
+            <div className="hidden md:flex items-center pl-2.5 border-l border-slate-800/80">
+              <div className="uiverse-container">
+                <label 
+                  className="uiverse-switch" 
+                  title={gravityOn ? "Gravity Mode: ACTIVE (Click to turn OFF)" : "Gravity Mode: INACTIVE (Click to turn ON)"}
                 >
-                  {/* Glowing Amber Track Halo behind knob when ON */}
-                  {gravityOn && (
-                    <motion.div
-                      layoutId="amber-track-halo"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="absolute left-1.5 w-4 h-4 rounded-full bg-amber-500/40 blur-[3px] pointer-events-none"
-                    />
-                  )}
-
-                  {/* 3D Tactile Sliding Spherical Knob with Spring Physics */}
-                  <motion.div
-                    animate={{
-                      x: gravityOn ? 24 : 0,
-                    }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 600,
-                      damping: 30,
-                    }}
-                    className={cn(
-                      "w-[22px] h-[22px] rounded-full relative flex items-center justify-center pointer-events-none transition-shadow duration-300",
-                      gravityOn
-                        ? "shadow-[0_0_14px_#f59e0b,0_2px_4px_rgba(0,0,0,0.6)]"
-                        : "shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
-                    )}
-                    style={{
-                      background: gravityOn
-                        ? "radial-gradient(circle at 35% 30%, #fffbeb 0%, #fde047 25%, #f59e0b 60%, #b45309 100%)"
-                        : "radial-gradient(circle at 35% 30%, #ffffff 0%, #e2e8f0 45%, #94a3b8 80%, #64748b 100%)",
-                    }}
-                  >
-                    {/* Top-Left Specular Highlight Dot (3D Glossy Sphere) */}
-                    <div className="absolute top-[3px] left-[3px] w-[5px] h-[5px] rounded-full bg-white/95 blur-[0.3px]" />
-                  </motion.div>
-                </div>
-              </motion.button>
+                  <input 
+                    type="checkbox" 
+                    checked={gravityOn} 
+                    onChange={toggleGravity} 
+                    className="uiverse-togglesw" 
+                  />
+                  <div className="uiverse-indicator left" />
+                  <div className="uiverse-indicator right" />
+                  <div className="uiverse-button" />
+                </label>
+              </div>
             </div>
           </div>
         </div>
