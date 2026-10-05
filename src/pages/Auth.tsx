@@ -95,13 +95,13 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
       {/* CRT Scanline overlay */}
       <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] opacity-40 z-0" />
 
-      {/* Back to Home Button */}
+      {/* Back to Home Button (Desktop / Tablet view) */}
       <Link
         to="/"
-        className="fixed top-6 left-6 z-20 flex items-center gap-2 px-3.5 py-1.5 rounded bg-[#0d121e] hover:bg-[#161d2d] text-slate-300 hover:text-amber-400 text-xs font-mono font-bold border border-slate-700 hover:border-amber-500/60 shadow-md transition-all active:scale-95"
+        className="hidden sm:inline-flex fixed top-6 left-6 z-20 items-center gap-2 px-3.5 py-1.5 rounded bg-[#0d121e] hover:bg-[#161d2d] text-slate-300 hover:text-amber-400 text-xs font-mono font-bold border border-slate-700 hover:border-amber-500/60 shadow-md transition-all active:scale-95"
       >
         <ArrowLeft className="w-3.5 h-3.5 text-amber-500" />
-        <span>[←] SYS:\RETURN_TO_DUKAAN</span>
+        <span>SYS:\RETURN_TO_DUKAAN</span>
       </Link>
 
       {/* Main Console Card */}
@@ -118,17 +118,28 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
         <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-amber-400 pointer-events-none z-20" />
 
         {/* Left Column: Industrial Engineering Telemetry (5 cols) */}
-        <div className="lg:col-span-5 bg-[#05070c] text-white p-8 sm:p-10 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800">
+        <div className="lg:col-span-5 bg-[#05070c] text-white p-6 sm:p-10 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800">
           <div>
-            <Link to="/" className="inline-flex items-center gap-2.5 mb-8">
-              <div className="relative">
-                <img src="/logo.png" alt="ProjectDukaan" className="w-7 h-7 object-contain" />
-                <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] animate-pulse" />
-              </div>
-              <span className="font-extrabold text-white tracking-tight text-lg font-mono">
-                Project<span className="text-amber-400">Dukaan</span>
-              </span>
-            </Link>
+            <div className="flex items-center justify-between gap-3 mb-6 sm:mb-8">
+              <Link to="/" className="inline-flex items-center gap-2.5">
+                <div className="relative">
+                  <img src="/logo.png" alt="ProjectDukaan" className="w-7 h-7 object-contain" />
+                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] animate-pulse" />
+                </div>
+                <span className="font-extrabold text-white tracking-tight text-lg font-mono">
+                  Project<span className="text-amber-400">Dukaan</span>
+                </span>
+              </Link>
+
+              {/* Mobile Back Button: cleanly placed on top right of logo, never overlaps */}
+              <Link
+                to="/"
+                className="sm:hidden inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0d121e] hover:bg-[#161d2d] text-slate-300 hover:text-amber-400 text-xs font-mono font-bold border border-slate-700 transition-all active:scale-95 shrink-0"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 text-amber-500" />
+                <span>HOME</span>
+              </Link>
+            </div>
 
             <div className="font-mono text-xs text-amber-400 font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <Terminal className="w-3.5 h-3.5" />
