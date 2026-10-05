@@ -137,9 +137,43 @@ export default function AdminDashboard() {
         .select('*')
         .gte('last_message_at', fiveDaysAgo)
         .order('last_message_at', { ascending: false });
+
       if (!error && data) {
-        const activeForAdmin = data.filter((c: any) => !c.admin_deleted && c.status !== 'withdrawn' && c.status !== 'cancelled');
-        setConversations(activeForAdmin);
+        // Group by user_id and project_id to ensure strictly ONE thread per client per project
+        const pairMap = new Map<string, any>();
+        const duplicateIdsToDelete: string[] = [];
+
+        for (const c of data) {
+          if (c.admin_deleted || c.status === 'withdrawn' || c.status === 'cancelled') continue;
+          
+          const pairKey = `${c.user_id}_${c.project_id}`;
+          if (!pairMap.has(pairKey)) {
+            pairMap.set(pairKey, c);
+          } else {
+            const existing = pairMap.get(pairKey);
+            // If the duplicate has actual messages and existing doesn't, keep the one with messages
+            const duplicateHasMsgs = Array.isArray(c.messages) && c.messages.length > 0;
+            const existingHasMsgs = Array.isArray(existing.messages) && existing.messages.length > 0;
+            if (duplicateHasMsgs && !existingHasMsgs) {
+              duplicateIdsToDelete.push(existing.id);
+              pairMap.set(pairKey, c);
+            } else {
+              duplicateIdsToDelete.push(c.id);
+            }
+          }
+        }
+
+        const deduplicated = Array.from(pairMap.values());
+        setConversations(deduplicated);
+
+        // Automatically clean up duplicate ghost rows from Supabase in the background
+        if (duplicateIdsToDelete.length > 0) {
+          supabase
+            .from('product_conversations')
+            .delete()
+            .in('id', duplicateIdsToDelete)
+            .then();
+        }
       }
     } catch (e) {
       console.warn("Could not fetch conversations:", e);
@@ -406,6 +440,7 @@ export default function AdminDashboard() {
   };
 
   const handleCancelAndPurgeRequest = (convoId: string) => {
+    const convoObj = conversations.find(c => c.id === convoId) || selectedConvo;
     askConfirmation(
       "CANCEL_BUILD_REQUEST",
       "Are you sure you want to cancel this build request and PERMANENTLY delete the conversation and chat history from the database? This cannot be undone.",
@@ -422,14 +457,28 @@ export default function AdminDashboard() {
           })
           .eq('id', convoId);
 
-        // 2. Also hard delete from table
-        await supabase
-          .from('product_conversations')
-          .delete()
-          .eq('id', convoId);
+        // 2. Also hard delete from table (both by id and by user_id/project_id to catch all duplicates)
+        if (convoObj?.user_id && convoObj?.project_id) {
+          await supabase
+            .from('product_conversations')
+            .delete()
+            .eq('user_id', convoObj.user_id)
+            .eq('project_id', convoObj.project_id);
+        } else {
+          await supabase
+            .from('product_conversations')
+            .delete()
+            .eq('id', convoId);
+        }
 
-        setConversations((prev) => prev.filter((c) => c.id !== convoId));
-        if (selectedConvo?.id === convoId) {
+        setConversations((prev) => prev.filter((c) => {
+          if (convoObj?.user_id && convoObj?.project_id) {
+            return !(c.user_id === convoObj.user_id && c.project_id === convoObj.project_id);
+          }
+          return c.id !== convoId;
+        }));
+
+        if (selectedConvo?.id === convoId || (convoObj && selectedConvo?.user_id === convoObj.user_id && selectedConvo?.project_id === convoObj.project_id)) {
           setSelectedConvo(null);
           setAdminChatMessages([]);
         }

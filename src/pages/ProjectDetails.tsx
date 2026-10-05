@@ -124,14 +124,18 @@ export default function ProjectDetails() {
 
       // Check active conversation / build request
       if (id) {
-        const { data: convo } = await supabase
+        const { data: convos } = await supabase
           .from("product_conversations")
           .select("*")
           .eq("user_id", session.user.id)
           .eq("project_id", id)
-          .maybeSingle();
+          .order("last_message_at", { ascending: false });
 
-        if (convo && convo.status !== "withdrawn" && convo.status !== "cancelled") {
+        const convo = convos && convos.length > 0 
+          ? convos.find((c: any) => c.status !== "withdrawn" && c.status !== "cancelled" && !c.admin_deleted) 
+          : null;
+
+        if (convo) {
           setActiveConvo(convo);
           if (convo.status === "ready_to_purchase") {
             setConvoStatus("ready_to_purchase");
@@ -250,13 +254,15 @@ export default function ProjectDetails() {
     setIsRequestingBuild(true);
 
     try {
-      // Check if conversation already exists
-      const { data: existing } = await supabase
+      // Check if conversation already exists (sorted by newest)
+      const { data: convos } = await supabase
         .from("product_conversations")
         .select("*")
         .eq("user_id", session.user.id)
         .eq("project_id", project.id)
-        .maybeSingle();
+        .order("last_message_at", { ascending: false });
+
+      const existing = convos && convos.length > 0 ? convos[0] : null;
 
       if (existing && existing.status !== "withdrawn" && existing.status !== "cancelled") {
         setActiveConvo(existing);
@@ -354,14 +360,18 @@ export default function ProjectDetails() {
         console.warn("Update status error:", updateError);
       }
 
-      // 2. Also execute hard delete
-      const { error: deleteError } = await supabase
-        .from("product_conversations")
-        .delete()
-        .eq("id", convoId);
-
-      if (deleteError) {
-        console.warn("Delete error (possibly RLS restricted):", deleteError);
+      // 2. Also execute hard delete (for all records matching this user & project to purge duplicates)
+      if (session?.user?.id && id) {
+        await supabase
+          .from("product_conversations")
+          .delete()
+          .eq("user_id", session.user.id)
+          .eq("project_id", id);
+      } else {
+        await supabase
+          .from("product_conversations")
+          .delete()
+          .eq("id", convoId);
       }
 
       setActiveConvo(null);

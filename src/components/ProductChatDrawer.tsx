@@ -73,8 +73,16 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
         })
         .eq("id", conversation.id);
 
-      // 2. Hard delete
-      await supabase.from("product_conversations").delete().eq("id", conversation.id);
+      // 2. Hard delete any conversations for this user & project
+      if (user?.id && project?.id) {
+        await supabase
+          .from("product_conversations")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("project_id", project.id);
+      } else {
+        await supabase.from("product_conversations").delete().eq("id", conversation.id);
+      }
 
       toast.success("Build request withdrawn & chat deleted.");
       setIsDrawerConfirmOpen(false);
@@ -102,7 +110,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch or create conversation when drawer opens
+  // Fetch or prepare conversation when drawer opens
   useEffect(() => {
     if (!isOpen || !project || !user) return;
 
@@ -111,60 +119,61 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
 
     const initConversation = async () => {
       try {
-        // Look for existing conversation for this user and project
-        const { data: existing, error } = await supabase
+        // Look for existing conversation for this user and project (sorted by newest message)
+        const { data: existingList, error } = await supabase
           .from("product_conversations")
           .select("*")
           .eq("user_id", user.id)
           .eq("project_id", project.id)
-          .maybeSingle();
+          .order("last_message_at", { ascending: false });
 
-        if (error && error.code !== "PGRST116") {
+        if (error) {
           console.warn("Error fetching conversation:", error);
         }
 
-        let activeConvo = (existing && existing.status !== "withdrawn" && existing.status !== "cancelled") ? existing : null;
+        let activeConvo: any = null;
+        if (existingList && existingList.length > 0) {
+          // Filter out withdrawn or cancelled ones
+          const validConvos = existingList.filter(
+            (c: any) => c.status !== "withdrawn" && c.status !== "cancelled" && !c.admin_deleted
+          );
 
-        if (existing) {
-          const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
-          if (new Date(existing.last_message_at).getTime() < fiveDaysAgo.getTime()) {
-            // Purge expired conversation after 5 days
-            await supabase.from("product_conversations").delete().eq("id", existing.id);
+          if (validConvos.length > 0) {
+            // Pick conversation with real messages, or the newest one
+            activeConvo = validConvos.find((c: any) => Array.isArray(c.messages) && c.messages.length > 0) || validConvos[0];
+
+            // Clean up any duplicate orphaned records in background
+            const duplicates = existingList.filter((c: any) => c.id !== activeConvo.id).map((c: any) => c.id);
+            if (duplicates.length > 0) {
+              supabase.from("product_conversations").delete().in("id", duplicates).then();
+            }
+          }
+        }
+
+        // Purge expired conversation after 5 days if applicable
+        if (activeConvo) {
+          const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).getTime();
+          if (new Date(activeConvo.last_message_at).getTime() < fiveDaysAgo) {
+            await supabase.from("product_conversations").delete().eq("id", activeConvo.id);
             activeConvo = null;
           }
         }
 
+        // If no active conversation exists, DO NOT insert an empty phantom row into Supabase!
+        // Maintain a local conversation object until the user actually sends their first message.
         if (!activeConvo) {
-          // Create new conversation
-          const { data: created, error: createError } = await supabase
-            .from("product_conversations")
-            .insert({
-              user_id: user.id,
-              user_email: user.email,
-              user_name: user.user_metadata?.full_name || user.email.split("@")[0],
-              project_id: project.id,
-              project_title: project.title,
-              project_thumb: project.thumb || "/placeholder.svg",
-              project_price: project.price || 0,
-              status: "active",
-              last_message: "Chat initiated",
-              last_message_at: new Date().toISOString(),
-            })
-            .select()
-            .single();
-
-          if (createError) {
-            console.warn("Could not create conversation in database:", createError);
-            // Fallback local memory conversation
-            activeConvo = {
-              id: `local-${Date.now()}`,
-              user_id: user.id,
-              project_id: project.id,
-              project_title: project.title,
-            };
-          } else {
-            activeConvo = created;
-          }
+          activeConvo = {
+            id: `local-${Date.now()}`,
+            user_id: user.id,
+            user_email: user.email,
+            user_name: user.user_metadata?.full_name || user.email.split("@")[0],
+            project_id: project.id,
+            project_title: project.title,
+            project_thumb: project.thumb || "/placeholder.svg",
+            project_price: project.price || 0,
+            status: "active",
+            messages: []
+          };
         }
 
         if (isMounted) {
@@ -195,7 +204,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
     return () => {
       isMounted = false;
     };
-  }, [isOpen, project, user]);
+  }, [isOpen, project?.id, user?.id]);
 
   // Realtime WebSocket Subscription on conversation UPDATE
   useEffect(() => {
@@ -254,7 +263,29 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
     if (!textToSend) setNewMessage("");
 
     try {
-      if (!conversation.id.startsWith("local-")) {
+      if (conversation.id.startsWith("local-")) {
+        // User sent their first message! Create single database conversation row now
+        const { data: created, error: createError } = await supabase
+          .from("product_conversations")
+          .insert({
+            user_id: user.id,
+            user_email: user.email,
+            user_name: user.user_metadata?.full_name || user.email.split("@")[0],
+            project_id: project.id,
+            project_title: project.title,
+            project_thumb: project.thumb || "/placeholder.svg",
+            project_price: project.price || 0,
+            status: "active",
+            messages: [newMsg],
+            last_message: msgText,
+            last_message_at: newMsg.created_at,
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        setConversation(created);
+      } else {
         // Fetch current message list from DB to append cleanly
         const { data: latest } = await supabase
           .from("product_conversations")
