@@ -6,7 +6,7 @@ import {
   Truck, Download, Pencil, ExternalLink, RefreshCw, Layers, Edit3, MessageSquare, 
   Send, Sparkles, CheckCircle2, Clock, User, Filter, Archive, ArrowLeft, FolderGit2, 
   HardDrive, Video, FileText, FileCode, PackageCheck, Copy, Menu, X, SlidersHorizontal, 
-  Terminal, Shield, ArrowUpRight, BarChart3, Inbox, FileSpreadsheet, Check
+  Terminal, Shield, ArrowUpRight, BarChart3, Inbox, FileSpreadsheet, Check, Key
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import { supabase } from "@/lib/supabase";
@@ -260,6 +260,74 @@ export default function AdminDashboard() {
       toast.error("Failed to deliver message via Supabase");
     } finally {
       setIsAdminSending(false);
+    }
+  };
+
+  const handleGrantPurchaseAccess = async (convo: any) => {
+    if (!convo) return;
+    try {
+      const systemMsg = {
+        id: `msg-grant-${Date.now()}`,
+        conversation_id: convo.id,
+        sender_id: adminUser?.id || "admin",
+        sender_role: "admin",
+        sender_name: "Lead Systems Engineer",
+        message: `🎉 [PURCHASE ACCESS GRANTED] Build calibration & repository assets for "${convo.project_title}" are approved! You can now click "[BUY NOW] & PROCEED TO PAYMENT" on the project page or in this chat to complete your purchase and unlock your deliverables.`,
+        created_at: new Date().toISOString()
+      };
+
+      const currentMessages = Array.isArray(convo.messages) ? convo.messages : [];
+      const updatedMessages = [...currentMessages, systemMsg];
+
+      const { error } = await supabase
+        .from('product_conversations')
+        .update({
+          status: 'ready_to_purchase',
+          messages: updatedMessages,
+          last_message: '🎉 Purchase access granted by engineer',
+          last_message_at: systemMsg.created_at,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', convo.id);
+
+      if (error) throw error;
+
+      toast.success(`Purchase access granted to ${convo.user_name || convo.user_email}!`);
+      fetchConversations();
+      if (selectedConvo?.id === convo.id) {
+        setSelectedConvo((prev: any) => ({
+          ...prev,
+          status: 'ready_to_purchase',
+          messages: updatedMessages
+        }));
+        setAdminChatMessages(updatedMessages);
+      }
+    } catch (err: any) {
+      console.error("Failed to grant purchase access:", err);
+      toast.error("Failed to update access in Supabase");
+    }
+  };
+
+  const handleRevokePurchaseAccess = async (convo: any) => {
+    if (!convo) return;
+    try {
+      const { error } = await supabase
+        .from('product_conversations')
+        .update({
+          status: 'active',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', convo.id);
+
+      if (error) throw error;
+
+      toast.success("Purchase access revoked (reverted to active inquiry)");
+      fetchConversations();
+      if (selectedConvo?.id === convo.id) {
+        setSelectedConvo((prev: any) => ({ ...prev, status: 'active' }));
+      }
+    } catch (err: any) {
+      toast.error("Failed to revoke access");
     }
   };
 
@@ -763,6 +831,9 @@ export default function AdminDashboard() {
                       <div className="flex items-center gap-2.5">
                         <Icon className={`w-4 h-4 ${isActive ? "text-amber-400" : "text-slate-400"}`} />
                         <span>{item.label}</span>
+                        {item.hasActive && (
+                          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_6px_#fbbf24]" />
+                        )}
                       </div>
                       <div className="flex items-center gap-1.5">
                         {item.hasActive && (
@@ -1937,14 +2008,16 @@ export default function AdminDashboard() {
                                         <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4 border-cyan-500/20 bg-cyan-500/10 text-cyan-400 font-mono truncate max-w-[170px]">
                                           {c.project_title}
                                         </Badge>
-                                        <span className={`text-[9px] font-mono font-semibold uppercase px-1.5 py-0.2 rounded ${
-                                          c.status === 'purchased'
+                                        <span className={`text-[9px] font-mono font-semibold uppercase px-1.5 py-0.5 rounded ${
+                                          c.status === 'ready_to_purchase'
+                                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.25)] animate-pulse'
+                                            : c.status === 'purchased'
                                             ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
                                             : c.status === 'archived'
                                             ? 'bg-slate-800/60 text-slate-400 border border-slate-700/60'
-                                            : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                            : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
                                         }`}>
-                                          {c.status || 'active'}
+                                          {c.status === 'ready_to_purchase' ? 'ACCESS_GRANTED' : (c.status || 'active')}
                                         </span>
                                       </div>
                                       <p className="text-[11px] text-slate-400 truncate">
@@ -2020,7 +2093,37 @@ export default function AdminDashboard() {
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                              {/* One-Click Buy Access Action Button */}
+                              {selectedConvo.status === 'ready_to_purchase' ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleRevokePurchaseAccess(selectedConvo)}
+                                  className="h-8 text-xs font-mono border-emerald-500/50 bg-emerald-500/10 text-emerald-400 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/40 flex items-center gap-1.5 transition-all group"
+                                  title="Customer has permission to purchase. Click to revoke."
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 group-hover:hidden" />
+                                  <X className="w-3.5 h-3.5 text-rose-400 hidden group-hover:inline" />
+                                  <span className="group-hover:hidden font-bold">ACCESS_GRANTED</span>
+                                  <span className="hidden group-hover:inline">REVOKE_ACCESS</span>
+                                </Button>
+                              ) : selectedConvo.status !== 'purchased' ? (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleGrantPurchaseAccess(selectedConvo)}
+                                  className="h-8 text-xs font-mono font-black bg-emerald-500 hover:bg-emerald-400 text-slate-950 border border-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.35)] flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                                  title="Grant customer permission to buy this project"
+                                >
+                                  <Key className="w-3.5 h-3.5" />
+                                  <span>GRANT_BUY_ACCESS</span>
+                                </Button>
+                              ) : (
+                                <Badge className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono text-[11px] h-8 px-2.5">
+                                  ✓ PURCHASED
+                                </Badge>
+                              )}
+
                               {/* Open Project Link */}
                               {selectedConvo.project_id && (
                                 <Button
@@ -2041,11 +2144,12 @@ export default function AdminDashboard() {
                                 value={selectedConvo.status || "active"}
                                 onValueChange={(val) => updateConvoStatus(selectedConvo.id, val)}
                               >
-                                <SelectTrigger className="h-8 text-xs font-mono w-[115px] sm:w-[135px] border-slate-800 bg-[#070a12] text-slate-200">
+                                <SelectTrigger className="h-8 text-xs font-mono w-[125px] sm:w-[155px] border-slate-800 bg-[#070a12] text-slate-200">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#0d121f] border-slate-800 text-slate-200">
-                                  <SelectItem value="active">🟢 Active Lead</SelectItem>
+                                  <SelectItem value="active">🟢 In Review (Active)</SelectItem>
+                                  <SelectItem value="ready_to_purchase">⚡ Access Granted</SelectItem>
                                   <SelectItem value="purchased">✅ Purchased</SelectItem>
                                   <SelectItem value="archived">📁 Archived</SelectItem>
                                 </SelectContent>

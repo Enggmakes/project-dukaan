@@ -32,9 +32,10 @@ interface ProductChatDrawerProps {
     price?: number;
     category?: string;
   } | null;
+  onOpenCheckout?: () => void;
 }
 
-export default function ProductChatDrawer({ isOpen, onClose, project }: ProductChatDrawerProps) {
+export default function ProductChatDrawer({ isOpen, onClose, project, onOpenCheckout }: ProductChatDrawerProps) {
   const [user, setUser] = useState<any>(null);
   const [conversation, setConversation] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -166,8 +167,11 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
           filter: `id=eq.${conversation.id}`,
         },
         (payload) => {
-          if (payload.new && Array.isArray(payload.new.messages)) {
-            setMessages(payload.new.messages);
+          if (payload.new) {
+            setConversation(payload.new);
+            if (Array.isArray(payload.new.messages)) {
+              setMessages(payload.new.messages);
+            }
           }
         }
       )
@@ -227,7 +231,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
             last_message: msgText,
             last_message_at: newMsg.created_at,
             admin_deleted: false, // Unhide in admin view if previously cleared
-            status: "active",
+            status: conversation.status || "active",
             updated_at: new Date().toISOString(),
           })
           .eq("id", conversation.id);
@@ -306,6 +310,56 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
           </div>
         ) : (
           <>
+            {/* Access & Allocation Status Banner */}
+            {conversation && (
+              <div className="px-3.5 pt-3 pb-1 bg-[#070a12] shrink-0 border-b border-slate-800/60">
+                {conversation.status === "ready_to_purchase" ? (
+                  <div className="bg-gradient-to-r from-emerald-950/90 via-[#0a1d15] to-emerald-950/90 border border-emerald-500/50 rounded-xl p-3 flex items-center justify-between gap-3 shadow-[0_0_20px_rgba(16,185,129,0.25)] animate-in zoom-in-95 duration-200">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 grid place-items-center shrink-0">
+                        <Sparkles className="w-4 h-4 animate-pulse" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-mono font-bold text-white flex items-center gap-1.5 flex-wrap">
+                          <span>ACCESS_UNLOCKED</span>
+                          <Badge className="bg-emerald-500 text-slate-950 text-[9px] font-black py-0 h-4 px-1.5 border-0">
+                            READY TO BUY
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-emerald-300/90 font-mono truncate">
+                          Engineer approved this build. Pay now to unlock assets!
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        onClose();
+                        if (onOpenCheckout) onOpenCheckout();
+                      }}
+                      className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono font-black text-xs h-9 px-4 rounded-lg shadow-md shrink-0 border-0 cursor-pointer active:scale-95 transition-all"
+                    >
+                      PAY NOW
+                    </Button>
+                  </div>
+                ) : conversation.status === "purchased" ? (
+                  <div className="bg-cyan-950/50 border border-cyan-800/70 rounded-xl p-2.5 flex items-center gap-2 text-xs font-mono text-cyan-300">
+                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <span>PROJECT_PURCHASED · Full code & schematics available in your profile registry.</span>
+                  </div>
+                ) : (
+                  <div className="bg-[#090e1c] border border-amber-500/30 rounded-xl p-2.5 flex items-center justify-between gap-2 text-xs font-mono text-amber-300/90">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin-slow shrink-0" />
+                      <span className="truncate">ALLOCATION_IN_PROGRESS: Engineer reviewing components...</span>
+                    </div>
+                    <Badge variant="outline" className="border-amber-500/40 text-amber-400 text-[9px] shrink-0 font-mono">
+                      IN REVIEW
+                    </Badge>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Messages Feed (Contained scrolling, prevents window jump) */}
             <div 
               ref={drawerChatFeedRef}

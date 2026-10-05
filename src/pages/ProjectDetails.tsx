@@ -1,12 +1,14 @@
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot, Heart, Headphones, Terminal, Layers, Cpu, Code2, Wrench, MessageSquare } from "lucide-react";
+import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot, Heart, Headphones, Terminal, Layers, Cpu, Code2, Wrench, MessageSquare, FolderGit2, Key, Clock, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { load } from '@cashfreepayments/cashfree-js';
 import { Helmet } from 'react-helmet-async';
 import Layout from "@/components/Layout";
 import ProjectCard from "@/components/ProjectCard";
+import ProductChatDrawer from "@/components/ProductChatDrawer";
 import { Project } from "@/lib/mockData";
 import { supabase } from "@/lib/supabase";
+import { isUserAdmin, checkAdminStatus } from "@/lib/authUtils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -61,6 +63,198 @@ export default function ProjectDetails() {
   
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+
+  // Builder Allocation & Purchase Access States
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [convoStatus, setConvoStatus] = useState<"none" | "active" | "ready_to_purchase" | "purchased">("none");
+  const [activeConvo, setActiveConvo] = useState<any | null>(null);
+  const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
+  const [isOwned, setIsOwned] = useState(false);
+  const [isRequestingBuild, setIsRequestingBuild] = useState(false);
+
+  // Check user ownership, admin status, and build inquiry permission in realtime
+  useEffect(() => {
+    let channel: any = null;
+
+    const checkAccessAndOrders = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setCurrentUser(null);
+        setIsAdmin(false);
+        setIsOwned(false);
+        setConvoStatus("none");
+        setActiveConvo(null);
+        return;
+      }
+
+      setCurrentUser(session.user);
+      const admin = await checkAdminStatus(session.user);
+      setIsAdmin(admin);
+
+      // Check if user already owns this project in orders
+      const userEmail = session.user.email?.trim().toLowerCase();
+      const { data: userOrders } = await supabase
+        .from("orders")
+        .select("id, project_title, customer_email, status")
+        .order("created_at", { ascending: false });
+
+      if (userOrders && project) {
+        const hasPurchased = userOrders.some((o: any) => 
+          o.customer_email && 
+          o.customer_email.trim().toLowerCase() === userEmail &&
+          o.project_title && 
+          o.project_title.trim().toLowerCase() === project.title.trim().toLowerCase()
+        );
+        if (hasPurchased) {
+          setIsOwned(true);
+          setConvoStatus("purchased");
+        }
+      }
+
+      // Check active conversation / build request
+      if (id) {
+        const { data: convo } = await supabase
+          .from("product_conversations")
+          .select("*")
+          .eq("user_id", session.user.id)
+          .eq("project_id", id)
+          .maybeSingle();
+
+        if (convo) {
+          setActiveConvo(convo);
+          if (convo.status === "ready_to_purchase") {
+            setConvoStatus("ready_to_purchase");
+          } else if (convo.status === "purchased") {
+            setConvoStatus("purchased");
+            setIsOwned(true);
+          } else {
+            setConvoStatus("active");
+          }
+
+          // Realtime listener for this conversation
+          channel = supabase
+            .channel(`convo-status-${convo.id}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "UPDATE",
+                schema: "public",
+                table: "product_conversations",
+                filter: `id=eq.${convo.id}`,
+              },
+              (payload: any) => {
+                if (payload.new) {
+                  setActiveConvo(payload.new);
+                  const newStatus = payload.new.status;
+                  if (newStatus === "ready_to_purchase") {
+                    setConvoStatus("ready_to_purchase");
+                    toast.success("🎉 Access Granted! Lead engineer approved this build. You can now Buy Now & Pay!", {
+                      duration: 7000
+                    });
+                  } else if (newStatus === "purchased") {
+                    setConvoStatus("purchased");
+                    setIsOwned(true);
+                  } else {
+                    setConvoStatus("active");
+                  }
+                }
+              }
+            )
+            .subscribe();
+        } else {
+          setConvoStatus("none");
+          setActiveConvo(null);
+        }
+      }
+    };
+
+    checkAccessAndOrders();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        checkAccessAndOrders();
+      } else {
+        setCurrentUser(null);
+        setIsAdmin(false);
+        setIsOwned(false);
+        setConvoStatus("none");
+        setActiveConvo(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [id, project]);
+
+  const handleRequestBuildClick = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast.error("Please sign in to request build access!");
+      navigate(`/login?redirect=/project/${id}`);
+      return;
+    }
+
+    if (!project) return;
+    setIsRequestingBuild(true);
+
+    try {
+      // Check if conversation already exists
+      const { data: existing } = await supabase
+        .from("product_conversations")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .eq("project_id", project.id)
+        .maybeSingle();
+
+      if (existing) {
+        setActiveConvo(existing);
+        setConvoStatus(existing.status || "active");
+        setIsChatDrawerOpen(true);
+      } else {
+        const initialMsg = {
+          id: `msg-${Date.now()}`,
+          sender_id: session.user.id,
+          sender_role: "user",
+          sender_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "Student Builder",
+          message: `Hello! I would like to request build allocation & availability check for "${project.title}". Please notify me once access is granted.`,
+          created_at: new Date().toISOString()
+        };
+
+        const { data: created, error } = await supabase
+          .from("product_conversations")
+          .insert({
+            user_id: session.user.id,
+            user_email: session.user.email,
+            user_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0],
+            project_id: project.id,
+            project_title: project.title,
+            project_thumb: project.thumb || "/placeholder.svg",
+            project_price: project.price || 0,
+            status: "active",
+            last_message: initialMsg.message,
+            last_message_at: initialMsg.created_at,
+            messages: [initialMsg]
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setActiveConvo(created);
+        setConvoStatus("active");
+        setIsChatDrawerOpen(true);
+        toast.success("Build request submitted! Engineering team notified.");
+      }
+    } catch (err: any) {
+      console.warn("Could not create build request in DB:", err);
+      setIsChatDrawerOpen(true);
+    } finally {
+      setIsRequestingBuild(false);
+    }
+  };
 
   const handlePurchaseClick = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -191,6 +385,22 @@ export default function ProjectDetails() {
         setIsPaying(false);
         setIsCashfreeOpen(false);
         setPaymentSuccess(true);
+        setIsOwned(true);
+        setConvoStatus("purchased");
+
+        // Mark conversation as purchased in Supabase
+        if (activeConvo?.id) {
+          supabase
+            .from("product_conversations")
+            .update({
+              status: "purchased",
+              last_message: "✅ Order completed! Access and deliverables unlocked.",
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", activeConvo.id)
+            .then(() => {});
+        }
+
         toast.success("Payment verified! Order placed in dashboard.", { id: toastId });
       }, 1000);
     } catch (err: any) {
@@ -200,6 +410,21 @@ export default function ProjectDetails() {
         setIsPaying(false);
         setIsCashfreeOpen(false);
         setPaymentSuccess(true);
+        setIsOwned(true);
+        setConvoStatus("purchased");
+
+        if (activeConvo?.id) {
+          supabase
+            .from("product_conversations")
+            .update({
+              status: "purchased",
+              last_message: "✅ Order completed! Access and deliverables unlocked.",
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", activeConvo.id)
+            .then(() => {});
+        }
+
         toast.success("Payment successful! Order processed.", { id: toastId });
       }, 1000);
     }
@@ -468,22 +693,106 @@ export default function ProjectDetails() {
                 </div>
                 <div className="text-xs text-slate-400 mt-1 font-mono">One-time purchase · Lifetime access & updates</div>
                 
-                <Button 
-                  className="w-full rounded bg-amber-500 hover:bg-amber-400 text-amber-950 h-12 mt-6 text-sm font-black font-mono flex items-center justify-center gap-2 shadow-[0_4px_0_#92400e] border border-amber-300 transition-all active:translate-y-0.5 retro-btn" 
-                  onClick={handlePurchaseClick}
-                >
-                  {project.delivery_type === "physical" ? (
-                    <>
-                      [ORDER] HARDWARE KIT
-                      <Bot className="w-4 h-4 text-amber-950" />
-                    </>
+                {/* DYNAMIC ACCESS & PURCHASE BUTTON STATE MACHINE */}
+                <div className="mt-6 space-y-3">
+                  {isOwned ? (
+                    <div className="space-y-2.5 animate-in fade-in duration-300">
+                      <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/50 border border-emerald-500/40 p-2.5 rounded-lg">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span className="font-bold">CAPSTONE_OWNED_IN_REGISTRY</span>
+                      </div>
+                      <Button
+                        onClick={() => navigate("/profile")}
+                        className="w-full rounded bg-emerald-500 hover:bg-emerald-400 text-emerald-950 h-12 font-mono font-black text-xs flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.35)] transition-all cursor-pointer border-0"
+                      >
+                        <FolderGit2 className="w-4 h-4" /> VIEW DELIVERABLES IN PROFILE
+                      </Button>
+                    </div>
+                  ) : (convoStatus === "ready_to_purchase" || isAdmin) ? (
+                    <div className="space-y-2.5 animate-in zoom-in-95 duration-300">
+                      <div className="bg-gradient-to-r from-emerald-950/80 via-[#0a1d15] to-emerald-950/80 border border-emerald-500/50 p-2.5 rounded-lg flex items-center justify-between text-xs font-mono">
+                        <span className="flex items-center gap-2 text-emerald-300 font-bold">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                          ACCESS_GRANTED · READY_TO_PAY
+                        </span>
+                        <Badge className="bg-emerald-500 text-emerald-950 font-bold text-[9px] py-0 h-4 border-0">
+                          UNLOCKED
+                        </Badge>
+                      </div>
+                      <Button 
+                        className="w-full rounded bg-emerald-500 hover:bg-emerald-400 text-emerald-950 h-12 text-sm font-black font-mono flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(16,185,129,0.5)] border border-emerald-300 transition-all active:translate-y-0.5 retro-btn animate-pulse cursor-pointer" 
+                        onClick={handlePurchaseClick}
+                      >
+                        {project.delivery_type === "physical" ? (
+                          <>
+                            [BUY NOW] ORDER HARDWARE KIT
+                            <Bot className="w-4 h-4 text-emerald-950" />
+                          </>
+                        ) : (
+                          <>
+                            [BUY NOW] & PROCEED TO PAYMENT
+                            <Laptop className="w-4 h-4 text-emerald-950" />
+                          </>
+                        )}
+                      </Button>
+                      <div className="flex items-center justify-between text-[10px] font-mono text-emerald-400/90 px-1">
+                        <span>✓ Engineer Approved</span>
+                        <button 
+                          onClick={() => setIsChatDrawerOpen(true)}
+                          className="text-slate-400 hover:text-white underline cursor-pointer"
+                        >
+                          View Chat Thread
+                        </button>
+                      </div>
+                    </div>
+                  ) : convoStatus === "active" ? (
+                    <div className="space-y-2.5 animate-in fade-in duration-300">
+                      <div className="bg-[#090e1c] border border-amber-500/40 p-2.5 rounded-lg flex items-center justify-between text-xs font-mono text-amber-300">
+                        <span className="flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin-slow shrink-0" />
+                          BUILD_ALLOCATION_IN_REVIEW
+                        </span>
+                        <span className="text-[10px] text-amber-400 font-semibold bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded">
+                          PENDING
+                        </span>
+                      </div>
+                      <Button 
+                        className="w-full rounded bg-[#090e1c] hover:bg-slate-800 text-amber-300 border-2 border-amber-500/50 hover:border-amber-400 h-12 text-xs font-black font-mono flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-all active:translate-y-0.5 cursor-pointer" 
+                        onClick={() => setIsChatDrawerOpen(true)}
+                      >
+                        <MessageSquare className="w-4 h-4 text-amber-400" />
+                        OPEN ENGINEER CHAT
+                      </Button>
+                      <p className="text-[10px] text-slate-400 font-mono text-center leading-relaxed">
+                        Lead engineer is reviewing availability & components. Buy Now unlocks once approved.
+                      </p>
+                    </div>
                   ) : (
-                    <>
-                      [BUY] & DOWNLOAD NOW
-                      <Laptop className="w-4 h-4 text-amber-950" />
-                    </>
+                    <div className="space-y-2.5">
+                      <Button 
+                        disabled={isRequestingBuild}
+                        className="w-full rounded bg-amber-500 hover:bg-amber-400 text-amber-950 h-12 text-sm font-black font-mono flex items-center justify-center gap-2 shadow-[0_4px_0_#92400e] border border-amber-300 transition-all active:translate-y-0.5 retro-btn cursor-pointer disabled:opacity-50" 
+                        onClick={handleRequestBuildClick}
+                      >
+                        {isRequestingBuild ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin text-amber-950" />
+                            SYS:\CONNECTING_ENGINEER...
+                          </>
+                        ) : (
+                          <>
+                            <MessageSquare className="w-4 h-4 text-amber-950" />
+                            [+] REQUEST BUILD & INQUIRE ACCESS
+                          </>
+                        )}
+                      </Button>
+                      <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 font-mono">
+                        <ShieldCheck className="w-3 h-3 text-amber-400" />
+                        <span>Engineer verifies build & allocates hardware before payment</span>
+                      </div>
+                    </div>
                   )}
-                </Button>
+                </div>
 
                 <Button 
                   variant="outline" 
@@ -960,6 +1269,13 @@ export default function ProjectDetails() {
           </div>
         </div>
       )}
+      {/* Product Chat Drawer for Real-Time Engineer Inquiry */}
+      <ProductChatDrawer
+        isOpen={isChatDrawerOpen}
+        onClose={() => setIsChatDrawerOpen(false)}
+        project={project}
+        onOpenCheckout={handlePurchaseClick}
+      />
     </Layout>
   );
 }
