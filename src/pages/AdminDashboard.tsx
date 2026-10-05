@@ -138,7 +138,7 @@ export default function AdminDashboard() {
         .gte('last_message_at', fiveDaysAgo)
         .order('last_message_at', { ascending: false });
       if (!error && data) {
-        const activeForAdmin = data.filter((c: any) => !c.admin_deleted);
+        const activeForAdmin = data.filter((c: any) => !c.admin_deleted && c.status !== 'withdrawn' && c.status !== 'cancelled');
         setConversations(activeForAdmin);
       }
     } catch (e) {
@@ -199,9 +199,18 @@ export default function AdminDashboard() {
               setAdminChatMessages([]);
               toast.info("Build request / chat was deleted.");
             }
-          } else if (payload.new && selectedConvoRef.current?.id === payload.new.id) {
-            setSelectedConvo(payload.new);
-            syncAdminMessages(payload.new);
+          } else if (payload.new) {
+            if (payload.new.status === 'withdrawn' || payload.new.status === 'cancelled' || payload.new.admin_deleted) {
+              setConversations((prev) => prev.filter((c) => c.id !== payload.new.id));
+              if (selectedConvoRef.current?.id === payload.new.id) {
+                setSelectedConvo(null);
+                setAdminChatMessages([]);
+                toast.info("Build request / chat was deleted.");
+              }
+            } else if (selectedConvoRef.current?.id === payload.new.id) {
+              setSelectedConvo(payload.new);
+              syncAdminMessages(payload.new);
+            }
           }
         }
       )
@@ -401,12 +410,23 @@ export default function AdminDashboard() {
       "CANCEL_BUILD_REQUEST",
       "Are you sure you want to cancel this build request and PERMANENTLY delete the conversation and chat history from the database? This cannot be undone.",
       async () => {
-        const { error } = await supabase
+        // 1. Wipe chat messages and update status in database
+        await supabase
+          .from('product_conversations')
+          .update({
+            status: 'cancelled',
+            admin_deleted: true,
+            messages: [],
+            last_message: "Build request cancelled by administrator",
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', convoId);
+
+        // 2. Also hard delete from table
+        await supabase
           .from('product_conversations')
           .delete()
           .eq('id', convoId);
-
-        if (error) throw error;
 
         setConversations((prev) => prev.filter((c) => c.id !== convoId));
         if (selectedConvo?.id === convoId) {

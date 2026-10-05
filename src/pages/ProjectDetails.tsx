@@ -124,7 +124,7 @@ export default function ProjectDetails() {
           .eq("project_id", id)
           .maybeSingle();
 
-        if (convo) {
+        if (convo && convo.status !== "withdrawn" && convo.status !== "cancelled") {
           setActiveConvo(convo);
           if (convo.status === "ready_to_purchase") {
             setConvoStatus("ready_to_purchase");
@@ -153,17 +153,24 @@ export default function ProjectDetails() {
                   setIsChatDrawerOpen(false);
                   toast.info("Build request has been cancelled.");
                 } else if (payload.new) {
-                  setActiveConvo(payload.new);
                   const newStatus = payload.new.status;
-                  if (newStatus === "ready_to_purchase") {
+                  if (newStatus === "withdrawn" || newStatus === "cancelled") {
+                    setActiveConvo(null);
+                    setConvoStatus("none");
+                    setIsChatDrawerOpen(false);
+                    toast.info("Build request has been cancelled.");
+                  } else if (newStatus === "ready_to_purchase") {
+                    setActiveConvo(payload.new);
                     setConvoStatus("ready_to_purchase");
                     toast.success("🎉 Access Granted! Lead engineer approved this build. You can now Buy Now & Pay!", {
                       duration: 7000
                     });
                   } else if (newStatus === "purchased") {
+                    setActiveConvo(payload.new);
                     setConvoStatus("purchased");
                     setIsOwned(true);
                   } else {
+                    setActiveConvo(payload.new);
                     setConvoStatus("active");
                   }
                 }
@@ -217,7 +224,7 @@ export default function ProjectDetails() {
         .eq("project_id", project.id)
         .maybeSingle();
 
-      if (existing) {
+      if (existing && existing.status !== "withdrawn" && existing.status !== "cancelled") {
         setActiveConvo(existing);
         setConvoStatus(existing.status || "active");
         setIsChatDrawerOpen(true);
@@ -231,30 +238,52 @@ export default function ProjectDetails() {
           created_at: new Date().toISOString()
         };
 
-        const { data: created, error } = await supabase
-          .from("product_conversations")
-          .insert({
-            user_id: session.user.id,
-            user_email: session.user.email,
-            user_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0],
-            project_id: project.id,
-            project_title: project.title,
-            project_thumb: project.thumb || "/placeholder.svg",
-            project_price: project.price || 0,
-            status: "active",
-            last_message: initialMsg.message,
-            last_message_at: initialMsg.created_at,
-            messages: [initialMsg]
-          })
-          .select()
-          .single();
+        if (existing) {
+          // Reactivate previously withdrawn conversation
+          const { data: reactivated, error } = await supabase
+            .from("product_conversations")
+            .update({
+              status: "active",
+              admin_deleted: false,
+              last_message: initialMsg.message,
+              last_message_at: initialMsg.created_at,
+              messages: [initialMsg],
+              updated_at: initialMsg.created_at
+            })
+            .eq("id", existing.id)
+            .select()
+            .single();
 
-        if (error) throw error;
+          if (error) throw error;
+          setActiveConvo(reactivated);
+          setConvoStatus("active");
+          setIsChatDrawerOpen(true);
+          toast.success("Build request submitted! Engineering team notified.");
+        } else {
+          const { data: created, error } = await supabase
+            .from("product_conversations")
+            .insert({
+              user_id: session.user.id,
+              user_email: session.user.email,
+              user_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0],
+              project_id: project.id,
+              project_title: project.title,
+              project_thumb: project.thumb || "/placeholder.svg",
+              project_price: project.price || 0,
+              status: "active",
+              last_message: initialMsg.message,
+              last_message_at: initialMsg.created_at,
+              messages: [initialMsg]
+            })
+            .select()
+            .single();
 
-        setActiveConvo(created);
-        setConvoStatus("active");
-        setIsChatDrawerOpen(true);
-        toast.success("Build request submitted! Engineering team notified.");
+          if (error) throw error;
+          setActiveConvo(created);
+          setConvoStatus("active");
+          setIsChatDrawerOpen(true);
+          toast.success("Build request submitted! Engineering team notified.");
+        }
       }
     } catch (err: any) {
       console.warn("Could not create build request in DB:", err);
@@ -274,12 +303,32 @@ export default function ProjectDetails() {
     setIsCancellingRequest(true);
     try {
       const convoId = activeConvo.id;
-      const { error } = await supabase
+
+      // 1. Wipe chat messages and update status in database
+      const { error: updateError } = await supabase
+        .from("product_conversations")
+        .update({
+          status: "withdrawn",
+          admin_deleted: true,
+          messages: [],
+          last_message: "Build request withdrawn by user",
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", convoId);
+
+      if (updateError) {
+        console.warn("Update status error:", updateError);
+      }
+
+      // 2. Also execute hard delete
+      const { error: deleteError } = await supabase
         .from("product_conversations")
         .delete()
         .eq("id", convoId);
 
-      if (error) throw error;
+      if (deleteError) {
+        console.warn("Delete error (possibly RLS restricted):", deleteError);
+      }
 
       setActiveConvo(null);
       setConvoStatus("none");

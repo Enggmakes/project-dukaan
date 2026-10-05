@@ -61,9 +61,25 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
     if (!conversation?.id) return;
     setIsCancelling(true);
     try {
+      // 1. Wipe chat messages and update status in database
+      await supabase
+        .from("product_conversations")
+        .update({
+          status: "withdrawn",
+          admin_deleted: true,
+          messages: [],
+          last_message: "Build request withdrawn by user",
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", conversation.id);
+
+      // 2. Hard delete
       await supabase.from("product_conversations").delete().eq("id", conversation.id);
+
       toast.success("Build request withdrawn & chat deleted.");
       setIsDrawerConfirmOpen(false);
+      setConversation(null);
+      setMessages([]);
       onClose();
     } catch (err) {
       console.error(err);
@@ -107,7 +123,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
           console.warn("Error fetching conversation:", error);
         }
 
-        let activeConvo = existing;
+        let activeConvo = (existing && existing.status !== "withdrawn" && existing.status !== "cancelled") ? existing : null;
 
         if (existing) {
           const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
