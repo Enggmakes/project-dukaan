@@ -325,11 +325,19 @@ export default function AdminDashboard() {
 
   // Serial send queue to ensure multiple canned clicks or quick typing never race or overwrite each other
   const adminSendQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const lastAdminSendRef = useRef<{ text: string; time: number }>({ text: '', time: 0 });
 
   const handleAdminSend = (presetText?: string) => {
     const text = (presetText || adminReplyText).trim();
     const activeConvo = selectedConvoRef.current;
     if (!text || !activeConvo) return;
+
+    // Multi-click throttle: prevent sending identical message within 1.5s
+    const now = Date.now();
+    if (lastAdminSendRef.current.text === text && now - lastAdminSendRef.current.time < 1500) {
+      return;
+    }
+    lastAdminSendRef.current = { text, time: now };
 
     if (!presetText) setAdminReplyText("");
 
@@ -366,6 +374,17 @@ export default function AdminDashboard() {
         const currentMessages = Array.isArray(latest?.messages) 
           ? latest.messages 
           : (Array.isArray(selectedConvoRef.current?.messages) ? selectedConvoRef.current.messages : []);
+
+        // Guard against duplicate rapid multi-click in database
+        const lastMsg = currentMessages[currentMessages.length - 1];
+        if (
+          lastMsg &&
+          lastMsg.sender_role === newMsg.sender_role &&
+          lastMsg.message === newMsg.message &&
+          Math.abs(new Date(newMsg.created_at).getTime() - new Date(lastMsg.created_at).getTime()) < 1500
+        ) {
+          return;
+        }
         
         // Deduplicate strictly by message id
         const seenIds = new Set<string>();
@@ -2468,16 +2487,7 @@ export default function AdminDashboard() {
                           >
                             {(() => {
                               const displayChatMessages = adminChatMessages.filter((msg: any, idx: number, arr: any[]) => {
-                                if (idx > 0) {
-                                  const prev = arr[idx - 1];
-                                  if (prev.sender_role === msg.sender_role && prev.message === msg.message) {
-                                    const timeDiff = Math.abs(new Date(msg.created_at).getTime() - new Date(prev.created_at).getTime());
-                                    if (isNaN(timeDiff) || timeDiff < 60000) {
-                                      return false;
-                                    }
-                                  }
-                                }
-                                return true;
+                                return arr.findIndex((x) => x.id === msg.id) === idx;
                               });
 
                               if (displayChatMessages.length === 0) {
@@ -2535,7 +2545,8 @@ export default function AdminDashboard() {
                                 key={i}
                                 type="button"
                                 onClick={() => handleAdminSend(preset)}
-                                className="bg-[#070a12] border border-slate-800 text-slate-300 hover:border-amber-500/40 hover:text-amber-400 px-2.5 py-1 rounded whitespace-nowrap transition-colors shrink-0 text-[11px] font-mono cursor-pointer"
+                                disabled={isAdminSending}
+                                className="bg-[#070a12] border border-slate-800 text-slate-300 hover:border-amber-500/40 hover:text-amber-400 px-2.5 py-1 rounded whitespace-nowrap transition-colors shrink-0 text-[11px] font-mono cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
                               >
                                 {preset.slice(0, 30)}...
                               </button>

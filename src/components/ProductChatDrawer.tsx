@@ -288,11 +288,19 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
 
   // Serialized send queue to guarantee atomic message delivery and eliminate race conditions
   const userSendQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const lastUserSendRef = useRef<{ text: string; time: number }>({ text: '', time: 0 });
 
   const handleSendMessage = (textToSend?: string) => {
     const msgText = (textToSend || newMessage).trim();
     const currentConvo = conversationRef.current;
     if (!msgText || !user || !currentConvo) return;
+
+    // Multi-click throttle: prevent sending identical message within 1.5s
+    const now = Date.now();
+    if (lastUserSendRef.current.text === msgText && now - lastUserSendRef.current.time < 1500) {
+      return;
+    }
+    lastUserSendRef.current = { text: msgText, time: now };
 
     if (!textToSend) setNewMessage("");
 
@@ -353,6 +361,17 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
           const currentMessages = Array.isArray(latest?.messages)
             ? latest.messages
             : messages.filter((m) => m.id !== "welcome");
+
+          // Guard against duplicate rapid multi-click in database
+          const lastMsg = currentMessages[currentMessages.length - 1];
+          if (
+            lastMsg &&
+            lastMsg.sender_role === newMsg.sender_role &&
+            lastMsg.message === newMsg.message &&
+            Math.abs(new Date(newMsg.created_at).getTime() - new Date(lastMsg.created_at).getTime()) < 1500
+          ) {
+            return;
+          }
 
           // Deduplicate strictly by message id
           const seenIds = new Set<string>();
@@ -580,7 +599,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
                   type="button"
                   onClick={() => handleSendMessage(q)}
                   disabled={isSending}
-                  className="text-[11px] font-mono bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-800 hover:border-amber-500/40 px-2.5 py-1 rounded transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
+                  className="text-[11px] font-mono bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-800 hover:border-amber-500/40 px-2.5 py-1 rounded transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
                 >
                   {q}
                 </button>
