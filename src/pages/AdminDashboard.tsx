@@ -9,6 +9,7 @@ import {
   Terminal, Shield, ArrowUpRight, BarChart3, Inbox, FileSpreadsheet, Check, Key
 } from "lucide-react";
 import Layout from "@/components/Layout";
+import CyberConfirmDialog from "@/components/CyberConfirmDialog";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -395,30 +396,27 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleCancelAndPurgeRequest = async (convoId: string) => {
-    const confirmed = window.confirm(
-      "Cancel this build request and PERMANENTLY delete the conversation & chat history from the database? This will withdraw the request and remove it for both user and admin."
+  const handleCancelAndPurgeRequest = (convoId: string) => {
+    askConfirmation(
+      "CANCEL_BUILD_REQUEST",
+      "Are you sure you want to cancel this build request and PERMANENTLY delete the conversation and chat history from the database? This cannot be undone.",
+      async () => {
+        const { error } = await supabase
+          .from('product_conversations')
+          .delete()
+          .eq('id', convoId);
+
+        if (error) throw error;
+
+        setConversations((prev) => prev.filter((c) => c.id !== convoId));
+        if (selectedConvo?.id === convoId) {
+          setSelectedConvo(null);
+          setAdminChatMessages([]);
+        }
+        toast.success("Build request cancelled & chat deleted from database.");
+      },
+      "YES, DELETE & PURGE"
     );
-    if (!confirmed) return;
-
-    try {
-      const { error } = await supabase
-        .from('product_conversations')
-        .delete()
-        .eq('id', convoId);
-
-      if (error) throw error;
-
-      setConversations((prev) => prev.filter((c) => c.id !== convoId));
-      if (selectedConvo?.id === convoId) {
-        setSelectedConvo(null);
-        setAdminChatMessages([]);
-      }
-      toast.success("Build request cancelled & chat deleted from database.");
-    } catch (err: any) {
-      console.error("Failed to cancel request:", err);
-      toast.error("Failed to cancel request from database.");
-    }
   };
 
   const filteredConversations = conversations.filter((c) => {
@@ -430,6 +428,47 @@ export default function AdminDashboard() {
       (c.project_title && c.project_title.toLowerCase().includes(chatSearch.toLowerCase()));
     return matchesFilter && matchesSearch;
   });
+
+    const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    confirmText?: string;
+    onConfirm: () => void | Promise<void>;
+    isLoading?: boolean;
+    variant?: "danger" | "warning";
+  }>({
+    isOpen: false,
+    title: "",
+    description: "",
+    onConfirm: () => {},
+  });
+
+  const askConfirmation = (
+    title: string,
+    description: string,
+    onConfirm: () => void | Promise<void>,
+    confirmText = "CONFIRM_DELETE",
+    variant: "danger" | "warning" = "danger"
+  ) => {
+    setConfirmDialog({
+      isOpen: true,
+      title,
+      description,
+      confirmText,
+      variant,
+      isLoading: false,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+        try {
+          await onConfirm();
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+        } catch {
+          setConfirmDialog((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
+  };
 
   const [dbProjects, setDbProjects] = useState<any[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(false);
@@ -565,17 +604,22 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleDeleteProject = async (projectId: string, projectTitle: string) => {
-    if (!confirm(`Are you sure you want to delete "${projectTitle}" from the marketplace? This cannot be undone.`)) return;
-
-    const toastId = toast.loading("Deleting project...");
-    const { error } = await supabase.from('projects').delete().eq('id', projectId);
-    if (error) {
-      toast.error("Failed to delete project: " + error.message, { id: toastId });
-      return;
-    }
-    toast.success("Project deleted from marketplace", { id: toastId });
-    setDbProjects(prev => prev.filter(p => p.id !== projectId));
+  const handleDeleteProject = (projectId: string, projectTitle: string) => {
+    askConfirmation(
+      "DELETE_PROJECT_BLUEPRINT",
+      `Are you sure you want to delete "${projectTitle}" from the marketplace repository? This cannot be undone.`,
+      async () => {
+        const toastId = toast.loading("Deleting project...");
+        const { error } = await supabase.from('projects').delete().eq('id', projectId);
+        if (error) {
+          toast.error("Failed to delete project: " + error.message, { id: toastId });
+          return;
+        }
+        toast.success("Project deleted from marketplace", { id: toastId });
+        setDbProjects(prev => prev.filter(p => p.id !== projectId));
+      },
+      "DELETE_PROJECT"
+    );
   };
 
   const updateOrderStatus = async (orderId: string, newStatus: string, trackingId?: string) => {
@@ -646,22 +690,32 @@ export default function AdminDashboard() {
     toast.success(`Status updated to "${newStatus}"`);
   };
 
-  const deleteLead = async (lead: any) => {
-    if (!confirm(`Delete lead from ${lead.name}? This cannot be undone.`)) return;
-    if (lead.rawId) {
-      const { error } = await supabase.from('custom_requests').delete().eq('id', lead.rawId);
-      if (error) { toast.error("Failed to delete lead"); return; }
-    }
-    setLeads(prev => prev.filter(l => l.id !== lead.id));
-    toast.success("Lead deleted");
+  const deleteLead = (lead: any) => {
+    askConfirmation(
+      "DELETE_CUSTOM_LEAD",
+      `Are you sure you want to delete lead from ${lead.name}? This will remove the custom build inquiry.`,
+      async () => {
+        if (lead.rawId) {
+          const { error } = await supabase.from('custom_requests').delete().eq('id', lead.rawId);
+          if (error) { toast.error("Failed to delete lead"); return; }
+        }
+        setLeads(prev => prev.filter(l => l.id !== lead.id));
+        toast.success("Lead deleted");
+      }
+    );
   };
 
-  const deleteMessage = async (id: string) => {
-    if (!confirm("Delete this message? This cannot be undone.")) return;
-    const { error } = await supabase.from('contact_messages').delete().eq('id', id);
-    if (error) { toast.error("Failed to delete message"); return; }
-    setMessages(prev => prev.filter(m => m.id !== id));
-    toast.success("Message deleted");
+  const deleteMessage = (id: string) => {
+    askConfirmation(
+      "DELETE_CONTACT_MESSAGE",
+      "Are you sure you want to delete this message? This cannot be undone.",
+      async () => {
+        const { error } = await supabase.from('contact_messages').delete().eq('id', id);
+        if (error) { toast.error("Failed to delete message"); return; }
+        setMessages(prev => prev.filter(m => m.id !== id));
+        toast.success("Message deleted");
+      }
+    );
   };
 
   const handleNotificationClickLead = async (lead: any) => {
@@ -1889,9 +1943,13 @@ export default function AdminDashboard() {
 
                                     <DropdownMenuSeparator className="bg-slate-800" />
                                     <DropdownMenuItem 
-                                      onClick={async () => {
-                                        if (!confirm("Are you sure you want to cancel this order? This cannot be undone.")) return;
-                                        updateOrderStatus(o.id, "Cancelled");
+                                      onClick={() => {
+                                        askConfirmation(
+                                          "CANCEL_CLIENT_ORDER",
+                                          "Are you sure you want to cancel this order? This cannot be undone.",
+                                          () => updateOrderStatus(o.id, "Cancelled"),
+                                          "CANCEL_ORDER"
+                                        );
                                       }}
                                       className="flex items-center gap-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 cursor-pointer rounded-md p-2"
                                     >
@@ -2751,6 +2809,18 @@ export default function AdminDashboard() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Cyber-Deck Themed Universal Confirmation Modal */}
+      <CyberConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        confirmText={confirmDialog.confirmText}
+        variant={confirmDialog.variant}
+        isLoading={confirmDialog.isLoading}
+      />
     </Layout>
   );
 }

@@ -6,6 +6,7 @@ import { Helmet } from 'react-helmet-async';
 import Layout from "@/components/Layout";
 import ProjectCard from "@/components/ProjectCard";
 import ProductChatDrawer from "@/components/ProductChatDrawer";
+import CyberConfirmDialog from "@/components/CyberConfirmDialog";
 import { Project } from "@/lib/mockData";
 import { supabase } from "@/lib/supabase";
 import { isUserAdmin, checkAdminStatus } from "@/lib/authUtils";
@@ -73,6 +74,7 @@ export default function ProjectDetails() {
   const [isOwned, setIsOwned] = useState(false);
   const [isRequestingBuild, setIsRequestingBuild] = useState(false);
   const [isCancellingRequest, setIsCancellingRequest] = useState(false);
+  const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
 
   // Check user ownership, admin status, and build inquiry permission in realtime
   useEffect(() => {
@@ -262,14 +264,13 @@ export default function ProjectDetails() {
     }
   };
 
-  const handleCancelRequest = async () => {
+  const handleCancelRequest = () => {
     if (!activeConvo?.id) return;
+    setIsConfirmCancelOpen(true);
+  };
 
-    const confirmed = window.confirm(
-      "Are you sure you want to withdraw this build request? This will cancel your request and delete the inquiry chat from the system."
-    );
-    if (!confirmed) return;
-
+  const executeCancelRequest = async () => {
+    if (!activeConvo?.id) return;
     setIsCancellingRequest(true);
     try {
       const convoId = activeConvo.id;
@@ -283,6 +284,7 @@ export default function ProjectDetails() {
       setActiveConvo(null);
       setConvoStatus("none");
       setIsChatDrawerOpen(false);
+      setIsConfirmCancelOpen(false);
       toast.success("Build request withdrawn & chat deleted successfully.");
     } catch (err: any) {
       console.error("Failed to cancel build request:", err);
@@ -1340,6 +1342,19 @@ export default function ProjectDetails() {
         project={project}
         onOpenCheckout={handlePurchaseClick}
         onCancelRequest={handleCancelRequest}
+      />
+
+      {/* Cyber-Deck Themed Cancel / Withdraw Confirmation Modal */}
+      <CyberConfirmDialog
+        isOpen={isConfirmCancelOpen}
+        onClose={() => setIsConfirmCancelOpen(false)}
+        onConfirm={executeCancelRequest}
+        title="WITHDRAW_BUILD_REQUEST"
+        description="Are you sure you want to withdraw this build request? This will cancel your allocation check and permanently delete the inquiry chat from the system."
+        confirmText="WITHDRAW_&_DELETE"
+        cancelText="KEEP_REQUEST"
+        variant="danger"
+        isLoading={isCancellingRequest}
       />
     </Layout>
   );

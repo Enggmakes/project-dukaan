@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import CyberConfirmDialog from "@/components/CyberConfirmDialog";
 import { toast } from "sonner";
 import { isUserAdmin } from "@/lib/authUtils";
 import { 
@@ -43,27 +44,32 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isDrawerConfirmOpen, setIsDrawerConfirmOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const drawerChatFeedRef = useRef<HTMLDivElement>(null);
 
-  const handleDrawerCancelRequest = async () => {
+  const handleDrawerCancelRequest = () => {
     if (onCancelRequest) {
       onCancelRequest();
       return;
     }
-
     if (!conversation?.id) return;
-    const confirmed = window.confirm(
-      "Are you sure you want to withdraw this build request? This will cancel your request and delete the inquiry chat from the system."
-    );
-    if (!confirmed) return;
+    setIsDrawerConfirmOpen(true);
+  };
 
+  const executeDrawerCancel = async () => {
+    if (!conversation?.id) return;
+    setIsCancelling(true);
     try {
       await supabase.from("product_conversations").delete().eq("id", conversation.id);
       toast.success("Build request withdrawn & chat deleted.");
+      setIsDrawerConfirmOpen(false);
       onClose();
     } catch (err) {
       console.error(err);
       toast.error("Failed to cancel request.");
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -516,6 +522,18 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
           </>
         )}
       </SheetContent>
+
+      <CyberConfirmDialog
+        isOpen={isDrawerConfirmOpen}
+        onClose={() => setIsDrawerConfirmOpen(false)}
+        onConfirm={executeDrawerCancel}
+        title="WITHDRAW_BUILD_REQUEST"
+        description="Are you sure you want to withdraw this build request? This will cancel your allocation check and permanently delete the inquiry chat from the system."
+        confirmText="WITHDRAW_&_DELETE"
+        cancelText="KEEP_REQUEST"
+        variant="danger"
+        isLoading={isCancelling}
+      />
     </Sheet>
   );
 }
