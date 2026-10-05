@@ -190,7 +190,15 @@ export default function AdminDashboard() {
         { event: '*', schema: 'public', table: 'product_conversations' },
         (payload: any) => {
           fetchConversations();
-          if (payload.new && selectedConvoRef.current?.id === payload.new.id) {
+          if (payload.eventType === 'DELETE') {
+            const deletedId = payload.old?.id;
+            setConversations((prev) => prev.filter((c) => c.id !== deletedId));
+            if (selectedConvoRef.current?.id === deletedId) {
+              setSelectedConvo(null);
+              setAdminChatMessages([]);
+              toast.info("Build request / chat was deleted.");
+            }
+          } else if (payload.new && selectedConvoRef.current?.id === payload.new.id) {
             setSelectedConvo(payload.new);
             syncAdminMessages(payload.new);
           }
@@ -384,6 +392,32 @@ export default function AdminDashboard() {
       toast.success("Inquiry cleared from Admin view. Any new messages from user will appear fresh.");
     } catch (err: any) {
       toast.error("Failed to remove inquiry");
+    }
+  };
+
+  const handleCancelAndPurgeRequest = async (convoId: string) => {
+    const confirmed = window.confirm(
+      "Cancel this build request and PERMANENTLY delete the conversation & chat history from the database? This will withdraw the request and remove it for both user and admin."
+    );
+    if (!confirmed) return;
+
+    try {
+      const { error } = await supabase
+        .from('product_conversations')
+        .delete()
+        .eq('id', convoId);
+
+      if (error) throw error;
+
+      setConversations((prev) => prev.filter((c) => c.id !== convoId));
+      if (selectedConvo?.id === convoId) {
+        setSelectedConvo(null);
+        setAdminChatMessages([]);
+      }
+      toast.success("Build request cancelled & chat deleted from database.");
+    } catch (err: any) {
+      console.error("Failed to cancel request:", err);
+      toast.error("Failed to cancel request from database.");
     }
   };
 
@@ -1997,8 +2031,15 @@ export default function AdminDashboard() {
                                                 onClick={() => handleDeleteForAdmin(c.id)}
                                                 className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-rose-500/10 text-rose-400 focus:text-rose-400 focus:bg-rose-500/10"
                                               >
+                                                <Archive className="w-4 h-4 text-slate-400" />
+                                                Hide from Admin View
+                                              </DropdownMenuItem>
+                                              <DropdownMenuItem
+                                                onClick={() => handleCancelAndPurgeRequest(c.id)}
+                                                className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-rose-500/10 text-rose-400 focus:text-rose-400 focus:bg-rose-500/10 font-semibold"
+                                              >
                                                 <Trash2 className="w-4 h-4 text-rose-400" />
-                                                Delete from Admin View
+                                                Cancel Request & Delete Chat
                                               </DropdownMenuItem>
                                             </DropdownMenuContent>
                                           </DropdownMenu>
@@ -2037,10 +2078,17 @@ export default function AdminDashboard() {
                                   <ContextMenuSeparator className="bg-slate-800 my-1" />
                                   <ContextMenuItem
                                     onClick={() => handleDeleteForAdmin(c.id)}
-                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-rose-500/10 text-rose-400 focus:text-rose-400 focus:bg-rose-500/10"
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-slate-800/80 text-slate-400 focus:text-slate-200"
+                                  >
+                                    <Archive className="w-4 h-4 text-slate-400" />
+                                    Hide from Admin View
+                                  </ContextMenuItem>
+                                  <ContextMenuItem
+                                    onClick={() => handleCancelAndPurgeRequest(c.id)}
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-rose-500/10 text-rose-400 focus:text-rose-400 focus:bg-rose-500/10 font-semibold"
                                   >
                                     <Trash2 className="w-4 h-4 text-rose-400" />
-                                    Delete from Admin View
+                                    Cancel Request & Delete Chat
                                   </ContextMenuItem>
                                 </ContextMenuContent>
                               </ContextMenu>
@@ -2155,6 +2203,18 @@ export default function AdminDashboard() {
                                 </SelectContent>
                               </Select>
 
+                              {/* Direct Cancel & Purge Action */}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleCancelAndPurgeRequest(selectedConvo.id)}
+                                className="h-8 text-xs font-mono border-rose-500/50 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 flex items-center gap-1.5 transition-all cursor-pointer"
+                                title="Cancel this build request and permanently delete chat from database"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                                <span className="hidden sm:inline">CANCEL_REQUEST</span>
+                              </Button>
+
                               {/* More Options for selected chat */}
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -2173,10 +2233,17 @@ export default function AdminDashboard() {
                                   <DropdownMenuSeparator className="bg-slate-800 my-1" />
                                   <DropdownMenuItem
                                     onClick={() => handleDeleteForAdmin(selectedConvo.id)}
-                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-rose-500/10 text-rose-400 focus:text-rose-400 focus:bg-rose-500/10"
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-slate-800/80 text-slate-400 focus:text-slate-200"
+                                  >
+                                    <Archive className="w-4 h-4 text-slate-400" />
+                                    Hide from Admin View
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleCancelAndPurgeRequest(selectedConvo.id)}
+                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-rose-500/10 text-rose-400 focus:text-rose-400 focus:bg-rose-500/10 font-bold"
                                   >
                                     <Trash2 className="w-4 h-4 text-rose-400" />
-                                    Delete from Admin View
+                                    Cancel Request & Delete Chat
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>

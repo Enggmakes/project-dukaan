@@ -1,5 +1,5 @@
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot, Heart, Headphones, Terminal, Layers, Cpu, Code2, Wrench, MessageSquare, FolderGit2, Key, Clock, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot, Heart, Headphones, Terminal, Layers, Cpu, Code2, Wrench, MessageSquare, FolderGit2, Key, Clock, Sparkles, XCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { load } from '@cashfreepayments/cashfree-js';
 import { Helmet } from 'react-helmet-async';
@@ -72,6 +72,7 @@ export default function ProjectDetails() {
   const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
   const [isOwned, setIsOwned] = useState(false);
   const [isRequestingBuild, setIsRequestingBuild] = useState(false);
+  const [isCancellingRequest, setIsCancellingRequest] = useState(false);
 
   // Check user ownership, admin status, and build inquiry permission in realtime
   useEffect(() => {
@@ -138,13 +139,18 @@ export default function ProjectDetails() {
             .on(
               "postgres_changes",
               {
-                event: "UPDATE",
+                event: "*",
                 schema: "public",
                 table: "product_conversations",
                 filter: `id=eq.${convo.id}`,
               },
               (payload: any) => {
-                if (payload.new) {
+                if (payload.eventType === "DELETE") {
+                  setActiveConvo(null);
+                  setConvoStatus("none");
+                  setIsChatDrawerOpen(false);
+                  toast.info("Build request has been cancelled.");
+                } else if (payload.new) {
                   setActiveConvo(payload.new);
                   const newStatus = payload.new.status;
                   if (newStatus === "ready_to_purchase") {
@@ -253,6 +259,36 @@ export default function ProjectDetails() {
       setIsChatDrawerOpen(true);
     } finally {
       setIsRequestingBuild(false);
+    }
+  };
+
+  const handleCancelRequest = async () => {
+    if (!activeConvo?.id) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to withdraw this build request? This will cancel your request and delete the inquiry chat from the system."
+    );
+    if (!confirmed) return;
+
+    setIsCancellingRequest(true);
+    try {
+      const convoId = activeConvo.id;
+      const { error } = await supabase
+        .from("product_conversations")
+        .delete()
+        .eq("id", convoId);
+
+      if (error) throw error;
+
+      setActiveConvo(null);
+      setConvoStatus("none");
+      setIsChatDrawerOpen(false);
+      toast.success("Build request withdrawn & chat deleted successfully.");
+    } catch (err: any) {
+      console.error("Failed to cancel build request:", err);
+      toast.error("Failed to cancel request. Please try again.");
+    } finally {
+      setIsCancellingRequest(false);
     }
   };
 
@@ -737,12 +773,23 @@ export default function ProjectDetails() {
                       </Button>
                       <div className="flex items-center justify-between text-[10px] font-mono text-emerald-400/90 px-1">
                         <span>✓ Engineer Approved</span>
-                        <button 
-                          onClick={() => setIsChatDrawerOpen(true)}
-                          className="text-slate-400 hover:text-white underline cursor-pointer"
-                        >
-                          View Chat Thread
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => setIsChatDrawerOpen(true)}
+                            className="text-slate-400 hover:text-white underline cursor-pointer"
+                          >
+                            View Chat Thread
+                          </button>
+                          <span className="text-slate-600">·</span>
+                          <button
+                            disabled={isCancellingRequest}
+                            onClick={handleCancelRequest}
+                            className="text-rose-400 hover:text-rose-300 hover:underline cursor-pointer"
+                            title="Withdraw request and delete chat"
+                          >
+                            Withdraw
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ) : convoStatus === "active" ? (
@@ -766,6 +813,26 @@ export default function ProjectDetails() {
                       <p className="text-[10px] text-slate-400 font-mono text-center leading-relaxed">
                         Lead engineer is reviewing availability & components. Buy Now unlocks once approved.
                       </p>
+                      
+                      {/* Cancel / Withdraw Request Button */}
+                      <Button
+                        variant="outline"
+                        disabled={isCancellingRequest}
+                        onClick={handleCancelRequest}
+                        className="w-full rounded bg-[#090e1c]/60 hover:bg-rose-950/40 text-rose-400 hover:text-rose-300 border border-rose-900/60 hover:border-rose-500/50 h-9 text-[11px] font-mono font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                      >
+                        {isCancellingRequest ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            WITHDRAWING_REQUEST...
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="w-3.5 h-3.5" />
+                            [x] WITHDRAW / CANCEL REQUEST
+                          </>
+                        )}
+                      </Button>
                     </div>
                   ) : (
                     <div className="space-y-2.5">
@@ -1272,6 +1339,7 @@ export default function ProjectDetails() {
         onClose={() => setIsChatDrawerOpen(false)}
         project={project}
         onOpenCheckout={handlePurchaseClick}
+        onCancelRequest={handleCancelRequest}
       />
     </Layout>
   );

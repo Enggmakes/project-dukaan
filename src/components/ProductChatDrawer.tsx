@@ -33,9 +33,10 @@ interface ProductChatDrawerProps {
     category?: string;
   } | null;
   onOpenCheckout?: () => void;
+  onCancelRequest?: () => void;
 }
 
-export default function ProductChatDrawer({ isOpen, onClose, project, onOpenCheckout }: ProductChatDrawerProps) {
+export default function ProductChatDrawer({ isOpen, onClose, project, onOpenCheckout, onCancelRequest }: ProductChatDrawerProps) {
   const [user, setUser] = useState<any>(null);
   const [conversation, setConversation] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -43,6 +44,28 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const drawerChatFeedRef = useRef<HTMLDivElement>(null);
+
+  const handleDrawerCancelRequest = async () => {
+    if (onCancelRequest) {
+      onCancelRequest();
+      return;
+    }
+
+    if (!conversation?.id) return;
+    const confirmed = window.confirm(
+      "Are you sure you want to withdraw this build request? This will cancel your request and delete the inquiry chat from the system."
+    );
+    if (!confirmed) return;
+
+    try {
+      await supabase.from("product_conversations").delete().eq("id", conversation.id);
+      toast.success("Build request withdrawn & chat deleted.");
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to cancel request.");
+    }
+  };
 
   // Check auth session
   useEffect(() => {
@@ -352,9 +375,18 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
                       <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin-slow shrink-0" />
                       <span className="truncate">ALLOCATION_IN_PROGRESS: Engineer reviewing components...</span>
                     </div>
-                    <Badge variant="outline" className="border-amber-500/40 text-amber-400 text-[9px] shrink-0 font-mono">
-                      IN REVIEW
-                    </Badge>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant="outline" className="border-amber-500/40 text-amber-400 text-[9px] font-mono">
+                        IN REVIEW
+                      </Badge>
+                      <button
+                        onClick={handleDrawerCancelRequest}
+                        className="text-[10px] text-rose-400 hover:text-rose-300 hover:underline cursor-pointer font-bold"
+                        title="Withdraw build request and delete chat"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
