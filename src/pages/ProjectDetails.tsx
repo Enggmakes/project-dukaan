@@ -339,10 +339,14 @@ export default function ProjectDetails() {
   };
 
   const executeCancelRequest = async () => {
-    if (!activeConvo?.id) return;
+    if (!activeConvo?.id) {
+      setIsConfirmCancelOpen(false);
+      return;
+    }
     setIsCancellingRequest(true);
     try {
       const convoId = activeConvo.id;
+      const userId = currentUser?.id || activeConvo?.user_id;
 
       // 1. Wipe chat messages and update status in database
       const { error: updateError } = await supabase
@@ -361,11 +365,11 @@ export default function ProjectDetails() {
       }
 
       // 2. Also execute hard delete (for all records matching this user & project to purge duplicates)
-      if (session?.user?.id && id) {
+      if (userId && id) {
         await supabase
           .from("product_conversations")
           .delete()
-          .eq("user_id", session.user.id)
+          .eq("user_id", userId)
           .eq("project_id", id);
       } else {
         await supabase
@@ -384,6 +388,7 @@ export default function ProjectDetails() {
       toast.error("Failed to cancel request. Please try again.");
     } finally {
       setIsCancellingRequest(false);
+      setIsConfirmCancelOpen(false);
     }
   };
 
