@@ -15,7 +15,6 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -73,22 +72,6 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
     }
   };
 
-  // Google OAuth Auth
-  const handleGoogleSignIn = async () => {
-    try {
-      setGoogleLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/`,
-        },
-      });
-      if (error) throw error;
-    } catch (error: any) {
-      toast.error(error.message || "Failed to initialize Google login");
-      setGoogleLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 md:p-10 bg-[#070a12] blueprint-grid overflow-hidden font-mono selection:bg-amber-500 selection:text-amber-950">
@@ -297,7 +280,7 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
             {/* Primary Action Button */}
             <Button
               type="submit"
-              disabled={loading || googleLoading}
+              disabled={loading}
               className="w-full rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-black font-mono h-11 text-xs shadow-[0_3px_0_#92400e] border border-amber-300 transition-all active:translate-y-0.5 mt-3 retro-btn flex items-center justify-center gap-2"
             >
               {loading ? (
@@ -313,49 +296,6 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
             </Button>
           </form>
 
-          {/* Social Divider */}
-          <div className="relative my-5">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-800" />
-            </div>
-            <div className="relative flex justify-center text-[10px] font-mono text-slate-500 uppercase">
-              <span className="bg-[#0a0e17] px-3">// OR_CONTINUE_WITH</span>
-            </div>
-          </div>
-
-          {/* Google OAuth Button */}
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={loading || googleLoading}
-            className="w-full h-10 rounded bg-[#0d121e] hover:bg-slate-800 border border-slate-700 hover:border-slate-600 shadow-sm flex items-center justify-center gap-2.5 text-xs font-mono font-bold text-slate-200 transition-all active:translate-y-0.5 disabled:opacity-50"
-          >
-            {googleLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
-            ) : (
-              <>
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3.04h3.88c2.27-2.09 3.665-5.17 3.665-9.13z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.04c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.13C3.25 21.37 7.33 24 12 24z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.28 14.28c-.25-.72-.38-1.49-.38-2.28s.13-1.56.38-2.28V6.59H1.26C.46 8.19 0 10.03 0 12s.46 3.81 1.26 5.41l4.02-3.13z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.25 2.63 1.26 6.59l4.02 3.13c.95-2.83 3.6-4.97 6.72-4.97z"
-                  />
-                </svg>
-                <span>GOOGLE_SINGLE_SIGN_ON</span>
-              </>
-            )}
-          </button>
         </div>
       </motion.div>
     </div>
