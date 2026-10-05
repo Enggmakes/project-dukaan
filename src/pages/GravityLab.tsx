@@ -15,8 +15,7 @@ interface TechParticle {
   radius: number;
   mass: number;
   colorTheme: string;
-  phase: "trailing" | "falling" | "settled";
-  trailTimer: number; // time spent floating gently behind cursor
+  settled: boolean;
 }
 
 const THEMES = ["#ef4444", "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ec4899"];
@@ -35,7 +34,7 @@ export default function GravityLab() {
     vy: 0,
   });
 
-  // Polyfill roundRect
+  // Polyfill roundRect for Safari / older browsers
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -86,10 +85,10 @@ export default function GravityLab() {
 
     // EXACT spawn parameters from the regular GlobalTechParticles trail
     const spawnParticle = (x: number, y: number) => {
-      // Limit total particles on screen to 450 to maintain solid 60fps
-      if (particlesRef.current.length >= 450) {
-        // Remove the oldest settled particle if ceiling reached
-        const settledIndex = particlesRef.current.findIndex((p) => p.phase === "settled");
+      // Keep up to 600 components max for silky smooth 60fps
+      if (particlesRef.current.length >= 600) {
+        // Drop the oldest settled particle if reached max capacity
+        const settledIndex = particlesRef.current.findIndex((p) => p.settled);
         if (settledIndex !== -1) {
           particlesRef.current.splice(settledIndex, 1);
         } else {
@@ -105,18 +104,17 @@ export default function GravityLab() {
         id: Math.random() + Date.now(),
         x,
         y,
-        // EXACT gentle drift & upward anti-gravity float from regular mouse trail
-        vx: (Math.random() - 0.5) * 1.5,
-        vy: -Math.random() * 1.2 - 0.4,
+        // Regular site trail: floats upward and drifts initially behind cursor
+        vx: (Math.random() - 0.5) * 2.2,
+        vy: -Math.random() * 2.5 - 0.8, // gentle upward plume
         rotation: Math.random() * Math.PI * 2,
-        spin: (Math.random() - 0.5) * 0.035,
+        spin: (Math.random() - 0.5) * 0.05,
         type: Math.floor(Math.random() * 5),
         size,
         radius,
         mass: radius * radius * 0.1,
         colorTheme,
-        phase: "trailing", // Phase 1: gentle float behind cursor
-        trailTimer: Math.random() * 0.5 + 0.9, // trails behind cursor for ~0.9 - 1.4s
+        settled: false,
       });
     };
 
@@ -398,8 +396,9 @@ export default function GravityLab() {
 
     let animationId: number;
 
-    const gravity = 0.38;
-    const floorYOffset = 10;
+    // Continuous downward gravity acceleration
+    const gravity = 0.36;
+    const floorYOffset = 12;
 
     const tick = () => {
       ctx.clearRect(0, 0, width, height);
@@ -414,63 +413,49 @@ export default function GravityLab() {
 
       let settledTally = 0;
 
+      // 1. Continuous Physics Update (NEVER stops mid-air!)
       for (let i = 0; i < len; i++) {
         const p = particles[i];
 
-        // 1. PHASE 1: Trailing gently behind mouse (IDENTICAL to regular pages)
-        if (p.phase === "trailing") {
-          p.trailTimer -= 0.016;
+        if (!p.settled) {
+          // Always apply continuous gravity while in the air!
+          p.vy += gravity;
 
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vx *= 0.97;
-          p.vy *= 0.97;
-          p.rotation += p.spin;
-
-          // When trailing phase ends, transition to gravity fall!
-          if (p.trailTimer <= 0) {
-            p.phase = "falling";
-            p.vy = Math.random() * 0.5; // slight downward starting nudge
-          }
-        }
-        // 2. PHASE 2: Falling with Gravity toward floor
-        else if (p.phase === "falling") {
-          p.vy += gravity; // Gravity pulls it down!
-          p.vx *= 0.99;
-          p.vy *= 0.99;
+          // Gentle air drag
+          p.vx *= 0.985;
+          p.vy *= 0.992;
 
           p.x += p.vx;
           p.y += p.vy;
           p.rotation += p.spin;
 
-          // Bounce on floor
-          if (p.y + p.radius > floorY) {
-            p.y = floorY - p.radius;
-            p.vy = -p.vy * 0.35;
-            p.vx *= 0.85;
-            p.spin *= 0.75;
-
-            // If resting on floor, mark as settled
-            if (Math.abs(p.vy) < 0.3) {
-              p.vy = 0;
-              p.phase = "settled";
-            }
-          }
-
-          // Wall boundaries
+          // Wall bounces
           if (p.x - p.radius < leftX) {
             p.x = leftX + p.radius;
-            p.vx = -p.vx * 0.4;
+            p.vx = -p.vx * 0.45;
           } else if (p.x + p.radius > rightX) {
             p.x = rightX - p.radius;
-            p.vx = -p.vx * 0.4;
+            p.vx = -p.vx * 0.45;
           }
-        }
-        // 3. PHASE 3: Settled at the bottom
-        else if (p.phase === "settled") {
+
+          // Floor collision
+          if (p.y + p.radius >= floorY) {
+            p.y = floorY - p.radius;
+            p.vy = -p.vy * 0.32; // bounce
+            p.vx *= 0.82; // ground friction
+            p.spin *= 0.7;
+
+            // Settle when downward energy dissipates on the floor
+            if (Math.abs(p.vy) < 0.4 && Math.abs(p.vx) < 0.4) {
+              p.vy = 0;
+              p.vx = 0;
+              p.settled = true;
+            }
+          }
+        } else {
           settledTally++;
 
-          // Keep in bounds
+          // Keep settled particle on ground or bounds
           if (p.y + p.radius > floorY) {
             p.y = floorY - p.radius;
             p.vy = 0;
@@ -485,95 +470,68 @@ export default function GravityLab() {
 
             if (mdist < pushRadius && mdist > 0.01) {
               const push = (pushRadius - mdist) / pushRadius;
-              p.vx += (mdx / mdist) * push * 6 + mouse.vx * 0.15;
-              p.vy += (mdy / mdist) * push * 6 + mouse.vy * 0.15;
-              p.spin += (Math.random() - 0.5) * 0.1;
-              p.phase = "falling"; // awaken and let gravity handle it again
+              p.vx += (mdx / mdist) * push * 6 + mouse.vx * 0.18;
+              p.vy += (mdy / mdist) * push * 6 + mouse.vy * 0.18 - 1.5;
+              p.spin += (Math.random() - 0.5) * 0.15;
+              p.settled = false; // re-awaken with gravity!
             }
           }
         }
       }
 
-      // 4. Stacking Collision in the Settled Floor Pile (so components stack and fill up the floor)
-      const cellSize = 55;
-      const cols = Math.ceil(width / cellSize);
-      const rows = Math.ceil(height / cellSize);
-      const grid: number[][] = new Array(cols * rows);
+      // 2. Stacking Collision ONLY for particles near the floor or settled
+      // (This guarantees particles falling through the air never freeze or get stuck!)
+      const floorThreshold = height - 280;
+      const nearFloorParticles: number[] = [];
 
       for (let i = 0; i < len; i++) {
-        const p = particles[i];
-        if (p.phase === "trailing") continue; // only check fallen/settled
-
-        const cellX = Math.floor(Math.max(0, Math.min(width - 1, p.x)) / cellSize);
-        const cellY = Math.floor(Math.max(0, Math.min(height - 1, p.y)) / cellSize);
-        const cellIdx = cellX + cellY * cols;
-
-        if (!grid[cellIdx]) grid[cellIdx] = [];
-        grid[cellIdx].push(i);
+        if (particles[i].y > floorThreshold || particles[i].settled) {
+          nearFloorParticles.push(i);
+        }
       }
 
-      for (let cellIdx = 0; cellIdx < grid.length; cellIdx++) {
-        const cell = grid[cellIdx];
-        if (!cell || cell.length === 0) continue;
+      const nLen = nearFloorParticles.length;
+      for (let a = 0; a < nLen; a++) {
+        const p1 = particles[nearFloorParticles[a]];
+        for (let b = a + 1; b < nLen; b++) {
+          const p2 = particles[nearFloorParticles[b]];
 
-        const cellX = cellIdx % cols;
-        const cellY = Math.floor(cellIdx / cols);
+          const dx = p2.x - p1.x;
+          const dy = p2.y - p1.y;
+          const distSq = dx * dx + dy * dy;
+          const minDist = p1.radius + p2.radius;
 
-        for (let ox = 0; ox <= 1; ox++) {
-          for (let oy = -1; oy <= 1; oy++) {
-            if (ox === 0 && oy < 0) continue;
-            const neighborX = cellX + ox;
-            const neighborY = cellY + oy;
+          if (distSq < minDist * minDist && distSq > 0.0001) {
+            const dist = Math.sqrt(distSq);
+            const overlap = (minDist - dist) * 0.5;
+            const nx = dx / dist;
+            const ny = dy / dist;
 
-            if (neighborX < 0 || neighborX >= cols || neighborY < 0 || neighborY >= rows) continue;
-            const neighborCell = grid[neighborX + neighborY * cols];
-            if (!neighborCell) continue;
+            // Separate physical positions
+            p1.x -= nx * overlap;
+            p1.y -= ny * overlap;
+            p2.x += nx * overlap;
+            p2.y += ny * overlap;
 
-            const isSelfCell = cellIdx === neighborX + neighborY * cols;
-
-            for (let a = 0; a < cell.length; a++) {
-              const startB = isSelfCell ? a + 1 : 0;
-              for (let b = startB; b < neighborCell.length; b++) {
-                const p1 = particles[cell[a]];
-                const p2 = particles[neighborCell[b]];
-
-                const dx = p2.x - p1.x;
-                const dy = p2.y - p1.y;
-                const distSq = dx * dx + dy * dy;
-                const minDist = p1.radius + p2.radius;
-
-                if (distSq < minDist * minDist && distSq > 0.0001) {
-                  const dist = Math.sqrt(distSq);
-                  const overlap = (minDist - dist) * 0.5;
-                  const nx = dx / dist;
-                  const ny = dy / dist;
-
-                  p1.x -= nx * overlap;
-                  p1.y -= ny * overlap;
-                  p2.x += nx * overlap;
-                  p2.y += ny * overlap;
-
-                  // Soft settle
-                  p1.vx *= 0.85;
-                  p2.vx *= 0.85;
-                  p1.vy *= 0.85;
-                  p2.vy *= 0.85;
-                }
-              }
+            // Dampen resting velocities against each other
+            if (p1.settled || p2.settled) {
+              p1.vx *= 0.88;
+              p2.vx *= 0.88;
+              if (Math.abs(p1.vy) < 0.5) p1.settled = true;
+              if (Math.abs(p2.vy) < 0.5) p2.settled = true;
             }
           }
         }
       }
 
-      // 5. Draw all particles
+      // 3. Render all components
       for (let i = 0; i < len; i++) {
         const p = particles[i];
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(p.rotation);
 
-        // While trailing, opacity is slightly softer (0.85) just like main site
-        ctx.globalAlpha = p.phase === "trailing" ? 0.88 : 0.95;
+        ctx.globalAlpha = 0.92;
 
         try {
           drawComponent(ctx, p.type, p.size, p.colorTheme);
@@ -584,7 +542,7 @@ export default function GravityLab() {
         ctx.restore();
       }
 
-      // Subtle Hazard Floor Line
+      // Floor Guide Line
       ctx.strokeStyle = "rgba(245, 158, 11, 0.4)";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
@@ -646,7 +604,7 @@ export default function GravityLab() {
         </div>
       </header>
 
-      {/* Floating Center Prompt (fades away once particles start settling) */}
+      {/* Floating Center Prompt */}
       {settledCount === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-15">
           <div className="p-4 rounded-xl bg-[#0a0e17]/85 border border-slate-800 text-center space-y-1 backdrop-blur-sm shadow-2xl">
@@ -654,7 +612,7 @@ export default function GravityLab() {
               ✨ WAVE YOUR MOUSE ACROSS THE SCREEN
             </p>
             <p className="text-xs text-slate-400 font-mono">
-              The trail floats behind your cursor, then gravity pulls it down to store and fill up the floor.
+              Components trail from your mouse, arc gracefully, and fall all the way down to fill the floor.
             </p>
           </div>
         </div>
