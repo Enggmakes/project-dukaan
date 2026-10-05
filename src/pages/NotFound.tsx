@@ -18,22 +18,30 @@ const NotFound = () => {
         <title>404 - Page Not Found | ProjectDukaan</title>
         <meta name="description" content="The page you are looking for does not exist on ProjectDukaan." />
       </Helmet>
-      <div className="py-28 container-px flex items-center justify-center">
-        <div className="max-w-md w-full text-center bg-white border border-slate-200 rounded-3xl p-10 shadow-sm">
-          <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 text-blue-600 grid place-items-center mx-auto mb-6 shadow-sm">
+      <div className="py-24 container-px flex items-center justify-center font-mono">
+        <div className="max-w-md w-full text-center bg-[#0a0e17] border-2 border-slate-800 rounded-md p-10 shadow-2xl relative overflow-hidden">
+          {/* CRT Corner Decal Ticks */}
+          <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-amber-400 pointer-events-none" />
+          <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-amber-400 pointer-events-none" />
+          <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-amber-400 pointer-events-none" />
+          <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-amber-400 pointer-events-none" />
+
+          <div className="w-16 h-16 rounded bg-[#161d2d] border border-cyan-800/80 text-cyan-400 grid place-items-center mx-auto mb-6 shadow-sm">
             <Compass className="w-8 h-8 animate-spin" style={{ animationDuration: '10s' }} />
           </div>
-          <span className="text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-50 border border-blue-200/80 px-3 py-1 rounded-full">Error 404</span>
-          <h1 className="text-display text-3xl sm:text-4xl font-bold text-slate-900 mt-4">Page not found</h1>
-          <p className="text-slate-600 mt-3 text-sm leading-relaxed">
-            The page or project blueprint you were looking for doesn't exist or has moved.
+          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-400 bg-amber-950/60 border border-amber-800 px-3 py-1 rounded">
+            [ERR_404_ADDR_NOT_FOUND]
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-black text-white mt-4 font-mono">SYS:\PAGE_NOT_FOUND</h1>
+          <p className="text-slate-400 mt-3 text-xs sm:text-sm leading-relaxed font-mono">
+            The target address or project blueprint identifier does not exist in the central repository registry.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-            <Button asChild className="rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm">
-              <Link to="/"><ArrowLeft className="w-4 h-4 mr-2" /> Back to Home</Link>
+            <Button asChild className="rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-black font-mono shadow-[0_3px_0_#92400e] border border-amber-300 active:translate-y-0.5 retro-btn text-xs h-10">
+              <Link to="/"><ArrowLeft className="w-4 h-4 mr-1 text-amber-950" /> [←] SYS:\HOME</Link>
             </Button>
-            <Button asChild variant="outline" className="rounded-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-semibold">
-              <Link to="/marketplace">Explore Marketplace</Link>
+            <Button asChild variant="outline" className="rounded border-slate-700 bg-[#0d121e] hover:bg-slate-800 text-cyan-300 hover:text-white font-mono text-xs h-10">
+              <Link to="/marketplace">[::] BLUEPRINTS</Link>
             </Button>
           </div>
         </div>

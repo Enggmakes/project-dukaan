@@ -91,14 +91,17 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 md:p-10 bg-slate-50 blueprint-grid overflow-hidden font-sans">
+    <div className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 md:p-10 bg-[#070a12] blueprint-grid overflow-hidden font-mono selection:bg-amber-500 selection:text-amber-950">
+      {/* CRT Scanline overlay */}
+      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] opacity-40 z-0" />
+
       {/* Back to Home Button */}
       <Link
         to="/"
-        className="fixed top-6 left-6 z-20 flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-950 text-xs font-semibold border border-slate-200 shadow-2xs transition-all active:scale-95"
+        className="fixed top-6 left-6 z-20 flex items-center gap-2 px-3.5 py-1.5 rounded bg-[#0d121e] hover:bg-[#161d2d] text-slate-300 hover:text-amber-400 text-xs font-mono font-bold border border-slate-700 hover:border-amber-500/60 shadow-md transition-all active:scale-95"
       >
-        <ArrowLeft className="w-3.5 h-3.5" />
-        Return to Dukaan
+        <ArrowLeft className="w-3.5 h-3.5 text-amber-500" />
+        <span>[←] SYS:\RETURN_TO_DUKAAN</span>
       </Link>
 
       {/* Main Console Card */}
@@ -106,69 +109,84 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
-        className="max-w-4xl w-full bg-white border border-slate-200/90 shadow-xl rounded-2xl overflow-hidden relative z-10 grid lg:grid-cols-12"
+        className="max-w-4xl w-full bg-[#0a0e17] border-2 border-slate-800 shadow-2xl rounded-md overflow-hidden relative z-10 grid lg:grid-cols-12"
       >
+        {/* CRT Corner Decal Ticks */}
+        <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-amber-400 pointer-events-none z-20" />
+        <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-amber-400 pointer-events-none z-20" />
+        <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-amber-400 pointer-events-none z-20" />
+        <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-amber-400 pointer-events-none z-20" />
+
         {/* Left Column: Industrial Engineering Telemetry (5 cols) */}
-        <div className="lg:col-span-5 bg-slate-950 text-white p-8 sm:p-10 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800">
+        <div className="lg:col-span-5 bg-[#05070c] text-white p-8 sm:p-10 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800">
           <div>
             <Link to="/" className="inline-flex items-center gap-2.5 mb-8">
-              <img src="/logo.png" alt="ProjectDukaan" className="w-7 h-7 object-contain" />
-              <span className="font-extrabold text-white tracking-tight text-lg">
-                Project<span className="text-blue-500">Dukaan</span>
+              <div className="relative">
+                <img src="/logo.png" alt="ProjectDukaan" className="w-7 h-7 object-contain" />
+                <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] animate-pulse" />
+              </div>
+              <span className="font-extrabold text-white tracking-tight text-lg font-mono">
+                Project<span className="text-amber-400">Dukaan</span>
               </span>
             </Link>
 
-            <div className="font-mono text-xs text-blue-400 font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <div className="font-mono text-xs text-amber-400 font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <Terminal className="w-3.5 h-3.5" />
-              <span>Developer Auth</span>
+              <span>SYS:\DEVELOPER_AUTH</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
-              Build & Ship <br />
-              <span className="text-slate-400 font-normal">Real Engineering.</span>
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight font-mono">
+              BUILD & SHIP <br />
+              <span className="text-amber-400">REAL_ENGINEERING.</span>
             </h1>
 
-            <p className="text-slate-400 text-xs sm:text-sm mt-3 leading-relaxed">
+            <p className="text-slate-400 text-xs sm:text-sm mt-3 leading-relaxed font-mono">
               Instant access to verified IEEE capstones, circuit schematics, and complete source code repositories.
             </p>
 
             <div className="mt-8 space-y-3 font-mono text-xs">
               <div className="flex items-center gap-2.5 text-slate-300">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div className="w-4 h-4 rounded bg-emerald-950/60 border border-emerald-800 grid place-items-center shrink-0">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                </div>
                 <span>100% Compiles on First Run</span>
               </div>
               <div className="flex items-center gap-2.5 text-slate-300">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div className="w-4 h-4 rounded bg-emerald-950/60 border border-emerald-800 grid place-items-center shrink-0">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                </div>
                 <span>IEEE Format Thesis Included</span>
               </div>
               <div className="flex items-center gap-2.5 text-slate-300">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div className="w-4 h-4 rounded bg-emerald-950/60 border border-emerald-800 grid place-items-center shrink-0">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                </div>
                 <span>Senior Engineer WhatsApp Desk</span>
               </div>
             </div>
           </div>
 
-          <div className="mt-10 pt-6 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-500">
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-blue-400" /> 256-bit Encrypted
+          <div className="mt-10 pt-6 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-500">
+            <span className="flex items-center gap-1.5 text-emerald-400">
+              <ShieldCheck className="w-3.5 h-3.5" /> SHA-256 ENCRYPTED
             </span>
-            <span>v2.6.4</span>
+            <span>v2.6.4_RELEASE</span>
           </div>
         </div>
 
         {/* Right Column: Clean Authentication Form (7 cols) */}
-        <div className="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-center">
-          <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-100">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-              {isLogin ? "Sign in to account" : "Create engineer account"}
+        <div className="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-center bg-[#0a0e17]">
+          <div className="flex items-center justify-between mb-6 pb-3 border-b border-slate-800">
+            <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight font-mono">
+              {isLogin ? "// SIGN_IN_CONSOLE" : "// REGISTER_ENGINEER"}
             </h2>
-            <div className="text-xs text-slate-500 font-medium">
-              {isLogin ? "New user? " : "Existing user? "}
+            <div className="text-xs text-slate-400 font-mono">
+              {isLogin ? "NEW_USER? " : "EXISTING? "}
               <Link
                 to={isLogin ? "/register" : "/login"}
-                className="text-blue-600 font-bold hover:underline"
+                className="text-amber-400 font-bold hover:text-amber-300 hover:underline"
               >
-                {isLogin ? "Sign up" : "Log in"}
+                {isLogin ? "[SIGN_UP]" : "[LOG_IN]"}
               </Link>
             </div>
           </div>
@@ -177,19 +195,19 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
             {/* Name Field (Sign Up Only) */}
             {!isLogin && (
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-700">Full Name</Label>
+                <Label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider font-mono">FULL_NAME *</Label>
                 <div className="relative">
                   <Input
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder="Ada Lovelace"
-                    className="h-10 rounded-lg bg-slate-50 border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-blue-600"
+                    className="h-10 rounded bg-[#0d121e] border-slate-700 text-sm font-mono text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-amber-500"
                   />
                   {form.name && (
                     <button
                       type="button"
                       onClick={() => setForm({ ...form, name: "" })}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -200,20 +218,20 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
 
             {/* Email Address Field */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700">Email Address</Label>
+              <Label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider font-mono">EMAIL_ADDRESS *</Label>
               <div className="relative">
                 <Input
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   placeholder="engineer@college.edu"
-                  className="h-10 rounded-lg bg-slate-50 border-slate-200 text-sm focus-visible:ring-1 focus-visible:ring-blue-600"
+                  className="h-10 rounded bg-[#0d121e] border-slate-700 text-sm font-mono text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-amber-500"
                 />
                 {form.email && (
                   <button
                     type="button"
                     onClick={() => setForm({ ...form, email: "" })}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -223,19 +241,19 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
 
             {/* Password Field */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700">Password</Label>
+              <Label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider font-mono">PASSWORD *</Label>
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   placeholder="••••••••••••"
-                  className="h-10 rounded-lg bg-slate-50 border-slate-200 pr-10 text-sm focus-visible:ring-1 focus-visible:ring-blue-600"
+                  className="h-10 rounded bg-[#0d121e] border-slate-700 pr-10 text-sm font-mono text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-amber-500"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -244,20 +262,20 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
 
             {/* Terms & Privacy Agreement Checkbox */}
             {!isLogin && (
-              <div className="flex items-start gap-2.5 pt-1 text-left">
+              <div className="flex items-start gap-2.5 pt-1 text-left font-mono">
                 <Checkbox
                   id="terms"
                   checked={agreed}
                   onCheckedChange={(checked) => setAgreed(!!checked)}
-                  className="mt-0.5 rounded border-slate-300 data-[state=checked]:bg-blue-600"
+                  className="mt-0.5 rounded border-slate-700 data-[state=checked]:bg-amber-500 data-[state=checked]:text-amber-950"
                 />
-                <label htmlFor="terms" className="text-xs text-slate-500 leading-tight select-none">
+                <label htmlFor="terms" className="text-xs text-slate-400 leading-tight select-none">
                   I agree to the{" "}
-                  <Link to="/terms" target="_blank" className="font-semibold text-blue-600 hover:underline">
+                  <Link to="/terms" target="_blank" className="font-semibold text-amber-400 hover:underline">
                     Terms of Service
                   </Link>{" "}
                   and{" "}
-                  <Link to="/privacy" target="_blank" className="font-semibold text-blue-600 hover:underline">
+                  <Link to="/privacy" target="_blank" className="font-semibold text-amber-400 hover:underline">
                     Privacy Policy
                   </Link>
                   .
@@ -269,17 +287,17 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
             <Button
               type="submit"
               disabled={loading || googleLoading}
-              className="w-full rounded-lg bg-slate-950 hover:bg-slate-800 text-white font-semibold h-11 text-xs shadow-xs transition-all active:scale-[0.99] mt-2"
+              className="w-full rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-black font-mono h-11 text-xs shadow-[0_3px_0_#92400e] border border-amber-300 transition-all active:translate-y-0.5 mt-3 retro-btn flex items-center justify-center gap-2"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Authenticating...
+                  <Loader2 className="w-4 h-4 animate-spin text-amber-950" />
+                  AUTHENTICATING_CREDENTIALS...
                 </span>
               ) : isLogin ? (
-                "Sign In"
+                "[EXEC] SIGN_IN_TO_CONSOLE"
               ) : (
-                "Create Account"
+                "[EXEC] INITIALIZE_ACCOUNT"
               )}
             </Button>
           </form>
@@ -287,10 +305,10 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
           {/* Social Divider */}
           <div className="relative my-5">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200" />
+              <div className="w-full border-t border-slate-800" />
             </div>
-            <div className="relative flex justify-center text-[11px] font-mono text-slate-400 uppercase">
-              <span className="bg-white px-3">or continue with</span>
+            <div className="relative flex justify-center text-[10px] font-mono text-slate-500 uppercase">
+              <span className="bg-[#0a0e17] px-3">// OR_CONTINUE_WITH</span>
             </div>
           </div>
 
@@ -299,10 +317,10 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={loading || googleLoading}
-            className="w-full h-10 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs flex items-center justify-center gap-2.5 text-xs font-semibold text-slate-700 transition-all active:scale-98 disabled:opacity-50"
+            className="w-full h-10 rounded bg-[#0d121e] hover:bg-slate-800 border border-slate-700 hover:border-slate-600 shadow-sm flex items-center justify-center gap-2.5 text-xs font-mono font-bold text-slate-200 transition-all active:translate-y-0.5 disabled:opacity-50"
           >
             {googleLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
+              <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
             ) : (
               <>
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -323,7 +341,7 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
                     d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.25 2.63 1.26 6.59l4.02 3.13c.95-2.83 3.6-4.97 6.72-4.97z"
                   />
                 </svg>
-                <span>Google Single Sign-On</span>
+                <span>GOOGLE_SINGLE_SIGN_ON</span>
               </>
             )}
           </button>

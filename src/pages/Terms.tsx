@@ -33,36 +33,36 @@ export default function Terms() {
         <title>Terms of Service - ProjectDukaan</title>
         <meta name="description" content="Understand the licensing rules, single-use educational limits, download boundaries, and terms of service for purchasing premium engineering blueprints on ProjectDukaan." />
       </Helmet>
-      <div className="py-20 bg-slate-50 border-b border-slate-200/80">
-        <div className="container-px max-w-4xl mx-auto text-center">
-          <span className="text-xs font-semibold text-blue-600 uppercase tracking-widest bg-blue-50 border border-blue-200/80 px-3 py-1 rounded-full">Rules</span>
-          <h1 className="text-display text-5xl md:text-7xl text-slate-900 font-bold mt-4">Terms of Service</h1>
-          <p className="text-slate-600 mt-6 text-lg max-w-2xl mx-auto leading-relaxed">
-            Last Updated: May 23, 2026. Understand your licensing rights, download boundaries, and client responsibilities.
+      <div className="py-16 bg-[#070a12] border-b border-slate-800 relative overflow-hidden">
+        <div className="container-px max-w-4xl mx-auto text-center relative z-10">
+          <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider bg-amber-950/60 border border-amber-800 px-3 py-1 rounded">SYS:\LEGAL_DISCLAIMER</span>
+          <h1 className="text-3xl sm:text-5xl md:text-6xl text-white font-black mt-4 font-mono">TERMS_OF_SERVICE</h1>
+          <p className="text-slate-400 mt-4 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed font-mono">
+            Last Updated: 2026. Understand your licensing rights, download boundaries, and client responsibilities.
           </p>
         </div>
       </div>
 
-      <section className="container-px py-20 bg-white">
+      <section className="container-px py-16 bg-[#070a12] font-mono">
         <div className="max-w-4xl mx-auto">
-          <div className="grid gap-10">
+          <div className="grid gap-6">
             {sections.map((s, idx) => (
-              <div key={idx} className="flex flex-col md:flex-row gap-6 items-start p-6 bg-slate-50/50 rounded-2xl border border-slate-200/60">
-                <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 grid place-items-center text-blue-600 shrink-0">
+              <div key={idx} className="flex flex-col md:flex-row gap-6 items-start p-6 bg-[#0d121e] rounded-md border-2 border-slate-800 shadow-xl relative overflow-hidden">
+                <div className="w-10 h-10 rounded bg-[#161d2d] border border-cyan-800/80 grid place-items-center text-cyan-400 shrink-0">
                   <s.icon className="w-5 h-5" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-slate-900">{s.title}</h3>
-                  <p className="text-slate-600 leading-relaxed text-sm sm:text-base">{s.content}</p>
+                  <h3 className="text-lg font-bold text-white font-mono">// {s.title.toUpperCase()}</h3>
+                  <p className="text-slate-300 leading-relaxed text-xs sm:text-sm font-mono">{s.content}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="mt-16 p-8 bg-slate-50 rounded-3xl border border-slate-200">
-            <h4 className="text-lg font-bold text-slate-900 mb-2">Need clarification on licensing?</h4>
-            <p className="text-sm text-slate-600">
-              If you have any questions regarding intellectual property rights, custom milestone contracts, or download limitations, please reach out via our <a href="/contact" className="text-blue-600 hover:underline font-semibold">Contact Form</a>.
+          <div className="mt-12 p-6 bg-[#0a0e17] rounded-md border-2 border-slate-800 shadow-xl relative overflow-hidden">
+            <h4 className="text-base font-bold text-white mb-2 font-mono">// NEED_LICENSING_CLARIFICATION?</h4>
+            <p className="text-xs sm:text-sm text-slate-400 font-mono">
+              If you have any questions regarding intellectual property rights, custom milestone contracts, or download limitations, please reach out via our <a href="/contact" className="text-amber-400 hover:underline font-bold">[CONTACT_FORM]</a>.
             </p>
           </div>
         </div>

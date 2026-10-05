@@ -252,35 +252,35 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-md md:max-w-lg p-0 flex flex-col bg-slate-50 z-50 focus:outline-none h-[100dvh] max-h-[100dvh]"
+        className="w-full sm:max-w-md md:max-w-lg p-0 flex flex-col bg-[#0a0e17] border-l-2 border-slate-800 text-slate-100 font-mono z-50 focus:outline-none h-[100dvh] max-h-[100dvh]"
       >
         {/* Drawer Header with Project Context */}
-        <SheetHeader className="p-3.5 sm:p-4 bg-white border-b border-slate-200/90 shrink-0">
+        <SheetHeader className="p-3.5 sm:p-4 bg-[#070a12] border-b border-slate-800 shrink-0">
           <div className="flex items-start gap-3">
             {project?.thumb && (
               <img
                 src={project.thumb}
                 alt={project.title}
-                className="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-2xs shrink-0"
+                className="w-12 h-12 rounded object-cover border border-slate-800 shadow-2xs shrink-0 bg-[#05070c]"
               />
             )}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  Live Engineer Desk
+              <div className="flex items-center gap-1.5 mb-0.5 font-mono">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
+                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">
+                  SYS:\ENGINEER_COMM_LINK
                 </span>
                 {project?.price && (
-                  <Badge className="ml-auto bg-blue-50 text-blue-700 font-bold text-xs border border-blue-200/60">
+                  <span className="ml-auto bg-amber-950/60 text-amber-400 font-black text-xs border border-amber-800 px-2 py-0.5 rounded">
                     ₹{project.price.toLocaleString()}
-                  </Badge>
+                  </span>
                 )}
               </div>
-              <SheetTitle className="text-sm font-bold text-slate-900 truncate text-left">
+              <SheetTitle className="text-sm font-bold text-white truncate text-left font-mono">
                 {project?.title || "Project Inquiry"}
               </SheetTitle>
-              <p className="text-[11px] text-slate-500 truncate text-left">
-                Direct inquiry channel • Response within minutes
+              <p className="text-[10px] text-slate-400 truncate text-left font-mono">
+                Direct engineer desk • 256-bit isolated channel
               </p>
             </div>
           </div>
@@ -288,19 +288,19 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
 
         {/* Auth Barrier if user not logged in */}
         {!user ? (
-          <div className="flex-1 p-8 flex flex-col items-center justify-center text-center space-y-4 bg-white m-4 rounded-3xl border border-slate-200/90 shadow-2xs">
-            <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 grid place-items-center">
+          <div className="flex-1 p-8 flex flex-col items-center justify-center text-center space-y-4 bg-[#0d121e] m-4 rounded-md border-2 border-slate-800 shadow-2xl font-mono">
+            <div className="w-14 h-14 rounded-full bg-cyan-950/60 text-cyan-400 border border-cyan-800 grid place-items-center">
               <MessageSquare className="w-7 h-7" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-lg font-bold text-slate-900">Sign in to Chat</h3>
-              <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
+              <h3 className="text-base font-bold text-white font-mono">// AUTHENTICATION_REQUIRED</h3>
+              <p className="text-xs text-slate-400 max-w-xs leading-relaxed font-mono">
                 Connect directly with our engineering team to discuss custom hardware modifications, IEEE documentation, or bulk student discounts.
               </p>
             </div>
             <Link to="/login" className="w-full">
-              <Button className="w-full rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-10 shadow-sm">
-                Sign in to Open Chat
+              <Button className="w-full rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-black font-mono text-xs h-11 shadow-[0_3px_0_#92400e] border border-amber-300 active:translate-y-0.5 retro-btn">
+                [EXEC] SIGN_IN_TO_OPEN_CHAT
               </Button>
             </Link>
           </div>
@@ -309,12 +309,12 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
             {/* Messages Feed (Contained scrolling, prevents window jump) */}
             <div 
               ref={drawerChatFeedRef}
-              className="flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-3.5 overscroll-contain"
+              className="flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-3.5 overscroll-contain bg-[#0a0e17]"
             >
               {isLoading ? (
-                <div className="py-20 text-center space-y-3">
-                  <Loader2 className="w-6 h-6 animate-spin text-blue-600 mx-auto" />
-                  <p className="text-xs text-slate-500 font-medium">Connecting to live chat stream...</p>
+                <div className="py-20 text-center space-y-3 font-mono">
+                  <Loader2 className="w-6 h-6 animate-spin text-amber-400 mx-auto" />
+                  <p className="text-xs text-slate-400 font-mono">SYS:\CONNECTING_STREAM...</p>
                 </div>
               ) : (
                 <>
@@ -338,31 +338,31 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
                     return (
                       <div
                         key={m.id}
-                        className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
+                        className={`flex flex-col font-mono ${isMe ? "items-end" : "items-start"}`}
                       >
                         <div className="flex items-center gap-1.5 mb-1 px-1">
                           {isAdmin ? (
-                            <Badge className="bg-blue-600 text-white text-[9px] px-1.5 py-0 h-4 font-bold flex items-center gap-0.5">
+                            <span className="bg-amber-500 text-amber-950 text-[9px] px-1.5 py-0.5 rounded font-black flex items-center gap-1">
                               <Sparkles className="w-2.5 h-2.5" />
-                              Lead Engineer
-                            </Badge>
+                              LEAD_ENGINEER
+                            </span>
                           ) : (
-                            <span className="text-[10px] text-slate-400 font-medium">
-                              {isMe ? "You" : m.sender_name}
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              {isMe ? "YOU" : m.sender_name}
                             </span>
                           )}
-                          <span className="text-[9px] text-slate-400 font-mono">
+                          <span className="text-[9px] text-slate-500 font-mono">
                             {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </span>
                         </div>
 
                         <div
-                          className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs leading-relaxed shadow-2xs ${
+                          className={`max-w-[85%] rounded px-3.5 py-2 text-xs leading-relaxed font-mono shadow-md ${
                             isMe
-                              ? "bg-slate-900 text-white rounded-tr-xs"
+                              ? "bg-amber-500 text-amber-950 font-semibold"
                               : isAdmin
-                              ? "bg-white text-slate-900 border border-slate-200/90 rounded-tl-xs"
-                              : "bg-blue-50 text-blue-950 border border-blue-100 rounded-tl-xs"
+                              ? "bg-[#0d121e] text-cyan-300 border border-cyan-800/80"
+                              : "bg-[#0d121e] text-slate-200 border border-slate-700"
                           }`}
                         >
                           <p className="whitespace-pre-wrap">{m.message}</p>
@@ -376,9 +376,9 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
 
             {/* Quick Inquiry Chips (When empty or 1 message) */}
             {messages.length <= 2 && (
-              <div className="px-3 sm:px-4 py-2 bg-white/90 border-t border-slate-200/60 shrink-0">
+              <div className="px-3 sm:px-4 py-2 bg-[#070a12] border-t border-slate-800 shrink-0 font-mono">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                  Suggested Questions:
+                  // QUICK_INQUIRIES:
                 </span>
                 <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
                   {quickQuestions.map((q) => (
@@ -386,7 +386,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
                       key={q}
                       type="button"
                       onClick={() => handleSendMessage(q)}
-                      className="text-[11px] font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 hover:text-blue-700 hover:border-blue-200 border border-slate-200/80 rounded-md px-2.5 py-1 whitespace-nowrap transition-all cursor-pointer shrink-0"
+                      className="text-[10px] font-mono text-cyan-300 bg-[#0d121e] hover:bg-[#161d2d] hover:border-cyan-500/60 border border-slate-700 rounded px-2.5 py-1 whitespace-nowrap transition-all cursor-pointer shrink-0"
                     >
                       {q}
                     </button>
@@ -396,7 +396,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
             )}
 
             {/* Input Bar */}
-            <div className="p-3 sm:p-3.5 bg-white border-t border-slate-200/90 shrink-0">
+            <div className="p-3 sm:p-3.5 bg-[#070a12] border-t border-slate-800 shrink-0 font-mono">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -408,23 +408,23 @@ export default function ProductChatDrawer({ isOpen, onClose, project }: ProductC
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Ask about components, hardware, or code..."
-                  className="rounded-lg bg-slate-50 border-slate-200 text-xs sm:text-sm h-10 px-3.5 focus-visible:ring-blue-500/20 flex-1"
+                  className="rounded bg-[#0d121e] border-slate-700 text-white placeholder:text-slate-600 text-xs sm:text-sm h-10 px-3.5 focus-visible:ring-1 focus-visible:ring-amber-500 font-mono flex-1"
                   disabled={isSending}
                 />
                 <Button
                   type="submit"
                   disabled={!newMessage.trim() || isSending}
-                  className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white w-10 h-10 p-0 shrink-0 shadow-sm transition-all"
+                  className="rounded bg-amber-500 hover:bg-amber-400 text-amber-950 w-10 h-10 p-0 shrink-0 shadow-[0_2px_0_#92400e] border border-amber-300 active:translate-y-0.5 retro-btn transition-all flex items-center justify-center"
                 >
-                  {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {isSending ? <Loader2 className="w-4 h-4 animate-spin text-amber-950" /> : <Send className="w-4 h-4 text-amber-950" />}
                 </Button>
               </form>
-              <div className="flex items-center justify-between mt-2 px-1 text-[10px] text-slate-400">
-                <span className="flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                  Encrypted & Isolated Channel
+              <div className="flex items-center justify-between mt-2 px-1 text-[10px] text-slate-500 font-mono">
+                <span className="flex items-center gap-1 text-emerald-400">
+                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                  SHA-256 ISOLATED_CHANNEL
                 </span>
-                <span>Active 5-10 days</span>
+                <span>RETENTION: 10_DAYS</span>
               </div>
             </div>
           </>

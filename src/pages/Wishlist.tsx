@@ -103,23 +103,23 @@ export default function Wishlist() {
 
       <div className="container-px max-w-6xl mx-auto py-10 md:py-16 bleed-container">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200/90 pb-6 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-800 pb-6 mb-8 font-mono">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-rose-50 border border-rose-200/80 text-xs font-semibold text-rose-700 mb-2.5">
-              <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
-              <span>Saved Blueprints</span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-rose-950/60 border border-rose-800 text-xs font-semibold text-rose-400 mb-2.5">
+              <Heart className="w-3.5 h-3.5 fill-rose-400 text-rose-400" />
+              <span>SYS:\SAVED_BLUEPRINTS</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              My Engineering Wishlist
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight font-mono">
+              ENGINEERING_WISHLIST
             </h1>
-            <p className="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl">
+            <p className="text-slate-400 text-xs sm:text-sm mt-1 max-w-xl font-mono">
               Save blueprints to compare architectures, inspect BOMs, or consult directly with our engineering team before ordering.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-xs font-mono font-semibold text-slate-600 bg-white px-3.5 py-1.5 rounded-lg border border-slate-200 shadow-xs">
-              <span className="text-slate-900 font-bold">{wishlist.length}</span> Blueprints Saved
+            <span className="text-xs font-mono font-semibold text-slate-300 bg-[#0d121e] px-3.5 py-1.5 rounded border border-slate-800 shadow-xs">
+              <span className="text-amber-400 font-bold">{wishlist.length}</span> BLUEPRINTS_SAVED
             </span>
           </div>
         </div>
@@ -127,127 +127,130 @@ export default function Wishlist() {
         {/* Content */}
         {!user ? (
           /* Not Signed In Card */
-          <div className="tech-card p-10 text-center max-w-md mx-auto bg-white border border-slate-200 rounded-xl shadow-xs space-y-5">
-            <div className="w-14 h-14 rounded-xl bg-rose-50 text-rose-600 grid place-items-center mx-auto border border-rose-100">
-              <Heart className="w-7 h-7 fill-rose-500/20 text-rose-600" />
+          <div className="p-10 text-center max-w-md mx-auto bg-[#0a0e17] border-2 border-slate-800 rounded-md shadow-2xl space-y-5 font-mono relative overflow-hidden">
+            <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-amber-400 pointer-events-none" />
+            <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-amber-400 pointer-events-none" />
+            <div className="w-14 h-14 rounded-full bg-rose-950/60 text-rose-400 grid place-items-center mx-auto border border-rose-800 shadow-[0_0_12px_rgba(244,63,94,0.3)]">
+              <Heart className="w-7 h-7 fill-rose-500/20 text-rose-400" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Sign in to Access Your Wishlist</h3>
-              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+              <h3 className="text-lg font-bold text-white font-mono">// AUTHENTICATION_REQUIRED</h3>
+              <p className="text-xs text-slate-400 mt-1.5 leading-relaxed font-mono">
                 Log in to sync your saved blueprints across devices, receive price-drop alerts, and chat live with our technical leads.
               </p>
             </div>
             <Link to="/login?redirect=/wishlist" className="block">
-              <Button className="w-full rounded-lg bg-slate-950 hover:bg-slate-800 text-white font-semibold text-xs h-10 shadow-xs">
-                Sign in to View Wishlist
+              <Button className="w-full rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-black font-mono text-xs h-11 shadow-[0_3px_0_#92400e] border border-amber-300 active:translate-y-0.5 retro-btn">
+                [EXEC] SIGN_IN_TO_ACCESS
               </Button>
             </Link>
           </div>
         ) : isLoading ? (
-          <div className="tech-card p-16 text-center bg-white border border-slate-200 rounded-xl">
-            <Loader2 className="w-7 h-7 text-blue-600 animate-spin mx-auto mb-3" />
-            <p className="text-slate-600 text-xs font-medium">Loading your saved blueprints...</p>
+          <div className="p-16 text-center bg-[#0d121e] border-2 border-slate-800 rounded-md font-mono">
+            <Loader2 className="w-7 h-7 text-amber-400 animate-spin mx-auto mb-3" />
+            <p className="text-slate-400 text-xs font-mono">SYS:\FETCHING_SAVED_BLUEPRINTS...</p>
           </div>
         ) : wishlist.length === 0 ? (
           /* Empty Wishlist */
-          <div className="tech-card p-10 text-center max-w-lg mx-auto bg-white border border-slate-200 rounded-xl shadow-xs space-y-6">
-            <div className="w-14 h-14 rounded-xl bg-slate-100 text-slate-400 grid place-items-center mx-auto border border-slate-200">
-              <Heart className="w-7 h-7 text-slate-400" />
+          <div className="p-10 text-center max-w-lg mx-auto bg-[#0a0e17] border-2 border-slate-800 rounded-md shadow-2xl space-y-6 font-mono relative overflow-hidden">
+            <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-amber-400 pointer-events-none" />
+            <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-amber-400 pointer-events-none" />
+            <div className="w-14 h-14 rounded-full bg-slate-900 text-slate-500 grid place-items-center mx-auto border border-slate-800">
+              <Heart className="w-7 h-7 text-slate-500" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Your Wishlist is Empty</h3>
-              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed max-w-sm mx-auto">
+              <h3 className="text-lg font-bold text-white font-mono">// WISHLIST_EMPTY</h3>
+              <p className="text-xs text-slate-400 mt-1.5 leading-relaxed max-w-sm mx-auto font-mono">
                 Explore our catalog of AI, Robotics, and Web blueprints and click the heart icon on any project card to bookmark it here.
               </p>
             </div>
             <Button
               onClick={() => navigate("/marketplace")}
-              className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-5 h-10 shadow-xs"
+              className="rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-black font-mono text-xs px-5 h-11 shadow-[0_3px_0_#92400e] border border-amber-300 active:translate-y-0.5 retro-btn"
             >
-              Explore Project Marketplace <ChevronRight className="w-4 h-4 ml-1" />
+              [+] EXPLORE_BLUEPRINTS <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
         ) : (
           /* Wishlist Grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 font-mono">
             {wishlist.map((p) => {
               const isHardware = p.delivery_type === "physical" || p.category === "Robotics" || p.category === "IoT";
 
               return (
                 <div
                   key={p.id}
-                  className="tech-card bg-white border border-slate-200/90 shadow-xs hover:border-blue-300 hover:shadow-md transition-all duration-200 rounded-xl overflow-hidden flex flex-col justify-between group"
+                  className="bg-[#0d121e] border-2 border-slate-800 shadow-xl hover:border-amber-500/60 transition-all duration-200 rounded-md overflow-hidden flex flex-col justify-between group relative"
                 >
                   <div>
                     {/* Thumbnail & Badges */}
-                    <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-[#05070c]">
                       <img
                         src={p.thumb || "/placeholder.svg"}
                         alt={p.title}
-                        className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300 opacity-90 group-hover:opacity-100"
                       />
-                      <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                        <Badge className="bg-white/95 backdrop-blur-md text-slate-900 border border-slate-200 rounded-md text-[10px] font-bold shadow-xs">
+                      <div className="absolute top-2 left-2 flex items-center gap-1.5">
+                        <span className="bg-[#0d121e]/90 backdrop-blur-md text-cyan-300 border border-slate-700 rounded px-2 py-0.5 text-[10px] font-bold shadow-xs">
                           {p.category}
-                        </Badge>
+                        </span>
                         {isHardware && (
-                          <Badge className="bg-amber-500 text-white text-[10px] font-bold rounded-md shadow-xs">
-                            Hardware Kit
-                          </Badge>
+                          <span className="bg-amber-500 text-amber-950 text-[10px] font-black rounded px-2 py-0.5 shadow-xs">
+                            HARDWARE
+                          </span>
                         )}
                       </div>
                       <button
                         type="button"
                         onClick={() => handleRemoveFromWishlist(p.id, p.wishlist_id)}
-                        className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-white/90 backdrop-blur-md text-slate-500 hover:text-rose-600 grid place-items-center shadow-xs transition-colors cursor-pointer"
+                        className="absolute top-2 right-2 w-7 h-7 rounded bg-[#070a12]/90 backdrop-blur-md text-slate-400 hover:text-rose-400 hover:border-rose-800 grid place-items-center border border-slate-700 shadow-xs transition-colors cursor-pointer"
                         title="Remove from wishlist"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
 
                     {/* Content */}
                     <div className="p-5 space-y-2.5">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="font-mono text-slate-500 text-[11px]">
-                          {p.difficulty || "Engineering Grade"}
+                        <span className="font-mono text-cyan-400 text-[11px]">
+                          SYS:\BP_{p.id.slice(0, 6).toUpperCase()}
                         </span>
-                        <span className="font-mono font-bold text-slate-900 text-sm">
+                        <span className="font-mono font-black text-amber-400 text-base drop-shadow-[0_0_8px_rgba(255,176,0,0.3)]">
                           ₹{Number(p.price || 0).toLocaleString()}
                         </span>
                       </div>
 
                       <Link to={`/project/${p.id}`}>
-                        <h3 className="font-bold text-slate-900 text-base leading-snug line-clamp-2 hover:text-blue-600 transition-colors">
+                        <h3 className="font-bold text-white text-base leading-snug line-clamp-2 hover:text-amber-400 transition-colors font-mono">
                           {p.title}
                         </h3>
                       </Link>
 
-                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed font-mono">
                         {p.short || p.description}
                       </p>
                     </div>
                   </div>
 
                   {/* Actions Bar */}
-                  <div className="p-4 pt-0 border-t border-slate-100 bg-slate-50/50 flex flex-col gap-2 mt-2">
+                  <div className="p-4 pt-0 border-t border-slate-800 bg-[#070a12]/60 flex flex-col gap-2 mt-2">
                     <div className="flex items-center gap-2 pt-3">
                       {/* Direct Chat with Engineer Button */}
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => handleOpenChat(p)}
-                        className="flex-1 rounded-lg text-xs font-semibold h-9 border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 gap-1.5 transition-all shadow-xs"
+                        className="flex-1 rounded text-xs font-mono font-semibold h-9 border-slate-700 text-slate-300 bg-[#090d16] hover:bg-slate-800 hover:text-white gap-1.5 transition-all shadow-xs"
                       >
-                        <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Chat & Inquire</span>
+                        <MessageSquare className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>CHAT_DESK</span>
                       </Button>
 
                       {/* Buy / View Project Button */}
                       <Link to={`/project/${p.id}`} className="flex-1">
-                        <Button className="w-full rounded-lg text-xs font-semibold h-9 bg-slate-900 hover:bg-slate-800 text-white gap-1 shadow-xs">
-                          <span>View Blueprint</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
+                        <Button className="w-full rounded text-xs font-mono font-black h-9 bg-amber-500 hover:bg-amber-400 text-amber-950 gap-1 shadow-[0_2px_0_#92400e] border border-amber-300 retro-btn active:translate-y-0.5">
+                          <span>[→] VIEW_BP</span>
                         </Button>
                       </Link>
                     </div>

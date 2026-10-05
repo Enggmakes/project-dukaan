@@ -214,8 +214,8 @@ export default function Index() {
       {/* ========================================================================= */}
       {/* 1. HERO SECTION: Architectural Engineering Statement                     */}
       {/* ========================================================================= */}
-      <section className="relative overflow-hidden pt-12 pb-16 md:pb-24 bg-slate-50/70 border-b border-slate-200">
-        <MeshGradient className="absolute inset-0 opacity-80" />
+      <section className="relative overflow-hidden pt-12 pb-16 md:pb-24 bg-[#070a12] border-b border-slate-800 text-white">
+        <MeshGradient className="absolute inset-0 opacity-40" />
         
         <div className="relative container-px max-w-6xl mx-auto">
           {/* Hero Header & Value Proposition */}
@@ -229,27 +229,27 @@ export default function Index() {
             </div>
 
             {/* Editorial Headline with Retro Amber Accent */}
-            <h1 className="text-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-slate-950 font-black tracking-tight leading-[1.06]">
+            <h1 className="text-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white font-black tracking-tight leading-[1.06]">
               Engineering capstones, <br />
-              <span className="text-blue-600 amber-glow">
+              <span className="text-amber-400 amber-glow">
                 built to ship.
               </span>
             </h1>
 
             {/* Subtitle */}
-            <p className="mt-5 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            <p className="mt-5 text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
               Production-ready AI models, embedded IoT builds, and robotics systems — complete with verified source code, architecture diagrams, and defense-ready documentation.
             </p>
 
             {/* Tactile CTA Buttons */}
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 font-mono">
               <Link to="/marketplace">
-                <Button size="lg" className="rounded bg-slate-950 hover:bg-slate-900 text-white px-7 h-11 text-xs font-bold shadow-xs transition-all retro-btn">
+                <Button size="lg" className="rounded bg-amber-500 hover:bg-amber-400 text-amber-950 px-7 h-11 text-xs font-bold shadow-xs transition-all retro-btn">
                   [F1] Explore Blueprints <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </Link>
               <Link to="/custom-request">
-                <Button size="lg" variant="outline" className="rounded bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 px-6 h-11 text-xs font-bold shadow-2xs transition-all retro-btn">
+                <Button size="lg" variant="outline" className="rounded bg-[#0d121e] hover:bg-slate-800 text-slate-200 border border-slate-700 px-6 h-11 text-xs font-bold shadow-2xs transition-all retro-btn">
                   [F2] Request Custom Build
                 </Button>
               </Link>
@@ -258,40 +258,40 @@ export default function Index() {
             {/* Retro Command Search Console */}
             <form 
               onSubmit={(e) => { e.preventDefault(); navigate(`/marketplace?q=${encodeURIComponent(q)}&cat=${encodeURIComponent(cat)}`); }}
-              className="mt-8 max-w-2xl mx-auto bg-white rounded-lg p-1.5 flex items-center gap-2 shadow-sm border border-slate-300 focus-within:ring-2 focus-within:ring-amber-500 focus-within:border-amber-500 transition-all font-mono"
+              className="mt-8 max-w-2xl mx-auto bg-[#0d121e] rounded-lg p-1.5 flex items-center gap-2 shadow-sm border border-slate-700 focus-within:ring-2 focus-within:ring-amber-500 focus-within:border-amber-500 transition-all font-mono"
             >
-              <span className="text-amber-600 font-bold ml-2 text-xs select-none">SYS:\&gt;</span>
+              <span className="text-amber-500 font-bold ml-2 text-xs select-none">SYS:\&gt;</span>
               <Search className="w-4 h-4 text-slate-400 shrink-0" />
               <Input
                 ref={searchInputRef}
                 value={q}
                 onChange={e => setQ(e.target.value)}
                 placeholder="SEARCH_QUERY (e.g. UNet3D, YOLO, ESP32, ROS 2)..."
-                className="border-0 bg-transparent focus-visible:ring-0 text-slate-900 flex-1 placeholder:text-slate-400 text-xs sm:text-sm h-9 shadow-none font-mono"
+                className="border-0 bg-transparent focus-visible:ring-0 text-white flex-1 placeholder:text-slate-500 text-xs sm:text-sm h-9 shadow-none font-mono"
               />
               {q && (
                 <button
                   type="button"
                   onClick={() => setQ("")}
-                  className="p-1 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors mr-1"
+                  className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors mr-1"
                   aria-label="Clear search"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               )}
-              <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-mono font-medium text-slate-400 bg-slate-100 rounded border border-slate-200 shrink-0 select-none">
+              <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-mono font-medium text-slate-400 bg-slate-800 rounded border border-slate-700 shrink-0 select-none">
                 {typeof navigator !== "undefined" && navigator.platform?.toUpperCase().includes("MAC") ? "⌘K" : "Ctrl+K"}
               </kbd>
               <Select value={cat} onValueChange={setCat}>
-                <SelectTrigger className="w-32 sm:w-36 rounded border-0 bg-slate-100 text-xs font-mono font-medium shrink-0 text-slate-700 h-9">
+                <SelectTrigger className="w-32 sm:w-36 rounded border-0 bg-slate-800 text-xs font-mono font-medium shrink-0 text-slate-200 h-9">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-slate-200 rounded shadow-xl font-mono text-xs">
+                <SelectContent className="bg-slate-900 border-slate-700 rounded shadow-xl font-mono text-xs text-white">
                   <SelectItem value="all">ALL_DOMAINS</SelectItem>
                   {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Button type="submit" className="rounded bg-amber-500 hover:bg-amber-600 text-amber-950 px-4 sm:px-5 h-9 text-xs font-bold shadow-2xs transition-all retro-btn shrink-0">
+              <Button type="submit" className="rounded bg-amber-500 hover:bg-amber-400 text-amber-950 px-4 sm:px-5 h-9 text-xs font-bold shadow-2xs transition-all retro-btn shrink-0">
                 RUN ↵
               </Button>
             </form>
@@ -312,9 +312,9 @@ export default function Index() {
                     setCat(tag);
                     navigate(`/marketplace?cat=${encodeURIComponent(tag)}`);
                   }}
-                  className="px-2.5 py-0.5 rounded bg-white text-slate-700 hover:text-amber-600 hover:border-amber-400 border border-slate-200 text-[11px] font-mono transition-colors shadow-2xs cursor-pointer retro-btn"
+                  className="px-2.5 py-0.5 rounded bg-[#0d121e] text-slate-300 hover:text-amber-400 hover:border-amber-500/50 border border-slate-800 text-[11px] font-mono transition-colors shadow-2xs cursor-pointer retro-btn"
                 >
-                  <span className="text-amber-600 font-bold mr-1">[{key}]</span>
+                  <span className="text-amber-500 font-bold mr-1">[{key}]</span>
                   {tag}
                 </button>
               ))}
@@ -474,16 +474,16 @@ export default function Index() {
       {/* ========================================================================= */}
       {/* 3. DOMAIN STACK MATRIX ("Pick Your Engineering Stack")                    */}
       {/* ========================================================================= */}
-      <section className="container-px py-16 md:py-20 bleed-container bg-white">
+      <section className="container-px py-16 md:py-20 bleed-container bg-[#070a12] border-b border-slate-800 text-white">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
-              <div className="font-mono text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Architecture Domains</div>
-              <h2 className="text-display text-3xl sm:text-4xl text-slate-900 font-bold">
+              <div className="font-mono text-xs font-bold uppercase tracking-wider text-amber-400 mb-1">Architecture Domains</div>
+              <h2 className="text-display text-3xl sm:text-4xl text-white font-bold">
                 Pick your engineering stack
               </h2>
             </div>
-            <Link to="/marketplace" className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+            <Link to="/marketplace" className="text-xs font-mono font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1">
               Browse full catalog ({liveStats.projects || 100}+) <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -496,27 +496,27 @@ export default function Index() {
                 <Link 
                   key={c}
                   to={`/marketplace?cat=${encodeURIComponent(c)}`} 
-                  className="group tech-card rounded-xl p-5 bg-white flex flex-col justify-between border border-slate-200 hover:border-blue-500/60 hover:shadow-md transition-all"
+                  className="group retro-card rounded-md p-5 bg-[#0d121e] flex flex-col justify-between border-2 border-slate-800 hover:border-amber-500/60 hover:shadow-lg transition-all"
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 text-blue-600 grid place-items-center transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                      <div className="w-10 h-10 rounded bg-slate-900 border border-slate-700 text-amber-400 grid place-items-center transition-colors group-hover:bg-amber-500 group-hover:text-amber-950">
                         <Icon className="w-5 h-5" />
                       </div>
-                      <span className="text-[10px] font-mono font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                      <span className="text-[10px] font-mono font-medium text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
                         Active Stack
                       </span>
                     </div>
 
-                    <h3 className="font-bold text-slate-900 mt-4 text-base group-hover:text-blue-600 transition-colors">
+                    <h3 className="font-bold text-white mt-4 text-base group-hover:text-amber-400 transition-colors">
                       {c}
                     </h3>
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                       {meta.desc}
                     </p>
                   </div>
 
-                  <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-blue-600">
+                  <div className="mt-5 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-mono font-semibold text-amber-400">
                     <span>View Blueprints</span>
                     <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   </div>
@@ -530,18 +530,18 @@ export default function Index() {
       {/* ========================================================================= */}
       {/* 4. FEATURED MARKETPLACE BLUEPRINTS (With Faceted Domain Filter)           */}
       {/* ========================================================================= */}
-      <section className="container-px py-16 md:py-20 bg-slate-50/70 border-y border-slate-200 bleed-container">
+      <section className="container-px py-16 md:py-20 bg-[#090d16] border-b border-slate-800 text-white bleed-container">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
             <div>
-              <div className="font-mono text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Production Releases</div>
-              <h2 className="text-display text-3xl sm:text-4xl text-slate-900 font-bold">
+              <div className="font-mono text-xs font-bold uppercase tracking-wider text-amber-400 mb-1">Production Releases</div>
+              <h2 className="text-display text-3xl sm:text-4xl text-white font-bold">
                 Featured Blueprints
               </h2>
             </div>
 
             {/* Domain Filter Buttons */}
-            <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="flex items-center gap-1.5 flex-wrap font-mono">
               {[
                 { id: "all", label: "All Stacks" },
                 { id: "AI", label: "AI & ML" },
@@ -552,10 +552,10 @@ export default function Index() {
                 <button
                   key={f.id}
                   onClick={() => setSelectedDomain(f.id)}
-                  className={`px-3 py-1 rounded-md text-xs font-mono font-medium transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded text-xs font-mono font-medium transition-all cursor-pointer retro-btn ${
                     selectedDomain === f.id
-                      ? "bg-slate-950 text-white shadow-2xs"
-                      : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200"
+                      ? "bg-amber-500 text-amber-950 font-bold shadow-2xs"
+                      : "bg-[#0d121e] text-slate-300 hover:text-white border border-slate-700"
                   }`}
                 >
                   {f.label}
@@ -572,7 +572,7 @@ export default function Index() {
 
           <div className="mt-12 text-center">
             <Link to="/marketplace">
-              <Button size="lg" className="rounded-lg bg-white hover:bg-slate-100 text-slate-900 font-semibold border border-slate-200 shadow-2xs px-7 h-11 text-xs transition-all">
+              <Button size="lg" className="rounded bg-[#0d121e] hover:bg-slate-800 text-amber-400 font-mono font-bold border border-slate-700 shadow-2xs px-7 h-11 text-xs transition-all retro-btn">
                 Browse Complete Catalog ({liveStats.projects || 100}+ Blueprints) <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </Link>
@@ -583,91 +583,91 @@ export default function Index() {
       {/* ========================================================================= */}
       {/* 5. VERIFICATION STANDARD (Architectural Technical Proof)                  */}
       {/* ========================================================================= */}
-      <section className="container-px py-16 md:py-24 bleed-container bg-white">
+      <section className="container-px py-16 md:py-24 bleed-container bg-[#070a12] border-b border-slate-800 text-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <div className="font-mono text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Quality Assurance</div>
-            <h2 className="text-display text-3xl sm:text-4xl text-slate-900 font-bold">
+            <div className="font-mono text-xs font-bold uppercase tracking-wider text-amber-400 mb-1">Quality Assurance</div>
+            <h2 className="text-display text-3xl sm:text-4xl text-white font-bold">
               The ProjectDukaan Verification Standard
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 mt-2">
+            <p className="text-xs sm:text-sm text-slate-400 mt-2">
               Unlike unmaintained GitHub repos or low-quality project vendors, every blueprint is audited, compiled, and guaranteed.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
             {/* Card 1: 100% Tested & Sandboxed Code (7 cols) */}
-            <div className="md:col-span-7 tech-card p-6 sm:p-8 bg-white flex flex-col justify-between border border-slate-200 rounded-xl">
+            <div className="md:col-span-7 retro-card p-6 sm:p-8 bg-[#0d121e] flex flex-col justify-between border-2 border-slate-800 rounded-md">
               <div>
-                <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 grid place-items-center text-blue-600 mb-4">
+                <div className="w-10 h-10 rounded bg-slate-900 border border-slate-700 grid place-items-center text-amber-400 mb-4">
                   <Code2 className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
                   100% Sandboxed & Compiled Repositories
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
                   Every project is executed in a dedicated staging sandbox with clean virtual environments before listing. No broken imports, no missing dataset links, and zero missing libraries.
                 </p>
               </div>
-              <div className="mt-5 p-3 rounded-lg bg-slate-950 text-slate-200 font-mono text-[11px] flex items-center justify-between border border-slate-800">
+              <div className="mt-5 p-3 rounded bg-slate-950 text-slate-200 font-mono text-[11px] flex items-center justify-between border border-slate-800">
                 <span>$ git clone &amp;&amp; pip install -r requirements.txt</span>
                 <span className="text-emerald-400 font-bold">✔ Build Passed</span>
               </div>
             </div>
 
             {/* Card 2: Complete IEEE Papers & Presentation Decks (5 cols) */}
-            <div className="md:col-span-5 tech-card p-6 sm:p-8 bg-white flex flex-col justify-between border border-slate-200 rounded-xl">
+            <div className="md:col-span-5 retro-card p-6 sm:p-8 bg-[#0d121e] flex flex-col justify-between border-2 border-slate-800 rounded-md">
               <div>
-                <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 grid place-items-center text-slate-800 mb-4">
+                <div className="w-10 h-10 rounded bg-slate-900 border border-slate-700 grid place-items-center text-cyan-400 mb-4">
                   <FileText className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
                   Defense-Ready Documentation
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
                   Includes complete IEEE format project reports, UML architecture diagrams, circuit pinouts, and PPT presentation slides ready for viva review.
                 </p>
               </div>
-              <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-slate-700">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-slate-300 font-mono">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 <span>Ready for university evaluation</span>
               </div>
             </div>
 
             {/* Card 3: Tracked Hardware Kit Delivery (5 cols) */}
-            <div className="md:col-span-5 tech-card p-6 sm:p-8 bg-white flex flex-col justify-between border border-slate-200 rounded-xl">
+            <div className="md:col-span-5 retro-card p-6 sm:p-8 bg-[#0d121e] flex flex-col justify-between border-2 border-slate-800 rounded-md">
               <div>
-                <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 grid place-items-center text-slate-800 mb-4">
+                <div className="w-10 h-10 rounded bg-slate-900 border border-slate-700 grid place-items-center text-amber-400 mb-4">
                   <Truck className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
                   Physical Hardware Shipped
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
                   For IoT and robotics builds: pre-soldered components, microcontrollers, and wiring harnesses delivered to your doorstep with live tracking.
                 </p>
               </div>
-              <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-slate-700">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-slate-300 font-mono">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 <span>Courier dispatch in 48 hours</span>
               </div>
             </div>
 
             {/* Card 4: 7-Day Guarantee & WhatsApp Engineer Support (7 cols) */}
-            <div className="md:col-span-7 tech-card p-6 sm:p-8 bg-white flex flex-col justify-between border border-slate-200 rounded-xl">
+            <div className="md:col-span-7 retro-card p-6 sm:p-8 bg-[#0d121e] flex flex-col justify-between border-2 border-slate-800 rounded-md">
               <div>
-                <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 grid place-items-center text-emerald-600 mb-4">
+                <div className="w-10 h-10 rounded bg-slate-900 border border-slate-700 grid place-items-center text-emerald-400 mb-4">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
                   7-Day Guarantee + Senior Engineer Support
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed">
                   If your project fails to compile or differs from the specifications, our senior engineers assist you directly over WhatsApp or Discord, or you receive a full refund.
                 </p>
               </div>
-              <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-slate-700">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-slate-300 font-mono">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 <span>Zero-risk guarantee on every blueprint</span>
               </div>
             </div>
@@ -678,21 +678,21 @@ export default function Index() {
       {/* ========================================================================= */}
       {/* 6. TECHNICAL FAQ SECTION                                                  */}
       {/* ========================================================================= */}
-      <section className="container-px py-16 md:py-20 bleed-container bg-slate-50/60 border-t border-slate-200">
+      <section className="container-px py-16 md:py-20 bleed-container bg-[#090d16] border-b border-slate-800 text-white">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-10">
-            <div className="font-mono text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Documentation & FAQ</div>
-            <h2 className="text-display text-3xl sm:text-4xl text-slate-900 font-bold">
+            <div className="font-mono text-xs font-bold uppercase tracking-wider text-amber-400 mb-1">Documentation & FAQ</div>
+            <h2 className="text-display text-3xl sm:text-4xl text-white font-bold">
               Frequently asked questions
             </h2>
           </div>
-          <Accordion type="single" collapsible className="tech-card bg-white p-6 sm:p-8 rounded-xl border border-slate-200">
+          <Accordion type="single" collapsible className="retro-card bg-[#0d121e] p-6 sm:p-8 rounded-md border-2 border-slate-800 text-white">
             {FAQS.map((f, i) => (
-              <AccordionItem key={i} value={`item-${i}`} className="border-slate-100 last:border-0">
-                <AccordionTrigger className="text-slate-900 font-bold text-sm sm:text-base text-left hover:text-blue-600 transition-colors">
+              <AccordionItem key={i} value={`item-${i}`} className="border-slate-800 last:border-0">
+                <AccordionTrigger className="text-white font-mono font-bold text-sm sm:text-base text-left hover:text-amber-400 transition-colors">
                   {f.q}
                 </AccordionTrigger>
-                <AccordionContent className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <AccordionContent className="text-xs sm:text-sm text-slate-300 leading-relaxed pt-2">
                   {f.a}
                 </AccordionContent>
               </AccordionItem>
@@ -704,26 +704,26 @@ export default function Index() {
       {/* ========================================================================= */}
       {/* 7. CUSTOM ENGINEERING STUDIO CTA                                          */}
       {/* ========================================================================= */}
-      <section className="container-px py-16 pb-24 bleed-container bg-white">
-        <div className="max-w-6xl mx-auto rounded-xl bg-slate-950 p-8 sm:p-12 md:p-16 text-center relative overflow-hidden border border-slate-800">
+      <section className="container-px py-16 pb-24 bleed-container bg-[#070a12] text-white">
+        <div className="max-w-6xl mx-auto rounded-xl bg-[#090d16] p-8 sm:p-12 md:p-16 text-center relative overflow-hidden border-2 border-slate-800 retro-card">
           <div className="relative z-10 max-w-2xl mx-auto">
-            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-blue-400 bg-slate-900 border border-slate-800 px-3 py-1 rounded">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-400 bg-slate-900 border border-slate-700 px-3 py-1 rounded">
               Custom Engineering Studio
             </span>
             <h2 className="text-display text-3xl sm:text-4xl md:text-5xl text-white font-bold mt-4 leading-tight">
               Can't find your exact project topic?
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-3.5 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-300 mt-3.5 leading-relaxed">
               Submit your problem statement. Our engineering team scopes, codes, tests, and documents custom hardware & software architectures within 7 days.
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 font-mono">
               <Link to="/custom-request">
-                <Button size="lg" className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold px-7 h-11 text-xs shadow-xs transition-all active:scale-95">
+                <Button size="lg" className="rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold px-7 h-11 text-xs shadow-xs transition-all retro-btn">
                   Request Custom Blueprint <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </Link>
               <Link to="/contact">
-                <Button size="lg" variant="outline" className="rounded-lg border-slate-800 text-slate-300 hover:text-white hover:bg-slate-900 font-semibold px-6 h-11 text-xs">
+                <Button size="lg" variant="outline" className="rounded border-slate-700 bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 font-bold px-6 h-11 text-xs retro-btn">
                   Speak with an Engineer
                 </Button>
               </Link>
@@ -731,6 +731,7 @@ export default function Index() {
           </div>
         </div>
       </section>
+
     </Layout>
     </ErrorBoundary>
   );

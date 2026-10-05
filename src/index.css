@@ -6,61 +6,61 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    --background: 224 50% 5%;
+    --foreground: 210 40% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card: 222 40% 9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 222 40% 9%;
+    --popover-foreground: 210 40% 98%;
 
-    /* Industrial Blueprint Cobalt (#2563EB) - NOT purple */
-    --primary: 221 83% 53%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 221 83% 65%;
+    /* Retro Phosphor Amber (#ffb000) */
+    --primary: 38 92% 50%;
+    --primary-foreground: 222 47% 11%;
+    --primary-glow: 38 92% 60%;
 
-    --secondary: 215 25% 95%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 217 33% 14%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 215 25% 95%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 217 33% 14%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 221 83% 53%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 187 100% 45%;
+    --accent-foreground: 222 47% 11%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 38 92% 50%;
 
-    --navy: 222 47% 11%;
-    --navy-light: 217 33% 17%;
+    --navy: 224 50% 5%;
+    --navy-light: 222 40% 9%;
     --cream: 210 40% 98%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 224 71% 4%;
+    --background: 224 50% 5%;
     --foreground: 210 40% 98%;
-    --card: 222 47% 8%;
+    --card: 222 40% 9%;
     --card-foreground: 210 40% 98%;
-    --popover: 222 47% 8%;
+    --popover: 222 40% 9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 221 83% 58%;
+    --primary: 38 92% 50%;
     --primary-foreground: 222 47% 11%;
     --secondary: 217 33% 14%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217 33% 14%;
     --muted-foreground: 215 20% 65%;
-    --accent: 221 83% 58%;
+    --accent: 187 100% 45%;
     --accent-foreground: 222 47% 11%;
-    --border: 217 33% 16%;
-    --input: 217 33% 16%;
-    --ring: 221 83% 58%;
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 38 92% 50%;
   }
 }
 
@@ -73,6 +73,7 @@
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     -webkit-overflow-scrolling: touch;
+    color-scheme: dark;
   }
   @media (prefers-reduced-motion: no-preference) {
     html {
@@ -81,6 +82,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-color: #07090e;
+    background-image: 
+      radial-gradient(circle, rgba(255, 176, 0, 0.07) 1px, transparent 1px),
+      linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    background-size: 28px 28px, 56px 56px;
     font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -115,31 +121,37 @@
 
   /* Blueprint Grid Patterns */
   .blueprint-grid {
-    background-image: radial-gradient(rgba(148, 163, 184, 0.22) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(255, 176, 0, 0.15) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
   .blueprint-hairline {
     background-image: 
-      linear-gradient(to right, rgba(226, 232, 240, 0.7) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(226, 232, 240, 0.7) 1px, transparent 1px);
+      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 
-  /* Hardware / Engineering Card */
-  .bento-card, .tech-card {
+  /* Retro Workstation Cyber Card */
+  .bento-card, .tech-card, .retro-card {
     position: relative;
-    background: #FFFFFF;
-    border: 1px solid rgba(226, 232, 240, 0.95);
-    border-radius: 1rem;
-    box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 2px 8px -2px rgba(15, 23, 42, 0.04);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    background: #0d121e;
+    border-top: 1.5px solid rgba(255, 255, 255, 0.18);
+    border-left: 1.5px solid rgba(255, 255, 255, 0.18);
+    border-right: 1.5px solid rgba(0, 0, 0, 0.6);
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.6);
+    border-radius: 0.5rem;
+    color: #f1f5f9;
+    box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.6), inset 1px 1px 0 rgba(255, 255, 255, 0.06);
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
   }
 
   @media (hover: hover) and (pointer: fine) {
-    .bento-card:hover, .tech-card:hover {
-      border-color: rgba(37, 99, 235, 0.4);
-      box-shadow: 0 12px 30px -8px rgba(37, 99, 235, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+    .bento-card:hover, .tech-card:hover, .retro-card:hover {
+      border-top-color: rgba(255, 176, 0, 0.5);
+      border-left-color: rgba(255, 176, 0, 0.5);
+      box-shadow: 0 8px 30px -4px rgba(255, 176, 0, 0.15), 0 0 15px rgba(255, 176, 0, 0.08);
+      transform: translateY(-2px);
     }
   }
 

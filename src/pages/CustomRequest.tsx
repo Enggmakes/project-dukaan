@@ -196,14 +196,16 @@ export default function CustomRequest() {
       <Layout>
         <section className="container-px py-20">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="max-w-2xl mx-auto bg-white rounded-xl p-10 border border-slate-200 shadow-xs text-center tech-card">
-            <div className="w-14 h-14 rounded-xl bg-emerald-50 border border-emerald-200 grid place-items-center mx-auto text-emerald-600">
+            className="max-w-2xl mx-auto bg-[#0a0e17] rounded-md p-10 border-2 border-slate-800 shadow-2xl text-center relative overflow-hidden font-mono">
+            <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-amber-400 pointer-events-none" />
+            <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-amber-400 pointer-events-none" />
+            <div className="w-14 h-14 rounded-full bg-emerald-950/60 border-2 border-emerald-500/50 grid place-items-center mx-auto text-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.3)]">
               <Check className="w-7 h-7" />
             </div>
-            <h1 className="text-3xl text-slate-900 font-extrabold mt-6">Request Dispatched</h1>
-            <p className="text-slate-600 mt-2 text-base font-medium">Our engineering team will inspect your requirements.</p>
+            <h1 className="text-2xl sm:text-3xl text-white font-extrabold mt-6 font-mono">SYS:\REQUEST_DISPATCHED</h1>
+            <p className="text-slate-300 mt-2 text-sm sm:text-base font-medium">Our engineering team has received your technical specifications.</p>
             <p className="text-slate-500 text-xs sm:text-sm mt-1">We typically reply within 24 hours with architectural breakdown, hardware BOM, and delivery schedule.</p>
-            <Button className="mt-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 h-10 shadow-xs" onClick={() => { setSubmitted(false); setStep(0); }}>Submit Another Blueprint</Button>
+            <Button className="mt-8 rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-mono font-black px-6 h-11 text-xs shadow-[0_3px_0_#92400e] border border-amber-300 active:translate-y-0.5 retro-btn" onClick={() => { setSubmitted(false); setStep(0); }}>[+] SUBMIT_ANOTHER_BLUEPRINT</Button>
           </motion.div>
         </section>
       </Layout>
@@ -218,27 +220,27 @@ export default function CustomRequest() {
         <meta name="keywords" content="request custom project, custom AI development, custom ML development, IoT prototype build, robotics custom project, engineering support" />
         <link rel="canonical" href="https://projectdukaan.vercel.app/custom-request" />
       </Helmet>
-      <div className="py-14 bg-slate-50 border-b border-slate-200/80">
-        <div className="container-px max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-white border border-slate-200 text-xs text-slate-800 font-mono font-medium mb-5 shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Custom Architecture Studio
+      <div className="py-14 bg-[#070a12] border-b border-slate-800 relative overflow-hidden">
+        <div className="container-px max-w-3xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-amber-950/60 border border-amber-800 text-xs text-amber-400 font-mono font-semibold mb-5 shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" /> SYS:\CUSTOM_ARCHITECTURE_STUDIO
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl text-slate-900 font-extrabold tracking-tight">Request a Custom Engineering Build</h1>
-          <p className="text-slate-600 mt-3 text-base sm:text-lg font-medium">Tell us what you need — our technical leads will design, build & deliver.</p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl text-white font-extrabold tracking-tight font-mono">REQUEST_CUSTOM_BUILD</h1>
+          <p className="text-slate-400 mt-3 text-base sm:text-lg font-mono">Tell us what you need — our technical leads will design, build & deliver.</p>
         </div>
       </div>
 
       <section className="container-px py-12">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-3xl mx-auto font-mono">
           {/* Stepper */}
           <div className="relative mb-8">
             {/* Progress Lines Container */}
             <div className="absolute left-[18px] right-[18px] h-0.5 -translate-y-1/2 z-0" style={{ top: "18px" }}>
               {/* Background Line */}
-              <div className="absolute inset-0 bg-slate-200" />
+              <div className="absolute inset-0 bg-slate-800" />
               {/* Active Progress Line */}
               <div 
-                className="absolute left-0 top-0 bottom-0 bg-blue-600 transition-all duration-500 ease-in-out"
+                className="absolute left-0 top-0 bottom-0 bg-amber-500 transition-all duration-500 ease-in-out shadow-[0_0_8px_#f59e0b]"
                 style={{ width: `${(step / (steps.length - 1)) * 100}%` }}
               />
             </div>
@@ -247,67 +249,73 @@ export default function CustomRequest() {
             <div className="flex items-center justify-between relative z-10">
               {steps.map((s, i) => (
                 <div key={s} className="flex flex-col items-center gap-2">
-                  <div className={`w-8 h-8 rounded-lg grid place-items-center text-xs font-mono font-bold transition-all ${
-                    i < step ? "bg-blue-600 text-white shadow-xs" : i === step ? "bg-slate-900 text-white shadow-xs" : "bg-white text-slate-500 border border-slate-200"
+                  <div className={`w-8 h-8 rounded grid place-items-center text-xs font-mono font-bold transition-all ${
+                    i < step ? "bg-amber-500 text-amber-950 font-black shadow-[0_0_8px_rgba(255,176,0,0.4)]" : i === step ? "bg-amber-500 text-amber-950 font-black border-2 border-amber-300 ring-2 ring-amber-500/30" : "bg-[#0d121e] text-slate-500 border border-slate-700"
                   }`}>
                     {i < step ? <Check className="w-3.5 h-3.5" /> : i + 1}
                   </div>
-                  <span className="text-xs text-slate-700 hidden sm:block font-medium">{s}</span>
+                  <span className={`text-xs hidden sm:block font-mono uppercase ${i === step ? "text-amber-400 font-bold" : "text-slate-500"}`}>{s}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 sm:p-8 md:p-10 border border-slate-200 shadow-xs tech-card">
+          <div className="bg-[#0a0e17] rounded-md p-6 sm:p-8 md:p-10 border-2 border-slate-800 shadow-2xl relative overflow-hidden">
+            {/* CRT Corner Decal Ticks */}
+            <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-amber-400 pointer-events-none" />
+            <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-amber-400 pointer-events-none" />
+            <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-amber-400 pointer-events-none" />
+            <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-amber-400 pointer-events-none" />
+
             <AnimatePresence mode="wait">
               <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
                 {step === 0 && (
                   <div className="space-y-5">
-                    <h2 className="text-2xl font-bold text-slate-900">Tell us about you</h2>
-                    <Field label="Full name *" error={errors.fullName}><Input value={data.fullName} onChange={e => set("fullName", e.target.value)} placeholder="Jane Doe" className="bg-slate-50 border-slate-200" /></Field>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white font-mono">// 01_CLIENT_INFORMATION</h2>
+                    <Field label="Full name *" error={errors.fullName}><Input value={data.fullName} onChange={e => set("fullName", e.target.value)} placeholder="Jane Doe" className="bg-[#0d121e] border-slate-700 text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-amber-500 rounded font-mono" /></Field>
                     <div className="grid sm:grid-cols-2 gap-4">
-                      <Field label="Email *" error={errors.email}><Input type="email" value={data.email} onChange={e => set("email", e.target.value)} placeholder="jane@example.com" className="bg-slate-50 border-slate-200" /></Field>
-                      <Field label="Phone *" error={errors.phone}><Input value={data.phone} onChange={e => set("phone", e.target.value)} placeholder="+91 98xxxx0000" className="bg-slate-50 border-slate-200" /></Field>
+                      <Field label="Email *" error={errors.email}><Input type="email" value={data.email} onChange={e => set("email", e.target.value)} placeholder="jane@example.com" className="bg-[#0d121e] border-slate-700 text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-amber-500 rounded font-mono" /></Field>
+                      <Field label="Phone *" error={errors.phone}><Input value={data.phone} onChange={e => set("phone", e.target.value)} placeholder="+91 98xxxx0000" className="bg-[#0d121e] border-slate-700 text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-amber-500 rounded font-mono" /></Field>
                     </div>
-                    <Field label="College / Company" error={errors.college}><Input value={data.college} onChange={e => set("college", e.target.value)} placeholder="IIT Delhi" className="bg-slate-50 border-slate-200" /></Field>
+                    <Field label="College / Company" error={errors.college}><Input value={data.college} onChange={e => set("college", e.target.value)} placeholder="IIT Delhi" className="bg-[#0d121e] border-slate-700 text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-amber-500 rounded font-mono" /></Field>
                   </div>
                 )}
 
                 {step === 1 && (
                   <div className="space-y-5">
-                    <h2 className="text-2xl font-bold text-slate-900">Project details</h2>
-                    <Field label="Project title *" error={errors.title}><Input value={data.title} onChange={e => set("title", e.target.value)} placeholder="AI-powered crop disease detector" className="bg-slate-50 border-slate-200" /></Field>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white font-mono">// 02_PROJECT_SPECIFICATIONS</h2>
+                    <Field label="Project title *" error={errors.title}><Input value={data.title} onChange={e => set("title", e.target.value)} placeholder="AI-powered crop disease detector" className="bg-[#0d121e] border-slate-700 text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-amber-500 rounded font-mono" /></Field>
                     <Field label="Domain / Category *" error={errors.category}>
                       <Select value={data.category} onValueChange={v => set("category", v)}>
-                        <SelectTrigger className="bg-slate-50 border-slate-200"><SelectValue placeholder="Pick a category" /></SelectTrigger>
-                        <SelectContent className="bg-white border-slate-200 rounded-2xl shadow-xl">
-                          {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        <SelectTrigger className="bg-[#0d121e] border-slate-700 text-white font-mono rounded"><SelectValue placeholder="Pick a category" /></SelectTrigger>
+                        <SelectContent className="bg-[#0d121e] border-slate-800 text-white font-mono rounded-md shadow-xl">
+                          {CATEGORIES.map(c => <SelectItem key={c} value={c} className="hover:bg-slate-800 focus:bg-slate-800">{c}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     </Field>
                     <Field label="Project description *" error={errors.description}>
-                      <Textarea rows={5} value={data.description} onChange={e => set("description", e.target.value)} placeholder="What should the project do? Who is it for?" className="bg-slate-50 border-slate-200" />
+                      <Textarea rows={5} value={data.description} onChange={e => set("description", e.target.value)} placeholder="What should the project do? Who is it for?" className="bg-[#0d121e] border-slate-700 text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-amber-500 rounded font-mono" />
                     </Field>
-                    <Field label="Technologies required" error={errors.tech}><Input value={data.tech} onChange={e => set("tech", e.target.value)} placeholder="Python, TensorFlow, React" className="bg-slate-50 border-slate-200" /></Field>
+                    <Field label="Technologies required" error={errors.tech}><Input value={data.tech} onChange={e => set("tech", e.target.value)} placeholder="Python, TensorFlow, React" className="bg-[#0d121e] border-slate-700 text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-amber-500 rounded font-mono" /></Field>
                   </div>
                 )}
 
                 {step === 2 && (
                   <div className="space-y-5">
-                    <h2 className="text-2xl font-bold text-slate-900">Scope & budget</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white font-mono">// 03_SCOPE_&_BUDGET</h2>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <Field label="Budget range *" error={errors.budget}>
                         <Select value={data.budget} onValueChange={v => set("budget", v)}>
-                          <SelectTrigger className="bg-slate-50 border-slate-200"><SelectValue placeholder="Select budget" /></SelectTrigger>
-                          <SelectContent className="bg-white border-slate-200 rounded-xl shadow-xl">
-                            <SelectItem value="<5k">Under ₹5,000</SelectItem>
-                            <SelectItem value="5k-15k">₹5,000 – ₹15,000</SelectItem>
-                            <SelectItem value="15k-50k">₹15,000 – ₹50,000</SelectItem>
-                            <SelectItem value="50k+">₹50,000+</SelectItem>
+                          <SelectTrigger className="bg-[#0d121e] border-slate-700 text-white font-mono rounded"><SelectValue placeholder="Select budget" /></SelectTrigger>
+                          <SelectContent className="bg-[#0d121e] border-slate-800 text-white font-mono rounded-md shadow-xl">
+                            <SelectItem value="<5k" className="hover:bg-slate-800 focus:bg-slate-800">Under ₹5,000</SelectItem>
+                            <SelectItem value="5k-15k" className="hover:bg-slate-800 focus:bg-slate-800">₹5,000 – ₹15,000</SelectItem>
+                            <SelectItem value="15k-50k" className="hover:bg-slate-800 focus:bg-slate-800">₹15,000 – ₹50,000</SelectItem>
+                            <SelectItem value="50k+" className="hover:bg-slate-800 focus:bg-slate-800">₹50,000+</SelectItem>
                           </SelectContent>
                         </Select>
                       </Field>
-                      <Field label="Deadline *" error={errors.deadline}><Input type="date" value={data.deadline} onChange={e => set("deadline", e.target.value)} className="bg-slate-50 border-slate-200" /></Field>
+                      <Field label="Deadline *" error={errors.deadline}><Input type="date" value={data.deadline} onChange={e => set("deadline", e.target.value)} className="bg-[#0d121e] border-slate-700 text-white rounded font-mono" /></Field>
                     </div>
                     <Field label="Upload requirement documents">
                       <div 
@@ -315,15 +323,15 @@ export default function CustomRequest() {
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
-                        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer relative ${
-                          isDragging ? "border-blue-600 bg-blue-50/50 scale-[1.01]" : "border-slate-200 hover:border-blue-600 bg-slate-50/50"
+                        className={`border-2 border-dashed rounded-md p-8 text-center transition-all cursor-pointer relative ${
+                          isDragging ? "border-amber-400 bg-amber-950/20 scale-[1.01]" : "border-slate-700 hover:border-amber-500 bg-[#0d121e]"
                         }`}
                       >
                         {selectedFile ? (
                           <div className="space-y-2">
-                            <Check className="w-6 h-6 text-emerald-600 mx-auto" />
-                            <p className="text-sm font-semibold text-slate-900">{selectedFile.name}</p>
-                            <p className="text-xs text-slate-500">
+                            <Check className="w-6 h-6 text-emerald-400 mx-auto" />
+                            <p className="text-sm font-semibold text-white font-mono">{selectedFile.name}</p>
+                            <p className="text-xs text-slate-400 font-mono">
                               {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
                             </p>
                             <button
@@ -333,16 +341,16 @@ export default function CustomRequest() {
                                 setSelectedFile(null);
                                 if (fileInputRef.current) fileInputRef.current.value = "";
                               }}
-                              className="text-xs text-rose-600 hover:underline mt-2 block mx-auto font-semibold"
+                              className="text-xs text-rose-400 hover:underline mt-2 block mx-auto font-semibold font-mono"
                             >
-                              Remove File
+                              [REMOVE_FILE]
                             </button>
                           </div>
                         ) : (
                           <>
-                            <Upload className="w-6 h-6 text-slate-400 mx-auto mb-2" />
-                            <p className="text-sm font-semibold text-slate-800">Drop files or click to browse</p>
-                            <p className="text-xs text-slate-500 mt-1">PDF, DOCX, PNG, JPG up to 10MB</p>
+                            <Upload className="w-6 h-6 text-amber-400 mx-auto mb-2" />
+                            <p className="text-sm font-semibold text-slate-200 font-mono">Drop files or click to browse</p>
+                            <p className="text-xs text-slate-500 mt-1 font-mono">PDF, DOCX, PNG, JPG up to 10MB</p>
                           </>
                         )}
                       </div>
@@ -366,22 +374,22 @@ export default function CustomRequest() {
                     <Field label="Preferred contact method">
                       <RadioGroup value={data.contact} onValueChange={v => set("contact", v)} className="flex gap-4">
                         {["email", "phone", "whatsapp"].map(c => (
-                          <label key={c} className="flex items-center gap-2 capitalize text-sm cursor-pointer font-medium text-slate-700">
-                            <RadioGroupItem value={c} /> {c}
+                          <label key={c} className="flex items-center gap-2 capitalize text-sm cursor-pointer font-medium text-slate-300 font-mono">
+                            <RadioGroupItem value={c} className="border-slate-600 text-amber-500 data-[state=checked]:border-amber-400" /> {c}
                           </label>
                         ))}
                       </RadioGroup>
                     </Field>
                     <Field label="Additional notes" error={errors.notes}>
-                      <Textarea rows={3} value={data.notes} onChange={e => set("notes", e.target.value)} placeholder="Anything else we should know?" className="bg-slate-50 border-slate-200" />
+                      <Textarea rows={3} value={data.notes} onChange={e => set("notes", e.target.value)} placeholder="Anything else we should know?" className="bg-[#0d121e] border-slate-700 text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-amber-500 rounded font-mono" />
                     </Field>
                   </div>
                 )}
 
                 {step === 3 && (
                   <div className="space-y-5">
-                    <h2 className="text-2xl font-bold text-slate-900">Review & submit</h2>
-                    <div className="bg-slate-50 rounded-2xl p-5 space-y-2.5 text-sm border border-slate-200/80">
+                    <h2 className="text-xl sm:text-2xl font-bold text-white font-mono">// 04_REVIEW_&_TRANSMIT</h2>
+                    <div className="bg-[#0d121e] rounded-md p-5 space-y-2.5 text-sm border border-slate-800 font-mono">
                       <Row label="Name" value={data.fullName} />
                       <Row label="Email" value={data.email} />
                       <Row label="Phone" value={data.phone} />
@@ -389,23 +397,23 @@ export default function CustomRequest() {
                       <Row label="Project" value={data.title} />
                       <Row label="Category" value={data.category} />
                       <Row label="Budget" value={data.budget} />
-                       <Row label="Deadline" value={data.deadline} />
+                      <Row label="Deadline" value={data.deadline} />
                       <Row label="Contact via" value={data.contact} />
                       {selectedFile && <Row label="Document" value={selectedFile.name} />}
                     </div>
-                    <p className="text-xs text-slate-500">By submitting you agree to be contacted by our team about this project.</p>
+                    <p className="text-xs text-slate-500 font-mono">By submitting you agree to be contacted by our team about this project.</p>
                   </div>
                 )}
               </motion.div>
             </AnimatePresence>
 
-            <div className="flex justify-between mt-8 pt-6 border-t border-slate-100">
-              <Button variant="ghost" className="rounded-lg text-slate-700 font-semibold" onClick={prev} disabled={step === 0}><ArrowLeft className="w-4 h-4 mr-1" /> Back</Button>
+            <div className="flex justify-between mt-8 pt-6 border-t border-slate-800">
+              <Button variant="ghost" className="rounded text-slate-400 hover:text-white hover:bg-slate-800 font-mono text-xs" onClick={prev} disabled={step === 0}><ArrowLeft className="w-4 h-4 mr-1" /> [←] PREV</Button>
               {step < steps.length - 1 ? (
-                <Button onClick={next} className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 shadow-xs">Next <ArrowRight className="w-4 h-4 ml-1" /></Button>
+                <Button onClick={next} className="rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-mono font-black px-6 h-11 text-xs shadow-[0_3px_0_#92400e] border border-amber-300 active:translate-y-0.5 retro-btn">NEXT_STEP [→]</Button>
               ) : (
-                <Button onClick={submit} disabled={isSubmitting} className="rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold px-6 shadow-xs">
-                  {isSubmitting ? "Submitting..." : "Submit request"}
+                <Button onClick={submit} disabled={isSubmitting} className="rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-mono font-black px-6 h-11 text-xs shadow-[0_3px_0_#92400e] border border-amber-300 active:translate-y-0.5 retro-btn">
+                  {isSubmitting ? "TRANSMITTING..." : "[EXEC] SUBMIT_REQUEST"}
                 </Button>
               )}
             </div>
@@ -419,18 +427,18 @@ export default function CustomRequest() {
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <div>
-      <Label className="text-slate-700 font-semibold text-sm mb-1.5 block">{label}</Label>
+      <Label className="text-slate-300 font-bold text-xs uppercase tracking-wider mb-1.5 block font-mono">{label}</Label>
       {children}
-      {error && <p className="text-xs text-rose-600 mt-1 font-medium">{error}</p>}
+      {error && <p className="text-xs text-rose-400 mt-1 font-mono font-medium">{error}</p>}
     </div>
   );
 }
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between gap-4">
-      <span className="text-slate-500 font-medium">{label}</span>
-      <span className="text-slate-900 font-semibold text-right">{value}</span>
+    <div className="flex justify-between gap-4 font-mono text-xs sm:text-sm">
+      <span className="text-slate-500">{label}:</span>
+      <span className="text-amber-400 font-bold text-right">{value}</span>
     </div>
   );
 }
