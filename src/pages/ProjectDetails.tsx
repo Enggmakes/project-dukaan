@@ -79,6 +79,7 @@ export default function ProjectDetails() {
   // Check user ownership, admin status, and build inquiry permission in realtime
   useEffect(() => {
     let channel: any = null;
+    let ordersChannel: any = null;
 
     const checkAccessAndOrders = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -95,24 +96,30 @@ export default function ProjectDetails() {
       const admin = await checkAdminStatus(session.user);
       setIsAdmin(admin);
 
-      // Check if user already owns this project in orders
+      // Check if user has an active, non-cancelled order for this project
       const userEmail = session.user.email?.trim().toLowerCase();
       const { data: userOrders } = await supabase
         .from("orders")
         .select("id, project_title, customer_email, status")
         .order("created_at", { ascending: false });
 
+      let hasActivePurchase = false;
       if (userOrders && project) {
-        const hasPurchased = userOrders.some((o: any) => 
+        hasActivePurchase = userOrders.some((o: any) => 
           o.customer_email && 
           o.customer_email.trim().toLowerCase() === userEmail &&
           o.project_title && 
-          o.project_title.trim().toLowerCase() === project.title.trim().toLowerCase()
+          o.project_title.trim().toLowerCase() === project.title.trim().toLowerCase() &&
+          o.status?.toLowerCase() !== "cancelled" &&
+          o.status?.toLowerCase() !== "withdrawn"
         );
-        if (hasPurchased) {
-          setIsOwned(true);
-          setConvoStatus("purchased");
-        }
+      }
+
+      if (hasActivePurchase) {
+        setIsOwned(true);
+        setConvoStatus("purchased");
+      } else {
+        setIsOwned(false);
       }
 
       // Check active conversation / build request
@@ -129,8 +136,14 @@ export default function ProjectDetails() {
           if (convo.status === "ready_to_purchase") {
             setConvoStatus("ready_to_purchase");
           } else if (convo.status === "purchased") {
-            setConvoStatus("purchased");
-            setIsOwned(true);
+            if (hasActivePurchase) {
+              setConvoStatus("purchased");
+              setIsOwned(true);
+            } else {
+              // The order was cancelled by admin: revoke ownership and allow buying again
+              setIsOwned(false);
+              setConvoStatus("ready_to_purchase");
+            }
           } else {
             setConvoStatus("active");
           }
@@ -166,9 +179,11 @@ export default function ProjectDetails() {
                       duration: 7000
                     });
                   } else if (newStatus === "purchased") {
-                    setActiveConvo(payload.new);
-                    setConvoStatus("purchased");
-                    setIsOwned(true);
+                    if (hasActivePurchase) {
+                      setActiveConvo(payload.new);
+                      setConvoStatus("purchased");
+                      setIsOwned(true);
+                    }
                   } else {
                     setActiveConvo(payload.new);
                     setConvoStatus("active");
@@ -178,13 +193,31 @@ export default function ProjectDetails() {
             )
             .subscribe();
         } else {
-          setConvoStatus("none");
+          if (!hasActivePurchase) {
+            setConvoStatus("none");
+          }
           setActiveConvo(null);
         }
       }
     };
 
     checkAccessAndOrders();
+
+    // Realtime orders status listener for instant sync when admin changes or cancels an order
+    ordersChannel = supabase
+      .channel(`orders-live-sync-${id || 'detail'}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "orders",
+        },
+        () => {
+          checkAccessAndOrders();
+        }
+      )
+      .subscribe();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
@@ -201,6 +234,7 @@ export default function ProjectDetails() {
     return () => {
       subscription.unsubscribe();
       if (channel) supabase.removeChannel(channel);
+      if (ordersChannel) supabase.removeChannel(ordersChannel);
     };
   }, [id, project]);
 

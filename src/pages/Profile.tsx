@@ -30,7 +30,9 @@ import {
   Cpu,
   Key,
   Layers,
-  Terminal
+  Terminal,
+  AlertTriangle,
+  XCircle
 } from "lucide-react";
 
 export default function Profile() {
@@ -88,6 +90,18 @@ export default function Profile() {
 
     fetchSessionAndOrders();
 
+    // Realtime listener for order changes (e.g., status changes or cancellations by admin)
+    const ordersChannel = supabase
+      .channel('profile-orders-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        () => {
+          fetchSessionAndOrders();
+        }
+      )
+      .subscribe();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         setUser(null);
@@ -98,7 +112,10 @@ export default function Profile() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      supabase.removeChannel(ordersChannel);
+    };
   }, [navigate]);
 
   const copyToClipboard = (text: string) => {
@@ -192,7 +209,7 @@ export default function Profile() {
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-6 pt-2 text-xs font-mono text-slate-400">
                 <div className="flex items-center gap-2 bg-[#070a12] px-3 py-1.5 rounded-lg border border-slate-800">
                   <ShoppingBag className="w-3.5 h-3.5 text-amber-400" />
-                  <span><strong className="text-white">{orders.length}</strong> Projects Purchased</span>
+                  <span><strong className="text-white">{orders.filter(o => o.status?.toLowerCase() !== 'cancelled' && o.status?.toLowerCase() !== 'withdrawn').length}</strong> Active Projects</span>
                 </div>
                 <div className="flex items-center gap-2 bg-[#070a12] px-3 py-1.5 rounded-lg border border-slate-800">
                   <Clock className="w-3.5 h-3.5 text-cyan-400" />
@@ -280,6 +297,7 @@ export default function Profile() {
                     {orders.map((o) => {
                       const isPhysical = o.delivery_type === "physical";
                       const status = o.status || "Processing";
+                      const isCancelled = status.toLowerCase() === "cancelled" || status.toLowerCase() === "withdrawn";
                       
                       let activeStep = 1;
                       if (status === "Processing") activeStep = 2;
@@ -289,13 +307,21 @@ export default function Profile() {
                       return (
                         <div 
                           key={o.id} 
-                          className="bg-[#090e1c] rounded-2xl p-6 sm:p-8 space-y-6 border border-slate-800/90 shadow-xl relative overflow-hidden transition-all duration-300 hover:border-slate-700"
+                          className={`bg-[#090e1c] rounded-2xl p-6 sm:p-8 space-y-6 border shadow-xl relative overflow-hidden transition-all duration-300 ${
+                            isCancelled 
+                              ? "border-rose-950/60 bg-gradient-to-b from-[#090e1c] to-[#0d0710]" 
+                              : "border-slate-800/90 hover:border-slate-700"
+                          }`}
                         >
                           {/* Order Title, Metadata and Type */}
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
                             <div className="space-y-1.5">
                               <div className="flex items-center gap-2">
-                                <span className="text-[11px] font-mono font-bold text-amber-400 bg-[#070a12] border border-slate-800 px-2 py-0.5 rounded">
+                                <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded border ${
+                                  isCancelled 
+                                    ? "text-rose-400 bg-rose-950/40 border-rose-900/50" 
+                                    : "text-amber-400 bg-[#070a12] border-slate-800"
+                                }`}>
                                   ORDER #{o.id.substring(0, 8).toUpperCase()}
                                 </span>
                                 <span className="text-[11px] font-mono text-slate-500">
@@ -306,17 +332,29 @@ export default function Profile() {
                                 {o.project_title}
                               </h3>
                               <div className="flex items-center gap-4 text-xs font-mono text-slate-400 pt-0.5">
-                                <span>Paid: <strong className="text-emerald-400">₹{o.amount.toLocaleString('en-IN')}</strong></span>
+                                <span>Paid: <strong className={isCancelled ? "text-slate-400 line-through" : "text-emerald-400"}>₹{o.amount.toLocaleString('en-IN')}</strong></span>
                                 <span className="text-slate-600">•</span>
-                                <span>Status: <strong className="text-slate-200 capitalize">{status}</strong></span>
+                                <span>
+                                  Status:{" "}
+                                  <strong className={isCancelled ? "text-rose-400 font-bold uppercase tracking-wider" : "text-slate-200 capitalize"}>
+                                    {status}
+                                  </strong>
+                                </span>
                               </div>
                             </div>
                             
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2.5 flex-wrap">
+                              {isCancelled && (
+                                <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/30 rounded-lg py-1 px-3 font-mono text-[11px] font-bold">
+                                  ORDER_CANCELLED
+                                </Badge>
+                              )}
                               <Badge className={
-                                isPhysical 
-                                  ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/30 rounded-lg py-1 px-3 font-mono text-[11px]" 
-                                  : "bg-amber-500/10 text-amber-300 border-amber-500/30 rounded-lg py-1 px-3 font-mono text-[11px]"
+                                isCancelled
+                                  ? "bg-slate-800/60 text-slate-400 border-slate-700/60 rounded-lg py-1 px-3 font-mono text-[11px]"
+                                  : isPhysical 
+                                    ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/30 rounded-lg py-1 px-3 font-mono text-[11px]" 
+                                    : "bg-amber-500/10 text-amber-300 border-amber-500/30 rounded-lg py-1 px-3 font-mono text-[11px]"
                               }>
                                 {isPhysical ? "Physical Hardware Kit" : "Digital Blueprint"}
                               </Badge>
@@ -324,7 +362,7 @@ export default function Profile() {
                           </div>
 
                           {/* PHYSICAL KIT courier delivery tracker block */}
-                          {isPhysical && (
+                          {isPhysical && !isCancelled && (
                             <div className="space-y-5 bg-[#070a12] border border-slate-800/80 rounded-xl p-4 sm:p-5">
                               <div className="flex items-center justify-between flex-wrap gap-3">
                                 <span className="text-xs font-mono font-semibold text-slate-200 flex items-center gap-2">
@@ -418,174 +456,204 @@ export default function Profile() {
                             </div>
                           )}
 
-                          {/* CUSTOM PROJECT DELIVERABLES (GitHub, Drive, Video, PDF, Handover Notes) */}
-                          {(() => {
-                            const dev = o.deliverables || {};
-                            const githubUrl = dev.github_url || o.github_url;
-                            const driveUrl = dev.drive_url;
-                            const videoUrl = dev.video_url;
-                            const pdfUrl = dev.pdf_url;
-                            const adminNotes = dev.admin_notes;
-                            const hasAnyCustom = Boolean(githubUrl || driveUrl || videoUrl || pdfUrl || adminNotes);
-
-                            return (
-                              <div className="space-y-4">
-                                {hasAnyCustom ? (
-                                  <div className="bg-[#070a12] border border-slate-800 rounded-xl p-5 space-y-4">
-                                    <div className="flex items-center justify-between flex-wrap gap-2">
-                                      <div className="flex items-center gap-2 text-xs font-mono font-bold text-white">
-                                        <Sparkles className="w-4 h-4 text-amber-400" />
-                                        <span>PERSONALIZED_ENGINEERING_PACKAGE</span>
-                                      </div>
-                                      <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] font-mono font-semibold">
-                                        ALLOCATED_BY_LEAD_ENGINEER
+                          {/* CANCELLED ORDER REVOCATION BANNER OR ACTIVE DELIVERABLES */}
+                          {isCancelled ? (
+                            <div className="bg-[#0b0c16] border border-rose-500/30 rounded-xl p-5 sm:p-6 space-y-4">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div className="flex items-start sm:items-center gap-3.5">
+                                  <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center shrink-0">
+                                    <XCircle className="w-5 h-5" />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs sm:text-sm font-mono font-bold text-rose-400">ACCESS_REVOKED · ORDER_CANCELLED</span>
+                                      <Badge className="bg-rose-500/15 text-rose-300 border-rose-500/30 text-[10px] font-mono">
+                                        VOIDED
                                       </Badge>
                                     </div>
-
-                                    {/* Deliverable Action Buttons */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
-                                      {githubUrl && (
-                                        <a
-                                          href={githubUrl}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className="flex items-center justify-between p-3 rounded-xl bg-[#090e1c] border border-slate-800 hover:border-cyan-400/50 hover:bg-slate-800/60 transition-all group"
-                                        >
-                                          <div className="flex items-center gap-2.5 min-w-0">
-                                            <div className="w-8 h-8 rounded-lg bg-[#070a12] border border-slate-700/80 text-cyan-400 flex items-center justify-center shrink-0">
-                                              <FolderGit2 className="w-4 h-4" />
-                                            </div>
-                                            <div className="min-w-0 text-left">
-                                              <div className="text-xs font-mono font-semibold text-slate-200 group-hover:text-cyan-400 transition-colors truncate">
-                                                GitHub Repo
-                                              </div>
-                                              <div className="text-[10px] font-mono text-slate-500 truncate">Source Code & Branch</div>
-                                            </div>
-                                          </div>
-                                          <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 shrink-0 ml-1" />
-                                        </a>
-                                      )}
-
-                                      {driveUrl && (
-                                        <a
-                                          href={driveUrl}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className="flex items-center justify-between p-3 rounded-xl bg-[#090e1c] border border-slate-800 hover:border-blue-400/50 hover:bg-slate-800/60 transition-all group"
-                                        >
-                                          <div className="flex items-center gap-2.5 min-w-0">
-                                            <div className="w-8 h-8 rounded-lg bg-[#070a12] border border-slate-700/80 text-blue-400 flex items-center justify-center shrink-0">
-                                              <HardDrive className="w-4 h-4" />
-                                            </div>
-                                            <div className="min-w-0 text-left">
-                                              <div className="text-xs font-mono font-semibold text-slate-200 group-hover:text-blue-400 transition-colors truncate">
-                                                Google Drive
-                                              </div>
-                                              <div className="text-[10px] font-mono text-slate-500 truncate">Datasets & 3D Files</div>
-                                            </div>
-                                          </div>
-                                          <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 shrink-0 ml-1" />
-                                        </a>
-                                      )}
-
-                                      {videoUrl && (
-                                        <a
-                                          href={videoUrl}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className="flex items-center justify-between p-3 rounded-xl bg-[#090e1c] border border-slate-800 hover:border-rose-400/50 hover:bg-slate-800/60 transition-all group"
-                                        >
-                                          <div className="flex items-center gap-2.5 min-w-0">
-                                            <div className="w-8 h-8 rounded-lg bg-[#070a12] border border-slate-700/80 text-rose-400 flex items-center justify-center shrink-0">
-                                              <Video className="w-4 h-4" />
-                                            </div>
-                                            <div className="min-w-0 text-left">
-                                              <div className="text-xs font-mono font-semibold text-slate-200 group-hover:text-rose-400 transition-colors truncate">
-                                                Video Tutorial
-                                              </div>
-                                              <div className="text-[10px] font-mono text-slate-500 truncate">Setup & Demo Video</div>
-                                            </div>
-                                          </div>
-                                          <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-rose-400 shrink-0 ml-1" />
-                                        </a>
-                                      )}
-
-                                      {pdfUrl && (
-                                        <a
-                                          href={pdfUrl}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className="flex items-center justify-between p-3 rounded-xl bg-[#090e1c] border border-slate-800 hover:border-amber-400/50 hover:bg-slate-800/60 transition-all group"
-                                        >
-                                          <div className="flex items-center gap-2.5 min-w-0">
-                                            <div className="w-8 h-8 rounded-lg bg-[#070a12] border border-slate-700/80 text-amber-400 flex items-center justify-center shrink-0">
-                                              <FileText className="w-4 h-4" />
-                                            </div>
-                                            <div className="min-w-0 text-left">
-                                              <div className="text-xs font-mono font-semibold text-slate-200 group-hover:text-amber-400 transition-colors truncate">
-                                                Thesis & PDF
-                                              </div>
-                                              <div className="text-[10px] font-mono text-slate-500 truncate">Report & Synopsis</div>
-                                            </div>
-                                          </div>
-                                          <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 shrink-0 ml-1" />
-                                        </a>
-                                      )}
-                                    </div>
-
-                                    {/* Engineer Notes Callout */}
-                                    {adminNotes && (
-                                      <div className="bg-[#090e1c] border border-amber-500/30 rounded-xl p-4 space-y-2">
-                                        <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-400">
-                                          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                                          <span>ENGINEER_HANDOVER_INSTRUCTIONS:</span>
-                                        </div>
-                                        <p className="text-xs text-amber-200/90 whitespace-pre-wrap leading-relaxed font-mono bg-[#070a12] p-3 rounded-lg border border-slate-800">
-                                          {adminNotes}
-                                        </p>
-                                      </div>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <div className="bg-[#070a12] border border-slate-800 rounded-xl p-3.5 text-xs font-mono text-slate-400 flex items-center justify-between flex-wrap gap-2">
-                                    <span className="flex items-center gap-2">
-                                      <Clock className="w-3.5 h-3.5 text-amber-400" />
-                                      Personalized GitHub repo, Google Drive assets, and walkthrough are being prepared by your engineer.
-                                    </span>
-                                    <span className="text-[11px] text-slate-500">AVAILABLE_SHORTLY</span>
-                                  </div>
-                                )}
-
-                                {/* DIGITAL ASSETS AND LIFETIME DOWNLOAD OPTIONS */}
-                                <div className="bg-[#070a12] border border-slate-800 rounded-xl p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
-                                  <div className="space-y-1.5">
-                                    <div className="flex items-center gap-2 text-xs sm:text-sm font-mono font-bold text-emerald-400">
-                                      <CheckCircle className="w-4 h-4" />
-                                      LIFETIME_DIGITAL_ACCESS_UNLOCKED
-                                    </div>
-                                    <p className="text-xs text-slate-400 max-w-xl leading-relaxed font-sans">
-                                      Includes complete microcontroller source code, circuit wiring diagrams, step-by-step assembly manual, 3D printing STL files (if applicable), and component datasheet lists.
+                                    <p className="text-xs text-slate-400 font-sans leading-relaxed max-w-2xl">
+                                      This order has been cancelled by administration. Deliverables, GitHub repository code downloads, and project assets have been revoked. If you need assistance or refund clarification, feel free to contact our engineering team.
                                     </p>
-                                    <div className="pt-1 flex items-center gap-2">
-                                      <span className="text-[10px] font-mono bg-[#090e1c] border border-slate-800 rounded px-2.5 py-1 text-slate-400 flex items-center gap-1.5">
-                                        <Key className="w-3 h-3 text-amber-400" />
-                                        LICENSE: PD-{o.id.substring(0,4).toUpperCase()}-{o.id.substring(4,8).toUpperCase()}-LIFETIME
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  <div className="w-full md:w-auto shrink-0">
-                                    <Button 
-                                      onClick={() => handleDownload(o)}
-                                      className="w-full md:w-auto bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold rounded-xl px-6 h-11 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.25)] transition-all cursor-pointer border-0"
-                                    >
-                                      <Download className="w-4 h-4" /> DOWNLOAD REPO (.zip)
-                                    </Button>
                                   </div>
                                 </div>
+                                <Button
+                                  onClick={() => navigate("/contact")}
+                                  className="self-start sm:self-center bg-[#070a12] hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 font-mono text-xs h-9 px-4 rounded-xl shrink-0 cursor-pointer"
+                                >
+                                  CONTACT_SUPPORT
+                                </Button>
                               </div>
-                            );
-                          })()}
+                            </div>
+                          ) : (
+                            /* CUSTOM PROJECT DELIVERABLES (GitHub, Drive, Video, PDF, Handover Notes) */
+                            (() => {
+                              const dev = o.deliverables || {};
+                              const githubUrl = dev.github_url || o.github_url;
+                              const driveUrl = dev.drive_url;
+                              const videoUrl = dev.video_url;
+                              const pdfUrl = dev.pdf_url;
+                              const adminNotes = dev.admin_notes;
+                              const hasAnyCustom = Boolean(githubUrl || driveUrl || videoUrl || pdfUrl || adminNotes);
+
+                              return (
+                                <div className="space-y-4">
+                                  {hasAnyCustom ? (
+                                    <div className="bg-[#070a12] border border-slate-800 rounded-xl p-5 space-y-4">
+                                      <div className="flex items-center justify-between flex-wrap gap-2">
+                                        <div className="flex items-center gap-2 text-xs font-mono font-bold text-white">
+                                          <Sparkles className="w-4 h-4 text-amber-400" />
+                                          <span>PERSONALIZED_ENGINEERING_PACKAGE</span>
+                                        </div>
+                                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] font-mono font-semibold">
+                                          ALLOCATED_BY_LEAD_ENGINEER
+                                        </Badge>
+                                      </div>
+
+                                      {/* Deliverable Action Buttons */}
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
+                                        {githubUrl && (
+                                          <a
+                                            href={githubUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-[#090e1c] border border-slate-800 hover:border-cyan-400/50 hover:bg-slate-800/60 transition-all group"
+                                          >
+                                            <div className="flex items-center gap-2.5 min-w-0">
+                                              <div className="w-8 h-8 rounded-lg bg-[#070a12] border border-slate-700/80 text-cyan-400 flex items-center justify-center shrink-0">
+                                                <FolderGit2 className="w-4 h-4" />
+                                              </div>
+                                              <div className="min-w-0 text-left">
+                                                <div className="text-xs font-mono font-semibold text-slate-200 group-hover:text-cyan-400 transition-colors truncate">
+                                                  GitHub Repo
+                                                </div>
+                                                <div className="text-[10px] font-mono text-slate-500 truncate">Source Code & Branch</div>
+                                              </div>
+                                            </div>
+                                            <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 shrink-0 ml-1" />
+                                          </a>
+                                        )}
+
+                                        {driveUrl && (
+                                          <a
+                                            href={driveUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-[#090e1c] border border-slate-800 hover:border-blue-400/50 hover:bg-slate-800/60 transition-all group"
+                                          >
+                                            <div className="flex items-center gap-2.5 min-w-0">
+                                              <div className="w-8 h-8 rounded-lg bg-[#070a12] border border-slate-700/80 text-blue-400 flex items-center justify-center shrink-0">
+                                                <HardDrive className="w-4 h-4" />
+                                              </div>
+                                              <div className="min-w-0 text-left">
+                                                <div className="text-xs font-mono font-semibold text-slate-200 group-hover:text-blue-400 transition-colors truncate">
+                                                  Google Drive
+                                                </div>
+                                                <div className="text-[10px] font-mono text-slate-500 truncate">Datasets & 3D Files</div>
+                                              </div>
+                                            </div>
+                                            <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 shrink-0 ml-1" />
+                                          </a>
+                                        )}
+
+                                        {videoUrl && (
+                                          <a
+                                            href={videoUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-[#090e1c] border border-slate-800 hover:border-rose-400/50 hover:bg-slate-800/60 transition-all group"
+                                          >
+                                            <div className="flex items-center gap-2.5 min-w-0">
+                                              <div className="w-8 h-8 rounded-lg bg-[#070a12] border border-slate-700/80 text-rose-400 flex items-center justify-center shrink-0">
+                                                <Video className="w-4 h-4" />
+                                              </div>
+                                              <div className="min-w-0 text-left">
+                                                <div className="text-xs font-mono font-semibold text-slate-200 group-hover:text-rose-400 transition-colors truncate">
+                                                  Video Tutorial
+                                                </div>
+                                                <div className="text-[10px] font-mono text-slate-500 truncate">Setup & Demo Video</div>
+                                              </div>
+                                            </div>
+                                            <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-rose-400 shrink-0 ml-1" />
+                                          </a>
+                                        )}
+
+                                        {pdfUrl && (
+                                          <a
+                                            href={pdfUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-[#090e1c] border border-slate-800 hover:border-amber-400/50 hover:bg-slate-800/60 transition-all group"
+                                          >
+                                            <div className="flex items-center gap-2.5 min-w-0">
+                                              <div className="w-8 h-8 rounded-lg bg-[#070a12] border border-slate-700/80 text-amber-400 flex items-center justify-center shrink-0">
+                                                <FileText className="w-4 h-4" />
+                                              </div>
+                                              <div className="min-w-0 text-left">
+                                                <div className="text-xs font-mono font-semibold text-slate-200 group-hover:text-amber-400 transition-colors truncate">
+                                                  Thesis & PDF
+                                                </div>
+                                                <div className="text-[10px] font-mono text-slate-500 truncate">Report & Synopsis</div>
+                                              </div>
+                                            </div>
+                                            <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 shrink-0 ml-1" />
+                                          </a>
+                                        )}
+                                      </div>
+
+                                      {/* Engineer Notes Callout */}
+                                      {adminNotes && (
+                                        <div className="bg-[#090e1c] border border-amber-500/30 rounded-xl p-4 space-y-2">
+                                          <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-400">
+                                            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                                            <span>ENGINEER_HANDOVER_INSTRUCTIONS:</span>
+                                          </div>
+                                          <p className="text-xs text-amber-200/90 whitespace-pre-wrap leading-relaxed font-mono bg-[#070a12] p-3 rounded-lg border border-slate-800">
+                                            {adminNotes}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="bg-[#070a12] border border-slate-800 rounded-xl p-3.5 text-xs font-mono text-slate-400 flex items-center justify-between flex-wrap gap-2">
+                                      <span className="flex items-center gap-2">
+                                        <Clock className="w-3.5 h-3.5 text-amber-400" />
+                                        Personalized GitHub repo, Google Drive assets, and walkthrough are being prepared by your engineer.
+                                      </span>
+                                      <span className="text-[11px] text-slate-500">AVAILABLE_SHORTLY</span>
+                                    </div>
+                                  )}
+
+                                  {/* DIGITAL ASSETS AND LIFETIME DOWNLOAD OPTIONS */}
+                                  <div className="bg-[#070a12] border border-slate-800 rounded-xl p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+                                    <div className="space-y-1.5">
+                                      <div className="flex items-center gap-2 text-xs sm:text-sm font-mono font-bold text-emerald-400">
+                                        <CheckCircle className="w-4 h-4" />
+                                        LIFETIME_DIGITAL_ACCESS_UNLOCKED
+                                      </div>
+                                      <p className="text-xs text-slate-400 max-w-xl leading-relaxed font-sans">
+                                        Includes complete microcontroller source code, circuit wiring diagrams, step-by-step assembly manual, 3D printing STL files (if applicable), and component datasheet lists.
+                                      </p>
+                                      <div className="pt-1 flex items-center gap-2">
+                                        <span className="text-[10px] font-mono bg-[#090e1c] border border-slate-800 rounded px-2.5 py-1 text-slate-400 flex items-center gap-1.5">
+                                          <Key className="w-3 h-3 text-amber-400" />
+                                          LICENSE: PD-{o.id.substring(0,4).toUpperCase()}-{o.id.substring(4,8).toUpperCase()}-LIFETIME
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    <div className="w-full md:w-auto shrink-0">
+                                      <Button 
+                                        onClick={() => handleDownload(o)}
+                                        className="w-full md:w-auto bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold rounded-xl px-6 h-11 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.25)] transition-all cursor-pointer border-0"
+                                      >
+                                        <Download className="w-4 h-4" /> DOWNLOAD REPO (.zip)
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })()
+                          )}
 
                         </div>
                       );
