@@ -206,21 +206,25 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
     };
   }, [isOpen, project?.id, user?.id]);
 
-  // Realtime WebSocket Subscription on conversation UPDATE
+  // Realtime WebSocket Subscription & live heartbeat sync while drawer is open
   useEffect(() => {
-    if (!conversation?.id || conversation.id.startsWith("local-")) return;
+    if (!isOpen || !conversation?.id || conversation.id.startsWith("local-")) return;
 
+    let isSubscribed = true;
+
+    // 1. Supabase Realtime Channel
     const channel = supabase
       .channel(`chat-convo-${conversation.id}`)
       .on(
         "postgres_changes",
         {
-          event: "UPDATE",
+          event: "*",
           schema: "public",
           table: "product_conversations",
           filter: `id=eq.${conversation.id}`,
         },
         (payload) => {
+          if (!isSubscribed) return;
           if (payload.new) {
             setConversation(payload.new);
             if (Array.isArray(payload.new.messages)) {
@@ -231,10 +235,37 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
       )
       .subscribe();
 
+    // 2. High-speed 3-second live sync heartbeat while chat drawer is open
+    // Guarantees real-time message delivery without needing to close & reopen drawer
+    const pollInterval = setInterval(async () => {
+      if (!isSubscribed || !conversation?.id || conversation.id.startsWith("local-")) return;
+
+      try {
+        const { data: latest } = await supabase
+          .from("product_conversations")
+          .select("*")
+          .eq("id", conversation.id)
+          .maybeSingle();
+
+        if (latest && isSubscribed) {
+          if (latest.last_message_at !== conversation.last_message_at || latest.updated_at !== conversation.updated_at) {
+            setConversation(latest);
+            if (Array.isArray(latest.messages)) {
+              setMessages(latest.messages);
+            }
+          }
+        }
+      } catch (e) {
+        // Silently catch background poll hiccup
+      }
+    }, 3000);
+
     return () => {
+      isSubscribed = false;
+      clearInterval(pollInterval);
       supabase.removeChannel(channel);
     };
-  }, [conversation?.id]);
+  }, [isOpen, conversation?.id, conversation?.last_message_at]);
 
   // Auto-scroll to bottom inside container only
   useEffect(() => {

@@ -216,6 +216,53 @@ export default function AdminDashboard() {
     syncAdminMessages(selectedConvo);
   }, [selectedConvo?.id, selectedConvo?.admin_cleared_at]);
 
+  // Active live-sync heartbeat: guarantees realtime message delivery every 3s while admin views a chat
+  useEffect(() => {
+    if (!selectedConvo?.id) return;
+    const currentId = selectedConvo.id;
+
+    const interval = setInterval(async () => {
+      try {
+        const { data, error } = await supabase
+          .from('product_conversations')
+          .select('*')
+          .eq('id', currentId)
+          .maybeSingle();
+
+        if (error || !data) return;
+
+        // If conversation was withdrawn/cancelled/deleted
+        if (data.admin_deleted || data.status === 'withdrawn' || data.status === 'cancelled') {
+          if (selectedConvoRef.current?.id === currentId) {
+            setSelectedConvo(null);
+            setAdminChatMessages([]);
+            fetchConversations();
+          }
+          return;
+        }
+
+        const existingCount = Array.isArray(selectedConvoRef.current?.messages)
+          ? selectedConvoRef.current.messages.length
+          : 0;
+        const newCount = Array.isArray(data.messages) ? data.messages.length : 0;
+        const timeChanged = data.last_message_at !== selectedConvoRef.current?.last_message_at;
+
+        if (newCount !== existingCount || timeChanged) {
+          if (selectedConvoRef.current?.id === currentId) {
+            setSelectedConvo(data);
+            syncAdminMessages(data);
+            // Refresh conversation list preview in sidebar as well
+            fetchConversations();
+          }
+        }
+      } catch {
+        // Network drop fallback
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [selectedConvo?.id]);
+
   // Realtime subscription for conversation list and active chat (all in product_conversations)
   useEffect(() => {
     const convoChannel = supabase
@@ -242,8 +289,23 @@ export default function AdminDashboard() {
                 toast.info("Build request / chat was deleted.");
               }
             } else if (selectedConvoRef.current?.id === payload.new.id) {
-              setSelectedConvo(payload.new);
-              syncAdminMessages(payload.new);
+              // Ensure we have full messages array even if postgres replica identity omits jsonb
+              if (!Array.isArray(payload.new.messages)) {
+                supabase
+                  .from('product_conversations')
+                  .select('*')
+                  .eq('id', payload.new.id)
+                  .maybeSingle()
+                  .then(({ data }) => {
+                    if (data && selectedConvoRef.current?.id === data.id) {
+                      setSelectedConvo(data);
+                      syncAdminMessages(data);
+                    }
+                  });
+              } else {
+                setSelectedConvo(payload.new);
+                syncAdminMessages(payload.new);
+              }
             }
           }
         }

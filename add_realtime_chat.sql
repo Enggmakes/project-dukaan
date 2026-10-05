@@ -119,6 +119,10 @@ USING (auth.uid() = user_id OR auth.jwt() ->> 'email' = 'workspace7204@gmail.com
 -- ==============================================================
 -- 3. Enable Realtime Publications for product_conversations
 -- ==============================================================
+-- CRITICAL for Supabase Realtime with RLS: REPLICA IDENTITY FULL guarantees
+-- that all column updates (including messages JSONB) broadcast to websocket subscribers
+ALTER TABLE product_conversations REPLICA IDENTITY FULL;
+
 DO $$ BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM pg_publication_tables 
