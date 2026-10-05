@@ -147,7 +147,7 @@ export default function Navbar() {
           <Link to="/" className="flex items-center gap-2.5 group select-none">
             <div className="relative">
               <img 
-                src="/logo.png" 
+                src="/logo-white.png" 
                 alt="ProjectDukaan" 
                 className="w-7 h-7 object-contain transition-transform duration-300 group-hover:scale-105" 
               />
@@ -269,7 +269,7 @@ export default function Navbar() {
       <header className="sticky top-0 z-40 flex md:hidden items-center justify-between px-4 py-2.5 bg-[#070a12]/95 backdrop-blur-md border-b border-slate-800 shadow-md">
         <Link to="/" className="flex items-center gap-2 select-none">
           <div className="relative">
-            <img src="/logo.png" alt="ProjectDukaan" className="w-7 h-7 object-contain" />
+            <img src="/logo-white.png" alt="ProjectDukaan" className="w-7 h-7 object-contain" />
             <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] animate-pulse" />
           </div>
           <span className="font-extrabold text-white tracking-tight text-base font-mono">
@@ -435,7 +435,7 @@ export default function Navbar() {
               <div className="flex items-center justify-between pb-4 border-b border-slate-800">
                 <div className="flex items-center gap-2">
                   <div className="relative">
-                    <img src="/logo.png" alt="ProjectDukaan" className="w-7 h-7 object-contain" />
+                    <img src="/logo-white.png" alt="ProjectDukaan" className="w-7 h-7 object-contain" />
                     <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
                   </div>
                   <span className="font-extrabold text-white text-base font-mono">Project<span className="text-amber-400">Dukaan</span></span>

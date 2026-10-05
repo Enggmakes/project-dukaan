@@ -67,13 +67,18 @@ export default function Footer() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 max-w-4xl h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
       <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-24 bg-amber-500/5 blur-3xl pointer-events-none" />
 
-      <div className="container-px pt-14 pb-28 sm:py-16 relative z-10">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
+      <div className="w-full px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 pt-14 pb-28 sm:py-16 relative z-10">
+        <div className="w-full max-w-[1800px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
           {/* Brand & Newsletter Console */}
-          <div className="lg:col-span-5 space-y-4">
+          <div className="lg:col-span-5 xl:col-span-5 space-y-4">
             <Link to="/" className="inline-flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700/80 p-1 flex items-center justify-center shadow-inner group-hover:border-amber-500/60 transition-colors">
-                <img src="/logo.png" alt="ProjectDukaan" className="w-full h-full object-contain transition-transform group-hover:scale-110" />
+              <div className="relative w-9 h-9 rounded-lg bg-[#0d121e] border border-amber-500/40 p-1.5 flex items-center justify-center shadow-[0_0_14px_rgba(245,158,11,0.2)] group-hover:border-amber-400 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all">
+                <img 
+                  src="/logo-white.png" 
+                  alt="ProjectDukaan" 
+                  className="w-full h-full object-contain filter drop-shadow-[0_0_4px_rgba(255,255,255,0.6)] transition-transform duration-300 group-hover:scale-110" 
+                />
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#070a12] shadow-[0_0_8px_#34d399] animate-pulse" />
               </div>
               <span className="font-extrabold text-white text-xl tracking-tight font-mono">
                 Project<span className="text-amber-400">Dukaan</span>
@@ -81,7 +86,7 @@ export default function Footer() {
               </span>
             </Link>
             
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-md font-sans">
+            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-lg font-sans">
               The verified engineering repository. Production AI models, embedded IoT builds, and robotics capstones with complete source code, hardware schematics, and IEEE defense documentation.
             </p>
 
@@ -90,7 +95,7 @@ export default function Footer() {
               <label htmlFor="newsletter-email" className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-2">
                 Subscribe to Blueprint Radar
               </label>
-              <form onSubmit={submit} className="flex items-center gap-2 max-w-md">
+              <form onSubmit={submit} className="flex items-center gap-2 max-w-lg">
                 <div className="relative flex-1">
                   <Input
                     id="newsletter-email"
@@ -127,7 +132,7 @@ export default function Footer() {
           </div>
 
           {/* Directory Navigation */}
-          <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-8 pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-800/80">
+          <div className="lg:col-span-7 xl:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-8 xl:gap-12 pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-800/80">
             <FooterCol title="Blueprints" items={productItems} />
             <FooterCol 
               title="Ecosystem" 
@@ -152,7 +157,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Status Bar */}
-        <div className="max-w-6xl mx-auto mt-12 md:mt-16 pt-6 border-t border-slate-800/80 flex flex-col-reverse sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+        <div className="w-full max-w-[1800px] mx-auto mt-12 md:mt-16 pt-6 border-t border-slate-800/80 flex flex-col-reverse sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <p className="text-xs text-slate-400 font-mono">
             © {new Date().getFullYear()} ProjectDukaan Workstation. Built for engineering defense & production deployment.
           </p>
