@@ -76,13 +76,15 @@ export default function ProjectDetails() {
   const [isCancellingRequest, setIsCancellingRequest] = useState(false);
   const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
 
-  // Check user ownership, admin status, and build inquiry permission in realtime
+  // Check user ownership, admin status, and build inquiry permission
   useEffect(() => {
-    let channel: any = null;
+    let isMounted = true;
     let ordersChannel: any = null;
 
     const checkAccessAndOrders = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      if (!isMounted) return;
+
       if (!session) {
         setCurrentUser(null);
         setIsAdmin(false);
@@ -94,6 +96,7 @@ export default function ProjectDetails() {
 
       setCurrentUser(session.user);
       const admin = await checkAdminStatus(session.user);
+      if (!isMounted) return;
       setIsAdmin(admin);
 
       // Check if user has an active, non-cancelled order for this project
@@ -102,6 +105,8 @@ export default function ProjectDetails() {
         .from("orders")
         .select("id, project_title, customer_email, status")
         .order("created_at", { ascending: false });
+
+      if (!isMounted) return;
 
       let hasActivePurchase = false;
       if (userOrders && project) {
@@ -131,6 +136,8 @@ export default function ProjectDetails() {
           .eq("project_id", id)
           .order("last_message_at", { ascending: false });
 
+        if (!isMounted) return;
+
         const convo = convos && convos.length > 0 
           ? convos.find((c: any) => c.status !== "withdrawn" && c.status !== "cancelled" && !c.admin_deleted) 
           : null;
@@ -144,58 +151,12 @@ export default function ProjectDetails() {
               setConvoStatus("purchased");
               setIsOwned(true);
             } else {
-              // The order was cancelled by admin: revoke ownership and allow buying again
               setIsOwned(false);
               setConvoStatus("ready_to_purchase");
             }
           } else {
             setConvoStatus("active");
           }
-
-          // Realtime listener for this conversation
-          channel = supabase
-            .channel(`convo-status-${convo.id}`)
-            .on(
-              "postgres_changes",
-              {
-                event: "*",
-                schema: "public",
-                table: "product_conversations",
-                filter: `id=eq.${convo.id}`,
-              },
-              (payload: any) => {
-                if (payload.eventType === "DELETE") {
-                  setActiveConvo(null);
-                  setConvoStatus("none");
-                  setIsChatDrawerOpen(false);
-                  toast.info("Build request has been cancelled.");
-                } else if (payload.new) {
-                  const newStatus = payload.new.status;
-                  if (newStatus === "withdrawn" || newStatus === "cancelled") {
-                    setActiveConvo(null);
-                    setConvoStatus("none");
-                    setIsChatDrawerOpen(false);
-                    toast.info("Build request has been cancelled.");
-                  } else if (newStatus === "ready_to_purchase") {
-                    setActiveConvo(payload.new);
-                    setConvoStatus("ready_to_purchase");
-                    toast.success("🎉 Access Granted! Lead engineer approved this build. You can now Buy Now & Pay!", {
-                      duration: 7000
-                    });
-                  } else if (newStatus === "purchased") {
-                    if (hasActivePurchase) {
-                      setActiveConvo(payload.new);
-                      setConvoStatus("purchased");
-                      setIsOwned(true);
-                    }
-                  } else {
-                    setActiveConvo(payload.new);
-                    setConvoStatus("active");
-                  }
-                }
-              }
-            )
-            .subscribe();
         } else {
           if (!hasActivePurchase) {
             setConvoStatus("none");
@@ -209,7 +170,7 @@ export default function ProjectDetails() {
 
     // Realtime orders status listener for instant sync when admin changes or cancels an order
     ordersChannel = supabase
-      .channel(`orders-live-sync-${id || 'detail'}`)
+      .channel(`orders-sync-${id || 'detail'}`)
       .on(
         "postgres_changes",
         {
@@ -236,11 +197,63 @@ export default function ProjectDetails() {
     });
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
-      if (channel) supabase.removeChannel(channel);
       if (ordersChannel) supabase.removeChannel(ordersChannel);
     };
   }, [id, project]);
+
+  // Dedicated, leak-free Realtime listener for active conversation status
+  useEffect(() => {
+    if (!activeConvo?.id || activeConvo.id.startsWith("local-")) return;
+
+    const channelId = `convo-status-${activeConvo.id}`;
+    const channel = supabase
+      .channel(channelId)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "product_conversations",
+          filter: `id=eq.${activeConvo.id}`,
+        },
+        (payload: any) => {
+          if (payload.eventType === "DELETE") {
+            setActiveConvo(null);
+            setConvoStatus("none");
+            setIsChatDrawerOpen(false);
+            toast.info("Build request has been cancelled.");
+          } else if (payload.new) {
+            const newStatus = payload.new.status;
+            if (newStatus === "withdrawn" || newStatus === "cancelled" || payload.new.admin_deleted) {
+              setActiveConvo(null);
+              setConvoStatus("none");
+              setIsChatDrawerOpen(false);
+              toast.info("Build request has been cancelled.");
+            } else if (newStatus === "ready_to_purchase") {
+              setActiveConvo(payload.new);
+              setConvoStatus("ready_to_purchase");
+              toast.success("🎉 Access Granted! Lead engineer approved this build. You can now Buy Now & Pay!", {
+                duration: 7000
+              });
+            } else if (newStatus === "purchased") {
+              setActiveConvo(payload.new);
+              setConvoStatus("purchased");
+              setIsOwned(true);
+            } else {
+              setActiveConvo(payload.new);
+              setConvoStatus("active");
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeConvo?.id]);
 
   const handleRequestBuildClick = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -292,10 +305,10 @@ export default function ProjectDetails() {
             })
             .eq("id", existing.id)
             .select()
-            .single();
+            .maybeSingle();
 
           if (error) throw error;
-          setActiveConvo(reactivated);
+          if (reactivated) setActiveConvo(reactivated);
           setConvoStatus("active");
           setIsChatDrawerOpen(true);
           toast.success("Build request submitted! Engineering team notified.");
@@ -316,10 +329,10 @@ export default function ProjectDetails() {
               messages: [initialMsg]
             })
             .select()
-            .single();
+            .maybeSingle();
 
           if (error) throw error;
-          setActiveConvo(created);
+          if (created) setActiveConvo(created);
           setConvoStatus("active");
           setIsChatDrawerOpen(true);
           toast.success("Build request submitted! Engineering team notified.");

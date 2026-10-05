@@ -323,14 +323,20 @@ export default function AdminDashboard() {
     }
   }, [adminChatMessages]);
 
-  const handleAdminSend = async (presetText?: string) => {
-    const text = (presetText || adminReplyText).trim();
-    if (!text || !selectedConvo) return;
+  // Serial send queue to ensure multiple canned clicks or quick typing never race or overwrite each other
+  const adminSendQueueRef = useRef<Promise<void>>(Promise.resolve());
 
-    setIsAdminSending(true);
+  const handleAdminSend = (presetText?: string) => {
+    const text = (presetText || adminReplyText).trim();
+    const activeConvo = selectedConvoRef.current;
+    if (!text || !activeConvo) return;
+
+    if (!presetText) setAdminReplyText("");
+
+    const targetId = activeConvo.id;
     const newMsg = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      conversation_id: selectedConvo.id,
+      conversation_id: targetId,
       sender_id: adminUser?.id || "admin",
       sender_role: "admin",
       sender_name: "ProjectDukaan Support",
@@ -339,42 +345,58 @@ export default function AdminDashboard() {
     };
 
     // Optimistic update
-    setAdminChatMessages((prev) => [...prev, newMsg]);
-    if (!presetText) setAdminReplyText("");
+    setAdminChatMessages((prev) => {
+      if (prev.some((m) => m.id === newMsg.id)) return prev;
+      return [...prev, newMsg];
+    });
 
-    try {
-      // Fetch latest messages from DB to append cleanly without overwrite
-      const { data: latest } = await supabase
-        .from('product_conversations')
-        .select('messages')
-        .eq('id', selectedConvo.id)
-        .single();
+    // Chain sequentially to guarantee no concurrent writes drop each other's messages
+    adminSendQueueRef.current = adminSendQueueRef.current.then(async () => {
+      setIsAdminSending(true);
+      try {
+        // Fetch latest messages from DB to append cleanly without overwrite (using maybeSingle to prevent 406 errors)
+        const { data: latest, error: fetchErr } = await supabase
+          .from('product_conversations')
+          .select('messages')
+          .eq('id', targetId)
+          .maybeSingle();
 
-      const currentMessages = Array.isArray(latest?.messages) 
-        ? latest.messages 
-        : (Array.isArray(selectedConvo.messages) ? selectedConvo.messages : []);
-      
-      const updatedMessages = [...currentMessages, newMsg];
+        if (fetchErr) throw fetchErr;
 
-      const { error: updateErr } = await supabase
-        .from('product_conversations')
-        .update({
-          messages: updatedMessages,
-          last_message: text,
-          last_message_at: newMsg.created_at,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', selectedConvo.id);
+        const currentMessages = Array.isArray(latest?.messages) 
+          ? latest.messages 
+          : (Array.isArray(selectedConvoRef.current?.messages) ? selectedConvoRef.current.messages : []);
+        
+        // Deduplicate strictly by message id
+        const seenIds = new Set<string>();
+        const updatedMessages: any[] = [];
+        for (const m of [...currentMessages, newMsg]) {
+          if (m && m.id && !seenIds.has(m.id)) {
+            seenIds.add(m.id);
+            updatedMessages.push(m);
+          }
+        }
 
-      if (updateErr) throw updateErr;
+        const { error: updateErr } = await supabase
+          .from('product_conversations')
+          .update({
+            messages: updatedMessages,
+            last_message: text,
+            last_message_at: newMsg.created_at,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', targetId);
 
-      fetchConversations();
-    } catch (err: any) {
-      console.error("Failed to send admin message:", err);
-      toast.error("Failed to deliver message via Supabase");
-    } finally {
-      setIsAdminSending(false);
-    }
+        if (updateErr) throw updateErr;
+
+        fetchConversations();
+      } catch (err: any) {
+        console.error("Failed to send admin message:", err);
+        toast.error("Failed to deliver message via Supabase");
+      } finally {
+        setIsAdminSending(false);
+      }
+    });
   };
 
   const handleGrantPurchaseAccess = async (convo: any) => {

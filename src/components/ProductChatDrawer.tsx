@@ -206,6 +206,12 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
     };
   }, [isOpen, project?.id, user?.id]);
 
+  // Keep a ref to the active conversation to avoid stale closures in listeners and queues
+  const conversationRef = useRef(conversation);
+  useEffect(() => {
+    conversationRef.current = conversation;
+  }, [conversation]);
+
   // Realtime WebSocket Subscription & live heartbeat sync while drawer is open
   useEffect(() => {
     if (!isOpen || !conversation?.id || conversation.id.startsWith("local-")) return;
@@ -236,19 +242,25 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
       .subscribe();
 
     // 2. High-speed 3-second live sync heartbeat while chat drawer is open
-    // Guarantees real-time message delivery without needing to close & reopen drawer
+    // Guarantees real-time message delivery even if websockets drop or lag
     const pollInterval = setInterval(async () => {
-      if (!isSubscribed || !conversation?.id || conversation.id.startsWith("local-")) return;
+      const activeId = conversationRef.current?.id;
+      if (!isSubscribed || !activeId || activeId.startsWith("local-")) return;
 
       try {
         const { data: latest } = await supabase
           .from("product_conversations")
           .select("*")
-          .eq("id", conversation.id)
+          .eq("id", activeId)
           .maybeSingle();
 
         if (latest && isSubscribed) {
-          if (latest.last_message_at !== conversation.last_message_at || latest.updated_at !== conversation.updated_at) {
+          const prevLatest = conversationRef.current;
+          const msgCountChanged = Array.isArray(latest.messages) && 
+            (!Array.isArray(prevLatest?.messages) || latest.messages.length !== prevLatest.messages.length);
+          const timeChanged = latest.last_message_at !== prevLatest?.last_message_at;
+
+          if (msgCountChanged || timeChanged || latest.status !== prevLatest?.status) {
             setConversation(latest);
             if (Array.isArray(latest.messages)) {
               setMessages(latest.messages);
@@ -256,7 +268,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
           }
         }
       } catch (e) {
-        // Silently catch background poll hiccup
+        // Silently catch background poll jitter
       }
     }, 3000);
 
@@ -265,7 +277,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
       clearInterval(pollInterval);
       supabase.removeChannel(channel);
     };
-  }, [isOpen, conversation?.id, conversation?.last_message_at]);
+  }, [isOpen, conversation?.id]);
 
   // Auto-scroll to bottom inside container only
   useEffect(() => {
@@ -274,82 +286,105 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
     }
   }, [messages]);
 
-  const handleSendMessage = async (textToSend?: string) => {
-    const msgText = (textToSend || newMessage).trim();
-    if (!msgText || !user || !conversation) return;
+  // Serialized send queue to guarantee atomic message delivery and eliminate race conditions
+  const userSendQueueRef = useRef<Promise<void>>(Promise.resolve());
 
-    setIsSending(true);
-    const newMsg = {
+  const handleSendMessage = (textToSend?: string) => {
+    const msgText = (textToSend || newMessage).trim();
+    const currentConvo = conversationRef.current;
+    if (!msgText || !user || !currentConvo) return;
+
+    if (!textToSend) setNewMessage("");
+
+    const newMsg: ChatMessage = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      conversation_id: conversation.id,
+      conversation_id: currentConvo.id,
       sender_id: user.id,
       sender_role: isUserAdmin(user) ? "admin" : "user",
-      sender_name: user.user_metadata?.full_name || user.email.split("@")[0],
+      sender_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "Client",
       message: msgText,
       created_at: new Date().toISOString(),
     };
 
-    // Optimistically update message feed
+    // Optimistically update message feed immediately
     setMessages((prev) => [...prev, newMsg]);
-    if (!textToSend) setNewMessage("");
 
-    try {
-      if (conversation.id.startsWith("local-")) {
-        // User sent their first message! Create single database conversation row now
-        const { data: created, error: createError } = await supabase
-          .from("product_conversations")
-          .insert({
-            user_id: user.id,
-            user_email: user.email,
-            user_name: user.user_metadata?.full_name || user.email.split("@")[0],
-            project_id: project.id,
-            project_title: project.title,
-            project_thumb: project.thumb || "/placeholder.svg",
-            project_price: project.price || 0,
-            status: "active",
-            messages: [newMsg],
-            last_message: msgText,
-            last_message_at: newMsg.created_at,
-          })
-          .select()
-          .single();
+    // Chain sequentially to guarantee no concurrent writes drop each other's messages
+    userSendQueueRef.current = userSendQueueRef.current.then(async () => {
+      setIsSending(true);
+      try {
+        const convoNow = conversationRef.current || currentConvo;
 
-        if (createError) throw createError;
-        setConversation(created);
-      } else {
-        // Fetch current message list from DB to append cleanly
-        const { data: latest } = await supabase
-          .from("product_conversations")
-          .select("messages")
-          .eq("id", conversation.id)
-          .single();
+        if (convoNow.id.startsWith("local-")) {
+          // User sent their first message! Create single database conversation row now
+          const { data: created, error: createError } = await supabase
+            .from("product_conversations")
+            .insert({
+              user_id: user.id,
+              user_email: user.email,
+              user_name: user.user_metadata?.full_name || user.email?.split("@")[0],
+              project_id: project.id,
+              project_title: project.title,
+              project_thumb: project.thumb || "/placeholder.svg",
+              project_price: project.price || 0,
+              status: "active",
+              messages: [newMsg],
+              last_message: msgText,
+              last_message_at: newMsg.created_at,
+            })
+            .select()
+            .maybeSingle();
 
-        const currentMessages = Array.isArray(latest?.messages)
-          ? latest.messages
-          : messages.filter((m) => m.id !== "welcome");
+          if (createError) throw createError;
+          if (created) {
+            setConversation(created);
+            conversationRef.current = created;
+          }
+        } else {
+          // Fetch current message list from DB to append cleanly
+          const { data: latest, error: fetchErr } = await supabase
+            .from("product_conversations")
+            .select("messages")
+            .eq("id", convoNow.id)
+            .maybeSingle();
 
-        const updatedMessages = [...currentMessages, newMsg];
+          if (fetchErr) throw fetchErr;
 
-        // Update single conversation row in Supabase
-        const { error: updateError } = await supabase
-          .from("product_conversations")
-          .update({
-            messages: updatedMessages,
-            last_message: msgText,
-            last_message_at: newMsg.created_at,
-            admin_deleted: false, // Unhide in admin view if previously cleared
-            status: conversation.status || "active",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", conversation.id);
+          const currentMessages = Array.isArray(latest?.messages)
+            ? latest.messages
+            : messages.filter((m) => m.id !== "welcome");
 
-        if (updateError) throw updateError;
+          // Deduplicate strictly by message id
+          const seenIds = new Set<string>();
+          const updatedMessages: ChatMessage[] = [];
+          for (const m of [...currentMessages, newMsg]) {
+            if (m && m.id && !seenIds.has(m.id)) {
+              seenIds.add(m.id);
+              updatedMessages.push(m);
+            }
+          }
+
+          // Update single conversation row in Supabase
+          const { error: updateError } = await supabase
+            .from("product_conversations")
+            .update({
+              messages: updatedMessages,
+              last_message: msgText,
+              last_message_at: newMsg.created_at,
+              admin_deleted: false, // Unhide in admin view if previously cleared
+              status: convoNow.status || "active",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", convoNow.id);
+
+          if (updateError) throw updateError;
+        }
+      } catch (err: any) {
+        console.warn("Could not save message to Supabase:", err);
+      } finally {
+        setIsSending(false);
       }
-    } catch (err: any) {
-      console.warn("Could not save message to Supabase:", err);
-    } finally {
-      setIsSending(false);
-    }
+    });
   };
 
   const quickQuestions = [
@@ -489,18 +524,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
               ) : (
                 <>
                   {messages
-                    .filter((m, idx, arr) => {
-                      if (idx > 0) {
-                        const prev = arr[idx - 1];
-                        if (prev.sender_role === m.sender_role && prev.message === m.message) {
-                          const timeDiff = Math.abs(new Date(m.created_at).getTime() - new Date(prev.created_at).getTime());
-                          if (isNaN(timeDiff) || timeDiff < 60000) {
-                            return false;
-                          }
-                        }
-                      }
-                      return true;
-                    })
+                    .filter((m, idx, arr) => arr.findIndex((x) => x.id === m.id) === idx)
                     .map((m) => {
                     const isAdmin = m.sender_role === "admin";
                     const isMe = m.sender_id === user.id;
@@ -544,26 +568,24 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
               )}
             </div>
 
-            {/* Quick Inquiry Chips (When empty or 1 message) */}
-            {messages.length <= 2 && (
-              <div className="px-3 sm:px-4 py-2 bg-[#070a12] border-t border-slate-800 shrink-0 font-mono">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                  // QUICK_INQUIRIES:
-                </span>
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-                  {quickQuestions.map((q) => (
-                    <button
-                      key={q}
-                      type="button"
-                      onClick={() => handleSendMessage(q)}
-                      className="text-[10px] font-mono text-cyan-300 bg-[#0d121e] hover:bg-[#161d2d] hover:border-cyan-500/60 border border-slate-700 rounded px-2.5 py-1 whitespace-nowrap transition-all cursor-pointer shrink-0"
-                    >
-                      {q}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Quick Inquiry Chips (Always accessible, persistent like admin canned response bar) */}
+            <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#080d19] border-t border-slate-800/80 overflow-x-auto no-scrollbar shrink-0 font-mono">
+              <span className="text-[10px] font-mono font-bold text-amber-400/90 flex items-center gap-1 shrink-0 uppercase tracking-wider">
+                <Sparkles className="w-3 h-3 text-amber-400" />
+                PRESETS:
+              </span>
+              {quickQuestions.map((q, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleSendMessage(q)}
+                  disabled={isSending}
+                  className="text-[11px] font-mono bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-800 hover:border-amber-500/40 px-2.5 py-1 rounded transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
 
             {/* Input Bar */}
             <div className="p-3 sm:p-3.5 bg-[#070a12] border-t border-slate-800 shrink-0 font-mono">
