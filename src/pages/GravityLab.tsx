@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, RotateCcw } from "lucide-react";
 
-interface ComponentParticle {
+interface TechParticle {
   id: number;
   x: number;
   y: number;
@@ -15,15 +15,17 @@ interface ComponentParticle {
   radius: number;
   mass: number;
   colorTheme: string;
+  phase: "trailing" | "falling" | "settled";
+  trailTimer: number; // time spent floating gently behind cursor
 }
 
 const THEMES = ["#ef4444", "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ec4899"];
 
 export default function GravityLab() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [particleCount, setParticleCount] = useState(0);
+  const [settledCount, setSettledCount] = useState(0);
 
-  const particlesRef = useRef<ComponentParticle[]>([]);
+  const particlesRef = useRef<TechParticle[]>([]);
   const mouseRef = useRef({
     x: -9999,
     y: -9999,
@@ -33,7 +35,7 @@ export default function GravityLab() {
     vy: 0,
   });
 
-  // Polyfill roundRect for Safari / older browsers
+  // Polyfill roundRect
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -64,7 +66,7 @@ export default function GravityLab() {
 
   const clearParticles = useCallback(() => {
     particlesRef.current = [];
-    setParticleCount(0);
+    setSettledCount(0);
   }, []);
 
   useEffect(() => {
@@ -82,61 +84,66 @@ export default function GravityLab() {
     };
     window.addEventListener("resize", handleResize);
 
-    // Spawns a single hardware particle right at the cursor position
-    const spawnFromMouseTrail = (x: number, y: number, nudgeX = 0, nudgeY = 0) => {
-      // Keep up to 500 components on screen
-      if (particlesRef.current.length >= 500) {
-        particlesRef.current.shift();
+    // EXACT spawn parameters from the regular GlobalTechParticles trail
+    const spawnParticle = (x: number, y: number) => {
+      // Limit total particles on screen to 450 to maintain solid 60fps
+      if (particlesRef.current.length >= 450) {
+        // Remove the oldest settled particle if ceiling reached
+        const settledIndex = particlesRef.current.findIndex((p) => p.phase === "settled");
+        if (settledIndex !== -1) {
+          particlesRef.current.splice(settledIndex, 1);
+        } else {
+          particlesRef.current.shift();
+        }
       }
 
-      const size = Math.random() * 8 + 22; // 22px to 30px
+      const size = Math.random() * 10 + 20; // 20px - 30px (identical to main site)
       const colorTheme = THEMES[Math.floor(Math.random() * THEMES.length)];
-      const radius = size * 0.6;
+      const radius = size * 0.58;
 
       particlesRef.current.push({
         id: Math.random() + Date.now(),
         x,
         y,
-        // Inherits slight nudge from mouse movement + subtle drift
-        vx: nudgeX * 0.15 + (Math.random() - 0.5) * 1.5,
-        vy: nudgeY * 0.15 + Math.random() * 0.5,
+        // EXACT gentle drift & upward anti-gravity float from regular mouse trail
+        vx: (Math.random() - 0.5) * 1.5,
+        vy: -Math.random() * 1.2 - 0.4,
         rotation: Math.random() * Math.PI * 2,
-        spin: (Math.random() - 0.5) * 0.08,
+        spin: (Math.random() - 0.5) * 0.035,
         type: Math.floor(Math.random() * 5),
         size,
         radius,
         mass: radius * radius * 0.1,
         colorTheme,
+        phase: "trailing", // Phase 1: gentle float behind cursor
+        trailTimer: Math.random() * 0.5 + 0.9, // trails behind cursor for ~0.9 - 1.4s
       });
     };
 
-    let lastSpawnX = 0;
-    let lastSpawnY = 0;
+    let lastX = 0;
+    let lastY = 0;
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
-      const currentX = e.clientX - rect.left;
-      const currentY = e.clientY - rect.top;
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
 
-      const vx = currentX - mouseRef.current.lastX;
-      const vy = currentY - mouseRef.current.lastY;
+      mouseRef.current.vx = x - mouseRef.current.lastX;
+      mouseRef.current.vy = y - mouseRef.current.lastY;
+      mouseRef.current.x = x;
+      mouseRef.current.y = y;
+      mouseRef.current.lastX = x;
+      mouseRef.current.lastY = y;
 
-      mouseRef.current.vx = vx;
-      mouseRef.current.vy = vy;
-      mouseRef.current.x = currentX;
-      mouseRef.current.y = currentY;
-      mouseRef.current.lastX = currentX;
-      mouseRef.current.lastY = currentY;
-
-      // Distance check to smoothly trail particles behind cursor
-      const dx = currentX - lastSpawnX;
-      const dy = currentY - lastSpawnY;
+      const dx = x - lastX;
+      const dy = y - lastY;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
+      // Same 22px distance threshold as the regular site
       if (dist > 22) {
-        spawnFromMouseTrail(currentX, currentY, vx, vy);
-        lastSpawnX = currentX;
-        lastSpawnY = currentY;
+        spawnParticle(x, y);
+        lastX = x;
+        lastY = y;
       }
     };
 
@@ -144,27 +151,24 @@ export default function GravityLab() {
       if (e.touches.length > 0) {
         const touch = e.touches[0];
         const rect = canvas.getBoundingClientRect();
-        const currentX = touch.clientX - rect.left;
-        const currentY = touch.clientY - rect.top;
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
 
-        const vx = currentX - mouseRef.current.lastX;
-        const vy = currentY - mouseRef.current.lastY;
+        mouseRef.current.vx = x - mouseRef.current.lastX;
+        mouseRef.current.vy = y - mouseRef.current.lastY;
+        mouseRef.current.x = x;
+        mouseRef.current.y = y;
+        mouseRef.current.lastX = x;
+        mouseRef.current.lastY = y;
 
-        mouseRef.current.vx = vx;
-        mouseRef.current.vy = vy;
-        mouseRef.current.x = currentX;
-        mouseRef.current.y = currentY;
-        mouseRef.current.lastX = currentX;
-        mouseRef.current.lastY = currentY;
-
-        const dx = currentX - lastSpawnX;
-        const dy = currentY - lastSpawnY;
+        const dx = x - lastX;
+        const dy = y - lastY;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist > 22) {
-          spawnFromMouseTrail(currentX, currentY, vx, vy);
-          lastSpawnX = currentX;
-          lastSpawnY = currentY;
+          spawnParticle(x, y);
+          lastX = x;
+          lastY = y;
         }
       }
     };
@@ -172,7 +176,7 @@ export default function GravityLab() {
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("touchmove", handleTouchMove, { passive: true });
 
-    // Drawing Routine for Detailed Electronic Components
+    // Detailed Hardware Component Canvas Renderer
     const drawComponent = (c: CanvasRenderingContext2D, type: number, s: number, themeColor: string) => {
       c.lineCap = "round";
       c.lineJoin = "round";
@@ -180,7 +184,7 @@ export default function GravityLab() {
       switch (type) {
         case 0: {
           // 1. Arduino Uno Board
-          const w = s * 1.45;
+          const w = s * 1.4;
           const h = s;
 
           c.fillStyle = "#005f73";
@@ -194,7 +198,7 @@ export default function GravityLab() {
           // USB Port
           c.fillStyle = "#ced4da";
           c.beginPath();
-          c.rect(-w / 2 - 2, -h / 4 - 1, w / 4, h / 3);
+          c.rect(-w / 2 - 1, -h / 4 - 1, w / 4, h / 3);
           c.fill();
           c.strokeStyle = "#6c757d";
           c.lineWidth = 0.5;
@@ -206,7 +210,7 @@ export default function GravityLab() {
           c.rect(-w / 2 + 2, h / 6, w / 5, h / 4);
           c.fill();
 
-          // ATmega328P Chip
+          // Microchip
           c.fillStyle = "#343a40";
           c.beginPath();
           c.rect(-w / 6, -h / 6, w / 3, h / 3);
@@ -214,7 +218,7 @@ export default function GravityLab() {
 
           // Copper Pin contacts
           c.strokeStyle = "#e9d8a6";
-          c.lineWidth = 0.6;
+          c.lineWidth = 0.5;
           for (let offset = -w / 8; offset <= w / 8; offset += w / 12) {
             c.beginPath();
             c.moveTo(offset, -h / 6 - 1.5);
@@ -224,7 +228,7 @@ export default function GravityLab() {
             c.stroke();
           }
 
-          // Header sockets
+          // Header Pins
           c.fillStyle = "#1a1a1a";
           c.beginPath();
           c.rect(-w / 3, -h / 2 + 1, (w * 2) / 3, 2.5);
@@ -236,7 +240,7 @@ export default function GravityLab() {
           c.shadowColor = "#94d2bd";
           c.fillStyle = "#94d2bd";
           c.beginPath();
-          c.arc(w / 4, -h / 4, 1.3, 0, Math.PI * 2);
+          c.arc(w / 4, -h / 4, 1.2, 0, Math.PI * 2);
           c.fill();
           c.shadowBlur = 0;
           break;
@@ -255,7 +259,6 @@ export default function GravityLab() {
           c.fill();
           c.stroke();
 
-          // Metal Transducers
           const r = h * 0.35;
           c.fillStyle = "#adb5bd";
           c.strokeStyle = "#495057";
@@ -265,7 +268,6 @@ export default function GravityLab() {
           c.arc(-w / 4, 0, r, 0, Math.PI * 2);
           c.fill();
           c.stroke();
-
           c.fillStyle = "#343a40";
           c.beginPath();
           c.arc(-w / 4, 0, r * 0.7, 0, Math.PI * 2);
@@ -276,13 +278,11 @@ export default function GravityLab() {
           c.arc(w / 4, 0, r, 0, Math.PI * 2);
           c.fill();
           c.stroke();
-
           c.fillStyle = "#343a40";
           c.beginPath();
           c.arc(w / 4, 0, r * 0.7, 0, Math.PI * 2);
           c.fill();
 
-          // Pins
           c.strokeStyle = "#ced4da";
           c.lineWidth = 0.8;
           for (let offset = -6; offset <= 6; offset += 4) {
@@ -306,7 +306,6 @@ export default function GravityLab() {
           c.fill();
           c.stroke();
 
-          // Metal Lid
           c.fillStyle = "#e9ecef";
           c.strokeStyle = "#adb5bd";
           c.lineWidth = 0.8;
@@ -315,7 +314,6 @@ export default function GravityLab() {
           c.fill();
           c.stroke();
 
-          // Gold corner
           c.fillStyle = "#ffb703";
           c.beginPath();
           c.moveTo(-size / 2, -size / 2);
@@ -323,15 +321,23 @@ export default function GravityLab() {
           c.lineTo(-size / 2, -size / 2 + 4);
           c.closePath();
           c.fill();
+
+          c.strokeStyle = "#ced4da";
+          c.lineWidth = 0.5;
+          c.beginPath();
+          c.moveTo(-size / 5, -size / 6);
+          c.lineTo(size / 5, -size / 6);
+          c.moveTo(-size / 6, 0);
+          c.lineTo(size / 6, 0);
+          c.stroke();
           break;
         }
 
         case 3: {
           // 4. Glowing Translucent LED
           const legHeight = s * 0.6;
-          const bulbSize = s * 0.55;
+          const bulbSize = s * 0.5;
 
-          // Metal Leads
           c.strokeStyle = "#adb5bd";
           c.lineWidth = 0.8;
           c.beginPath();
@@ -341,7 +347,6 @@ export default function GravityLab() {
           c.lineTo(bulbSize / 3, bulbSize / 3 + legHeight * 1.15);
           c.stroke();
 
-          // Glowing Dome
           c.fillStyle = themeColor;
           c.shadowBlur = 10;
           c.shadowColor = themeColor;
@@ -351,7 +356,6 @@ export default function GravityLab() {
           c.fill();
           c.shadowBlur = 0;
 
-          // Rim
           c.fillStyle = themeColor;
           c.beginPath();
           c.rect(-bulbSize / 2 - 1, bulbSize / 3, bulbSize + 2, 1.5);
@@ -360,9 +364,9 @@ export default function GravityLab() {
         }
 
         case 4: {
-          // 5. Ceramic Resistor
-          const w = s * 1.25;
-          const h = s * 0.42;
+          // 5. Ceramic 4-Band Resistor
+          const w = s * 1.2;
+          const h = s * 0.4;
 
           c.strokeStyle = "#adb5bd";
           c.lineWidth = 0.8;
@@ -379,7 +383,6 @@ export default function GravityLab() {
           c.fill();
           c.stroke();
 
-          // Bands
           c.fillStyle = "#e63946";
           c.fillRect(-w / 3, -h / 2 + 0.3, w / 10, h - 0.6);
           c.fillStyle = "#8338ec";
@@ -395,81 +398,112 @@ export default function GravityLab() {
 
     let animationId: number;
 
-    const gravity = 0.45;
-    const bounceDamping = 0.35;
-    const floorFriction = 0.88;
-    const airDrag = 0.994;
+    const gravity = 0.38;
+    const floorYOffset = 10;
 
     const tick = () => {
       ctx.clearRect(0, 0, width, height);
 
-      const floorY = height - 10;
-      const leftX = 10;
-      const rightX = width - 10;
+      const floorY = height - floorYOffset;
+      const leftX = 12;
+      const rightX = width - 12;
 
       const particles = particlesRef.current;
       const len = particles.length;
       const mouse = mouseRef.current;
 
-      // 1. Move with Gravity & Handle Boundaries
+      let settledTally = 0;
+
       for (let i = 0; i < len; i++) {
         const p = particles[i];
 
-        // Apply downward Gravity
-        p.vy += gravity;
+        // 1. PHASE 1: Trailing gently behind mouse (IDENTICAL to regular pages)
+        if (p.phase === "trailing") {
+          p.trailTimer -= 0.016;
 
-        // Mouse Stir / Push when user sweeps through the pile
-        if (mouse.x > 0 && mouse.y > 0) {
-          const mdx = p.x - mouse.x;
-          const mdy = p.y - mouse.y;
-          const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
-          const pushRadius = 70;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vx *= 0.97;
+          p.vy *= 0.97;
+          p.rotation += p.spin;
 
-          if (mdist < pushRadius && mdist > 0.01) {
-            const pushFactor = (pushRadius - mdist) / pushRadius;
-            const force = pushFactor * 6;
-            p.vx += (mdx / mdist) * force + mouse.vx * 0.12;
-            p.vy += (mdy / mdist) * force + mouse.vy * 0.12;
-            p.spin += (Math.random() - 0.5) * 0.1;
+          // When trailing phase ends, transition to gravity fall!
+          if (p.trailTimer <= 0) {
+            p.phase = "falling";
+            p.vy = Math.random() * 0.5; // slight downward starting nudge
           }
         }
+        // 2. PHASE 2: Falling with Gravity toward floor
+        else if (p.phase === "falling") {
+          p.vy += gravity; // Gravity pulls it down!
+          p.vx *= 0.99;
+          p.vy *= 0.99;
 
-        // Air Drag
-        p.vx *= airDrag;
-        p.vy *= airDrag;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rotation += p.spin;
 
-        // Step position
-        p.x += p.vx;
-        p.y += p.vy;
-        p.rotation += p.spin;
+          // Bounce on floor
+          if (p.y + p.radius > floorY) {
+            p.y = floorY - p.radius;
+            p.vy = -p.vy * 0.35;
+            p.vx *= 0.85;
+            p.spin *= 0.75;
 
-        // Bottom floor collision
-        if (p.y + p.radius > floorY) {
-          p.y = floorY - p.radius;
-          p.vy = -p.vy * bounceDamping;
-          p.vx *= floorFriction;
-          p.spin *= 0.75;
-          if (Math.abs(p.vy) < 0.25) p.vy = 0;
+            // If resting on floor, mark as settled
+            if (Math.abs(p.vy) < 0.3) {
+              p.vy = 0;
+              p.phase = "settled";
+            }
+          }
+
+          // Wall boundaries
+          if (p.x - p.radius < leftX) {
+            p.x = leftX + p.radius;
+            p.vx = -p.vx * 0.4;
+          } else if (p.x + p.radius > rightX) {
+            p.x = rightX - p.radius;
+            p.vx = -p.vx * 0.4;
+          }
         }
+        // 3. PHASE 3: Settled at the bottom
+        else if (p.phase === "settled") {
+          settledTally++;
 
-        // Left / Right walls
-        if (p.x - p.radius < leftX) {
-          p.x = leftX + p.radius;
-          p.vx = -p.vx * 0.45;
-        } else if (p.x + p.radius > rightX) {
-          p.x = rightX - p.radius;
-          p.vx = -p.vx * 0.45;
+          // Keep in bounds
+          if (p.y + p.radius > floorY) {
+            p.y = floorY - p.radius;
+            p.vy = 0;
+          }
+
+          // Mouse sweep / push through settled pile
+          if (mouse.x > 0 && mouse.y > 0) {
+            const mdx = p.x - mouse.x;
+            const mdy = p.y - mouse.y;
+            const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+            const pushRadius = 75;
+
+            if (mdist < pushRadius && mdist > 0.01) {
+              const push = (pushRadius - mdist) / pushRadius;
+              p.vx += (mdx / mdist) * push * 6 + mouse.vx * 0.15;
+              p.vy += (mdy / mdist) * push * 6 + mouse.vy * 0.15;
+              p.spin += (Math.random() - 0.5) * 0.1;
+              p.phase = "falling"; // awaken and let gravity handle it again
+            }
+          }
         }
       }
 
-      // 2. Spatial Grid Collision & Stacking (so components stack on top of each other)
-      const cellSize = 60;
+      // 4. Stacking Collision in the Settled Floor Pile (so components stack and fill up the floor)
+      const cellSize = 55;
       const cols = Math.ceil(width / cellSize);
       const rows = Math.ceil(height / cellSize);
       const grid: number[][] = new Array(cols * rows);
 
       for (let i = 0; i < len; i++) {
         const p = particles[i];
+        if (p.phase === "trailing") continue; // only check fallen/settled
+
         const cellX = Math.floor(Math.max(0, Math.min(width - 1, p.x)) / cellSize);
         const cellY = Math.floor(Math.max(0, Math.min(height - 1, p.y)) / cellSize);
         const cellIdx = cellX + cellY * cols;
@@ -492,11 +526,10 @@ export default function GravityLab() {
             const neighborY = cellY + oy;
 
             if (neighborX < 0 || neighborX >= cols || neighborY < 0 || neighborY >= rows) continue;
-            const neighborIdx = neighborX + neighborY * cols;
-            const neighborCell = grid[neighborIdx];
+            const neighborCell = grid[neighborX + neighborY * cols];
             if (!neighborCell) continue;
 
-            const isSelfCell = cellIdx === neighborIdx;
+            const isSelfCell = cellIdx === neighborX + neighborY * cols;
 
             for (let a = 0; a < cell.length; a++) {
               const startB = isSelfCell ? a + 1 : 0;
@@ -520,14 +553,11 @@ export default function GravityLab() {
                   p2.x += nx * overlap;
                   p2.y += ny * overlap;
 
-                  const kx = p1.vx - p2.vx;
-                  const ky = p1.vy - p2.vy;
-                  const impulse = ((nx * kx + ny * ky) * 1.2) / (p1.mass + p2.mass);
-
-                  p1.vx -= impulse * p2.mass * nx;
-                  p1.vy -= impulse * p2.mass * ny;
-                  p2.vx += impulse * p1.mass * nx;
-                  p2.vy += impulse * p1.mass * ny;
+                  // Soft settle
+                  p1.vx *= 0.85;
+                  p2.vx *= 0.85;
+                  p1.vy *= 0.85;
+                  p2.vy *= 0.85;
                 }
               }
             }
@@ -535,12 +565,15 @@ export default function GravityLab() {
         }
       }
 
-      // 3. Render all components
+      // 5. Draw all particles
       for (let i = 0; i < len; i++) {
         const p = particles[i];
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(p.rotation);
+
+        // While trailing, opacity is slightly softer (0.85) just like main site
+        ctx.globalAlpha = p.phase === "trailing" ? 0.88 : 0.95;
 
         try {
           drawComponent(ctx, p.type, p.size, p.colorTheme);
@@ -551,15 +584,15 @@ export default function GravityLab() {
         ctx.restore();
       }
 
-      // Bottom Floor Line
+      // Subtle Hazard Floor Line
       ctx.strokeStyle = "rgba(245, 158, 11, 0.4)";
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(10, floorY);
-      ctx.lineTo(width - 10, floorY);
+      ctx.moveTo(12, floorY);
+      ctx.lineTo(width - 12, floorY);
       ctx.stroke();
 
-      setParticleCount(len);
+      setSettledCount(settledTally);
       animationId = requestAnimationFrame(tick);
     };
 
@@ -581,10 +614,10 @@ export default function GravityLab() {
       {/* CRT Scanline Overlay */}
       <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] opacity-40 z-0" />
 
-      {/* Full Screen Physics Canvas */}
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full cursor-crosshair z-10" />
+      {/* Full Screen Interactive Canvas */}
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full cursor-default z-10" />
 
-      {/* Minimal Top Header */}
+      {/* Top Header */}
       <header className="absolute top-5 left-5 right-5 z-20 flex items-center justify-between pointer-events-none">
         <Link
           to="/"
@@ -596,15 +629,15 @@ export default function GravityLab() {
 
         <div className="flex items-center gap-3 pointer-events-auto">
           <div className="px-3 py-1 rounded bg-[#0d121e]/90 border border-slate-800 text-xs text-amber-400 font-mono font-bold shadow-md">
-            <span>FALLEN_COMPONENTS: </span>
-            <span className="text-white">{particleCount}</span>
+            <span>STORED_AT_BOTTOM: </span>
+            <span className="text-white">{settledCount}</span>
           </div>
 
-          {particleCount > 0 && (
+          {settledCount > 0 && (
             <button
               onClick={clearParticles}
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#0d121e]/90 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-slate-800 hover:border-rose-500/50 text-xs font-mono transition-all"
-              title="Clear pile"
+              title="Clear stored pile"
             >
               <RotateCcw className="w-3 h-3" />
               <span>CLEAR</span>
@@ -613,15 +646,15 @@ export default function GravityLab() {
         </div>
       </header>
 
-      {/* Floating Center Prompt (fades away as soon as particles start falling) */}
-      {particleCount === 0 && (
+      {/* Floating Center Prompt (fades away once particles start settling) */}
+      {settledCount === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-15">
-          <div className="p-4 rounded-xl bg-[#0a0e17]/80 border border-slate-800 text-center space-y-1 backdrop-blur-sm shadow-2xl">
+          <div className="p-4 rounded-xl bg-[#0a0e17]/85 border border-slate-800 text-center space-y-1 backdrop-blur-sm shadow-2xl">
             <p className="text-sm font-bold text-amber-400 font-mono tracking-wide">
-              ⚡ MOVE YOUR MOUSE ACROSS THE SCREEN
+              ✨ WAVE YOUR MOUSE ACROSS THE SCREEN
             </p>
             <p className="text-xs text-slate-400 font-mono">
-              Hardware components will drop from your cursor trail and pile up at the bottom.
+              The trail floats behind your cursor, then gravity pulls it down to store and fill up the floor.
             </p>
           </div>
         </div>
