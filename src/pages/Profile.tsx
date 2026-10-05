@@ -107,8 +107,9 @@ export default function Profile() {
   };
 
   const handleDownload = (order: any) => {
-    if (order.github_url) {
-      let finalUrl = order.github_url;
+    const gitUrl = order.deliverables?.github_url || order.github_url;
+    if (gitUrl) {
+      let finalUrl = gitUrl;
       // If the user pasted a standard github repo link (with or without .git), auto-format it to a ZIP download
       if (finalUrl.includes("github.com") && !finalUrl.includes("/archive/")) {
         // Remove .git if it exists
@@ -125,10 +126,10 @@ export default function Profile() {
       element.click();
       document.body.removeChild(element);
       
-      toast.success("Project downloading successfully! Thank you.");
+      toast.success("Repository archive (.zip) downloading! Thank you.");
     } else {
       // Fallback for older orders without a github url
-      toast.error("This order doesn't have a download link attached. Please contact support.");
+      toast.error("This order doesn't have a repository link attached. Please contact support.");
     }
   };
 
@@ -578,7 +579,7 @@ export default function Profile() {
                                       onClick={() => handleDownload(o)}
                                       className="w-full md:w-auto bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold rounded-xl px-6 h-11 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.25)] transition-all cursor-pointer border-0"
                                     >
-                                      <Download className="w-4 h-4" /> DOWNLOAD_FILES (ZIP)
+                                      <Download className="w-4 h-4" /> DOWNLOAD REPO (.zip)
                                     </Button>
                                   </div>
                                 </div>
