@@ -20,8 +20,13 @@ const THEMES = ["#ef4444", "#10b981", "#3b82f6", "#f59e0b"]; // Red, Green, Blue
 
 export default function GlobalTechParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [gravityOn, setGravityOn] = useState(false);
-  const gravityOnRef = useRef(false);
+  const [gravityOn, setGravityOn] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("dukaan_gravity_mode") === "true";
+    }
+    return false;
+  });
+  const gravityOnRef = useRef(gravityOn);
   gravityOnRef.current = gravityOn;
 
   const mouseRef = useRef({
@@ -33,9 +38,18 @@ export default function GlobalTechParticles() {
     vy: 0,
   });
 
-  const toggleGravity = () => {
-    setGravityOn((prev) => !prev);
-  };
+  // Listen to gravity toggle events from the Navbar switch
+  useEffect(() => {
+    const handleGravityChange = (e: any) => {
+      const isEnabled = e.detail?.enabled ?? (localStorage.getItem("dukaan_gravity_mode") === "true");
+      setGravityOn(isEnabled);
+    };
+
+    window.addEventListener("dukaan_gravity_change", handleGravityChange);
+    return () => {
+      window.removeEventListener("dukaan_gravity_change", handleGravityChange);
+    };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -549,38 +563,10 @@ export default function GlobalTechParticles() {
     };
   }, []);
 
-  const isDedicatedGravityPage = typeof window !== "undefined" && window.location.pathname === "/gravity";
-
   return (
-    <>
-      <canvas
-        ref={canvasRef}
-        className="fixed inset-0 w-full h-full pointer-events-none z-[9999]"
-      />
-
-      {/* Floating Gravity Switch for All Working Pages */}
-      {!isDedicatedGravityPage && (
-        <button
-          type="button"
-          onClick={toggleGravity}
-          aria-label="Toggle Gravity Mode"
-          className={`fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-[9998] pointer-events-auto inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-mono font-bold shadow-2xl backdrop-blur-md transition-all active:scale-95 group cursor-pointer ${
-            gravityOn
-              ? "bg-amber-500 text-amber-950 border-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.5)] ring-2 ring-amber-500/30"
-              : "bg-[#0b0f19]/90 hover:bg-[#151c2e] text-slate-400 hover:text-amber-400 border-slate-800 hover:border-amber-500/50"
-          }`}
-          title="Toggle Gravity Mode: Watch your cursor trail fall and stack at the bottom!"
-        >
-          <span
-            className={`w-2 h-2 rounded-full transition-all ${
-              gravityOn ? "bg-amber-950 animate-ping" : "bg-emerald-400"
-            }`}
-          />
-          <span className="tracking-wide">
-            {gravityOn ? "⚡ GRAVITY: ON" : "⚛️ GRAVITY: OFF"}
-          </span>
-        </button>
-      )}
-    </>
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 w-full h-full pointer-events-none z-[9999]"
+    />
   );
 }

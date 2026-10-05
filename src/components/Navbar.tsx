@@ -68,6 +68,24 @@ export default function Navbar() {
   const [authChecked, setAuthChecked] = useState(initialAuth.hasChecked);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(0);
+  const [gravityOn, setGravityOn] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("dukaan_gravity_mode") === "true";
+    }
+    return false;
+  });
+
+  const toggleGravity = () => {
+    const next = !gravityOn;
+    setGravityOn(next);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("dukaan_gravity_mode", String(next));
+      window.dispatchEvent(
+        new CustomEvent("dukaan_gravity_change", { detail: { enabled: next } })
+      );
+    }
+  };
+
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -259,6 +277,45 @@ export default function Navbar() {
                 </Link>
               </div>
             )}
+
+            {/* Desktop-Only Gravity Mode Switch (Matches Image 2) */}
+            <div className="hidden md:flex items-center pl-1 border-l border-slate-800">
+              <button
+                type="button"
+                onClick={toggleGravity}
+                title={gravityOn ? "Gravity Mode: ON (Click to toggle OFF)" : "Gravity Mode: OFF (Click to toggle ON)"}
+                aria-label="Toggle Gravity Mode"
+                className="relative cursor-pointer select-none group focus:outline-none p-0.5"
+              >
+                {/* Pill Track matching Image 2 */}
+                <div
+                  className={cn(
+                    "relative w-11 h-6 rounded-full transition-all duration-300 ease-out border p-0.5 flex items-center shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]",
+                    gravityOn
+                      ? "bg-[#141009] border-amber-500/60 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_0_10px_rgba(245,158,11,0.25)]"
+                      : "bg-[#0b0f19] border-slate-700/80 hover:border-slate-600"
+                  )}
+                >
+                  {/* Soft amber backlight on track when ON */}
+                  {gravityOn && (
+                    <div className="absolute left-1.5 w-3.5 h-3.5 rounded-full bg-amber-500/35 blur-[2px] pointer-events-none" />
+                  )}
+
+                  {/* 3D Tactile Sliding Spherical Knob (Image 2 style) */}
+                  <div
+                    className={cn(
+                      "w-4.5 h-4.5 rounded-full transition-transform duration-300 ease-out transform flex items-center justify-center relative",
+                      gravityOn
+                        ? "translate-x-5 bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 shadow-[0_1px_3px_rgba(0,0,0,0.5),0_0_10px_rgba(245,158,11,0.9)]"
+                        : "translate-x-0 bg-gradient-to-b from-white via-slate-200 to-slate-400 shadow-[0_1px_3px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.9)] group-hover:from-white group-hover:to-slate-200"
+                    )}
+                  >
+                    {/* Spherical specular dome highlight */}
+                    <div className="absolute top-0.5 left-1 w-1.5 h-1.5 rounded-full bg-white/80 blur-[0.4px]" />
+                  </div>
+                </div>
+              </button>
+            </div>
           </div>
         </div>
       </header>
