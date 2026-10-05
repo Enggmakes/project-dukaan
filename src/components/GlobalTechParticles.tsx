@@ -79,6 +79,9 @@ export default function GlobalTechParticles() {
     let lastY = 0;
 
     const handleMouseMove = (e: MouseEvent) => {
+      // Keep /gravity page completely isolated
+      if (window.location.pathname === "/gravity") return;
+
       const x = e.clientX;
       const y = e.clientY;
 
@@ -382,6 +385,13 @@ export default function GlobalTechParticles() {
 
     const render = () => {
       try {
+        if (window.location.pathname === "/gravity") {
+          ctx.clearRect(0, 0, width, height);
+          particles = [];
+          animationId = requestAnimationFrame(render);
+          return;
+        }
+
         ctx.clearRect(0, 0, width, height);
 
         particles = particles.filter(p => {

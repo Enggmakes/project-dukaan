@@ -19,6 +19,7 @@ import Wishlist from "./pages/Wishlist.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Terms from "./pages/Terms.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
+import GravityLab from "./pages/GravityLab.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 import { HelmetProvider } from "react-helmet-async";
@@ -94,6 +95,7 @@ const App = () => (
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/gravity" element={<GravityLab />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
