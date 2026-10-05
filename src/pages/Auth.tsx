@@ -1,11 +1,12 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, X, ArrowLeft, Loader2, ShieldCheck, Terminal, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff, X, ArrowLeft, Loader2, ShieldCheck, Terminal, CheckCircle2, KeyRound } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { checkAdminStatus } from "@/lib/authUtils";
@@ -16,10 +17,41 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
   const [agreed, setAgreed] = useState(true);
   const [loading, setLoading] = useState(false);
 
+  // Forgot Password modal state
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [isResetDispatching, setIsResetDispatching] = useState(false);
+
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isLogin = mode === "login";
   const redirectUrl = searchParams.get("redirect");
+
+  const handleRequestPasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail.includes("@")) {
+      return toast.error("Please enter a valid email address");
+    }
+
+    setIsResetDispatching(true);
+    try {
+      const resetRedirectUrl = `${window.location.origin}/reset-password`;
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+        redirectTo: resetRedirectUrl,
+      });
+
+      if (error) throw error;
+
+      toast.success("Recovery link dispatched! Please check your email inbox to reset your password.", {
+        duration: 8000,
+      });
+      setIsForgotPasswordOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to dispatch recovery email. Please try again.");
+    } finally {
+      setIsResetDispatching(false);
+    }
+  };
 
   // Email & Password Auth
   const submit = async (e: React.FormEvent) => {
@@ -235,7 +267,21 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
 
             {/* Password Field */}
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider font-mono">PASSWORD *</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider font-mono">PASSWORD *</Label>
+                {isLogin && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotEmail(form.email || "");
+                      setIsForgotPasswordOpen(true);
+                    }}
+                    className="text-[10px] font-mono text-amber-400 hover:text-amber-300 hover:underline cursor-pointer"
+                  >
+                    FORGOT_PASSKEY?
+                  </button>
+                )}
+              </div>
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
@@ -298,6 +344,63 @@ export default function Auth({ mode }: { mode: "login" | "register" }) {
 
         </div>
       </motion.div>
+
+      {/* Forgot Password Recovery Dialog */}
+      <Dialog open={isForgotPasswordOpen} onOpenChange={setIsForgotPasswordOpen}>
+        <DialogContent className="bg-[#0c101d] border border-slate-800 text-slate-100 sm:max-w-md shadow-2xl rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-white font-mono font-bold flex items-center gap-2">
+              <KeyRound className="w-4 h-4 text-amber-400" />
+              RECOVER_PASSKEY_ACCESS
+            </DialogTitle>
+            <DialogDescription className="text-slate-400 font-mono text-xs">
+              Enter your registered email address. We will dispatch a recovery link to configure a new password.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleRequestPasswordReset} className="space-y-4 py-2">
+            <div>
+              <Label className="text-slate-300 mb-1.5 block font-mono text-xs font-semibold">
+                REGISTERED_EMAIL_ADDRESS
+              </Label>
+              <Input
+                type="email"
+                required
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                placeholder="developer@gmail.com"
+                className="bg-[#070a12] border-slate-800 text-white h-11 font-mono text-xs focus-visible:border-amber-500/50"
+                autoFocus
+              />
+            </div>
+
+            <DialogFooter className="flex gap-2 sm:justify-end">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsForgotPasswordOpen(false)}
+                className="text-slate-400 hover:text-white hover:bg-slate-800/60 border border-slate-800 font-mono text-xs"
+              >
+                CANCEL
+              </Button>
+              <Button
+                type="submit"
+                disabled={isResetDispatching || !forgotEmail.trim()}
+                className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold text-xs shadow-md disabled:opacity-50"
+              >
+                {isResetDispatching ? (
+                  <span className="flex items-center gap-1.5">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    DISPATCHING_LINK...
+                  </span>
+                ) : (
+                  "SEND_RESET_LINK"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

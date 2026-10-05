@@ -15,6 +15,7 @@ import Profile from "./pages/Profile.tsx";
 import Wishlist from "./pages/Wishlist.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Terms from "./pages/Terms.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 import { HelmetProvider } from 'react-helmet-async';
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/login" element={<Auth mode="login" />} />
           <Route path="/register" element={<Auth mode="register" />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/privacy" element={<Privacy />} />
