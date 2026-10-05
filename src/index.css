@@ -119,6 +119,12 @@
     background-size: 24px 24px;
   }
 
+  .blueprint-hairline {
+    background-image: 
+      linear-gradient(to right, rgba(226, 232, 240, 0.7) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(226, 232, 240, 0.7) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
 
   /* Hardware / Engineering Card */
   .bento-card, .tech-card {
@@ -164,8 +170,8 @@
 
 /* Themed Browser Surfaces */
 ::selection {
-  background-color: #2563EB;
-  color: #FFFFFF;
+  background-color: #ffb000;
+  color: #0b0e14;
 }
 
 /* Slim Engineering Scrollbars */
@@ -189,7 +195,7 @@
 
 /* Smooth Focus Rings */
 :focus-visible {
-  outline: 2px solid #2563EB;
+  outline: 2px solid #ffb000;
   outline-offset: 2px;
 }
 
@@ -200,4 +206,52 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* =========================================================================
+   RETRO CYBER-DECK & WORKSTATION OS TOKENS
+   ========================================================================= */
+.crt-scanline-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.05),
+    rgba(0, 0, 0, 0.05) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  opacity: 0.5;
+}
+
+/* Tactile Outset / Inset Bevel Buttons */
+.retro-btn {
+  position: relative;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.28);
+  border-left: 1.5px solid rgba(255, 255, 255, 0.28);
+  border-right: 1.5px solid rgba(0, 0, 0, 0.4);
+  border-bottom: 1.5px solid rgba(0, 0, 0, 0.4);
+  box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2);
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+}
+
+.retro-btn:active {
+  transform: translate(1px, 1px);
+  border-top: 1.5px solid rgba(0, 0, 0, 0.4);
+  border-left: 1.5px solid rgba(0, 0, 0, 0.4);
+  border-right: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+}
+
+.amber-glow {
+  color: #ffb000;
+  text-shadow: 0 0 10px rgba(255, 176, 0, 0.4), 0 0 20px rgba(255, 176, 0, 0.2);
+}
+
+.cyan-glow {
+  color: #00e5ff;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
 }

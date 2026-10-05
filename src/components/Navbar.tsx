@@ -142,52 +142,57 @@ export default function Navbar() {
       <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs hidden md:block">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           
-          {/* Brand Logo & Name (No LABS badge) */}
+          {/* Brand Logo & Name with Retro Workstation LED */}
           <Link to="/" className="flex items-center gap-2.5 group select-none">
-            <img 
-              src="/logo.png" 
-              alt="ProjectDukaan" 
-              className="w-7 h-7 object-contain transition-transform duration-300 group-hover:scale-105" 
-            />
-            <span className="font-extrabold text-slate-900 tracking-tight text-lg">
-              Project<span className="text-blue-600">Dukaan</span>
-            </span>
+            <div className="relative">
+              <img 
+                src="/logo.png" 
+                alt="ProjectDukaan" 
+                className="w-7 h-7 object-contain transition-transform duration-300 group-hover:scale-105" 
+              />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse" />
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-extrabold text-slate-900 tracking-tight text-lg">
+                Project<span className="text-blue-600">Dukaan</span>
+              </span>
+              <span className="font-mono text-[9px] font-semibold text-slate-400 bg-slate-100 border border-slate-200 px-1 py-0.2 rounded select-none">
+                V2.6
+              </span>
+            </div>
           </Link>
 
-          {/* Central Navigation Links */}
-          <nav className="flex items-center gap-1 p-1 rounded-lg bg-slate-100/70 border border-slate-200/80">
-            {visibleDesktopLinks.map(l => {
+          {/* Central Navigation Links with Retro Workstation Hotkeys */}
+          <nav className="flex items-center gap-1 p-1 rounded-lg bg-slate-100/70 border border-slate-200/80 font-mono">
+            {visibleDesktopLinks.map((l, idx) => {
               const isActive = l.to === "/" ? pathname === "/" : pathname.startsWith(l.to);
+              const fKey = `F${idx + 1}`;
               return (
                 <Link
                   key={l.to}
                   to={l.to}
                   className={cn(
-                    "relative px-3.5 py-1.5 text-xs font-semibold rounded-md transition-colors duration-150 select-none flex items-center gap-1.5 cursor-pointer whitespace-nowrap",
+                    "relative px-3 py-1.5 text-xs font-semibold rounded-md transition-colors duration-150 select-none flex items-center gap-1.5 cursor-pointer whitespace-nowrap retro-btn",
                     isActive
-                      ? "text-blue-600 font-bold"
-                      : "text-slate-600 hover:text-slate-950"
+                      ? "text-blue-600 font-bold bg-white"
+                      : "text-slate-600 hover:text-slate-950 bg-transparent"
                   )}
                 >
-                  {isActive && (
-                    <motion.span
-                      layoutId="desktop-active-pill"
-                      className="absolute inset-0 bg-white rounded-md shadow-xs border border-slate-200 -z-10 pointer-events-none"
-                      transition={{
-                        type: "spring",
-                        stiffness: 450,
-                        damping: 32,
-                      }}
-                    />
-                  )}
+                  <span className={cn("text-[10px]", isActive ? "text-blue-600 font-bold" : "text-slate-400")}>
+                    [{fKey}]
+                  </span>
                   <span>{l.label}</span>
                 </Link>
               );
             })}
           </nav>
 
-          {/* Desktop Right: Wishlist, Notification, Profile / Auth (NO search bar) */}
+          {/* Desktop Right: Telemetry, Wishlist, Notification, Profile / Auth (NO search bar) */}
           <div className="flex items-center gap-2.5">
+            <div className="hidden lg:flex items-center gap-1.5 font-mono text-[10px] text-slate-500 bg-slate-50 px-2 py-1 rounded border border-slate-200 select-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span>115200 BAUD</span>
+            </div>
             <Link 
               to="/wishlist" 
               className="relative p-2 rounded-lg text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-colors"

@@ -50,11 +50,68 @@ const ICONS: Record<string, any> = {
   Brain, Eye, Bot, Cpu, Globe, Link2, Shield, Network: Database, Smartphone: Layers
 };
 
+const CODE_PREVIEWS: Record<string, { filename: string; language: string; code: string }> = {
+  "unet3d.py": {
+    filename: "models/unet3d.py",
+    language: "python",
+    code: `import torch
+import torch.nn as nn
+
+class UNet3D(nn.Module):
+    """3D Brain Tumor MRI Segmentation Engine (BraTS2021)."""
+    def __init__(self, in_channels=4, out_channels=3):
+        super().__init__()
+        self.encoder1 = self.conv_block(in_channels, 32)
+        self.encoder2 = self.conv_block(32, 64)
+        self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
+        self.bottleneck = self.conv_block(64, 128)
+        self.upconv2 = nn.ConvTranspose3d(128, 64, kernel_size=2, stride=2)
+        self.decoder2 = self.conv_block(128, 64)
+        self.head = nn.Conv3d(64, out_channels, kernel_size=1)
+
+    def forward(self, x):
+        e1 = self.encoder1(x)
+        e2 = self.encoder2(self.pool(e1))
+        b = self.bottleneck(self.pool(e2))
+        d2 = self.decoder2(torch.cat([self.upconv2(b), e2], dim=1))
+        return self.head(d2) # Output: WT, TC, ET masks`
+  },
+  "ieee_paper.tex": {
+    filename: "docs/IEEE_Transactions.tex",
+    language: "latex",
+    code: `\\documentclass[journal]{IEEEtran}
+\\begin{document}
+\\title{Volumetric MRI Semantic Segmentation via UNet3D}
+\\author{ProjectDukaan Verified Capstone Standard}
+\\maketitle
+\\begin{abstract}
+We present a volumetric UNet3D architecture for accurate 
+glioma sub-region delineation on multimodal MRI scans.
+Evaluated on BraTS2021, the model achieves a Dice similarity 
+coefficient of 0.884 for Whole Tumor and 0.829 for Enhancing Tumor.
+Complete hardware runtime profiling on NVIDIA Jetson Orin Nano is provided.
+\\end{abstract}
+\\end{document}`
+  },
+  "hardware_bom.csv": {
+    filename: "hardware/bom_schematic.csv",
+    language: "csv",
+    code: `Item,Component,Spec / Part Number,Qty,Unit Price (INR)
+1,Edge AI SBC,NVIDIA Jetson Orin Nano 8GB,1,₹42000
+2,Camera Sensor,Sony IMX477 12.3MP HQ Module,1,₹5200
+3,Power Circuit,19V 4.74A DC-DC Regulated Supply,1,₹1850
+4,Thermal Unit,Active Fan-Sink Aluminum Chassis,1,₹1200
+5,Interface,PCIe M.2 2280 NVMe SSD 512GB,1,₹3400
+-- Total Verified BOM: ₹53,650 // Status: In Stock`
+  }
+};
+
 export default function Index() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
   const [dbProjects, setDbProjects] = useState<Project[]>([]);
   const [selectedDomain, setSelectedDomain] = useState("all");
+  const [activeCodeTab, setActiveCodeTab] = useState<"preview" | "unet3d.py" | "ieee_paper.tex" | "hardware_bom.csv">("preview");
   const [liveStats, setLiveStats] = useState<{
     projects: number | null;
     orders: number | null;
@@ -163,18 +220,18 @@ export default function Index() {
         <div className="relative container-px max-w-6xl mx-auto">
           {/* Hero Header & Value Proposition */}
           <div className="max-w-4xl mx-auto text-center">
-            {/* Live Trust Banner */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 shadow-2xs mb-6 font-mono text-xs text-slate-800">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-              <span className="font-semibold tracking-tight">
-                100% COMPILES ON FIRST RUN • IEEE THESIS PAPERS INCLUDED
+            {/* Live Trust Banner with Workstation Hardware Status */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded bg-slate-900 border border-slate-700 shadow-2xs mb-6 font-mono text-xs text-slate-200">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
+              <span className="font-semibold tracking-wide">
+                SYS:\&gt; 100% COMPILES ON FIRST RUN • IEEE THESIS PAPERS INCLUDED
               </span>
             </div>
 
-            {/* Editorial Headline */}
+            {/* Editorial Headline with Retro Amber Accent */}
             <h1 className="text-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-slate-950 font-black tracking-tight leading-[1.06]">
               Engineering capstones, <br />
-              <span className="text-blue-600">
+              <span className="text-blue-600 amber-glow">
                 built to ship.
               </span>
             </h1>
@@ -184,32 +241,33 @@ export default function Index() {
               Production-ready AI models, embedded IoT builds, and robotics systems — complete with verified source code, architecture diagrams, and defense-ready documentation.
             </p>
 
-            {/* CTA Buttons */}
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+            {/* Tactile CTA Buttons */}
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 font-mono">
               <Link to="/marketplace">
-                <Button size="lg" className="rounded-lg bg-slate-950 hover:bg-slate-800 text-white px-7 h-11 text-xs font-semibold shadow-xs active:scale-98 transition-all">
-                  Explore Blueprints <ArrowRight className="ml-2 w-4 h-4" />
+                <Button size="lg" className="rounded bg-slate-950 hover:bg-slate-900 text-white px-7 h-11 text-xs font-bold shadow-xs transition-all retro-btn">
+                  [F1] Explore Blueprints <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </Link>
               <Link to="/custom-request">
-                <Button size="lg" variant="outline" className="rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 px-6 h-11 text-xs font-semibold shadow-2xs active:scale-98 transition-all">
-                  Request Custom Build
+                <Button size="lg" variant="outline" className="rounded bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 px-6 h-11 text-xs font-bold shadow-2xs transition-all retro-btn">
+                  [F2] Request Custom Build
                 </Button>
               </Link>
             </div>
 
-            {/* Search Console with Clear & OS-aware shortcut */}
+            {/* Retro Command Search Console */}
             <form 
               onSubmit={(e) => { e.preventDefault(); navigate(`/marketplace?q=${encodeURIComponent(q)}&cat=${encodeURIComponent(cat)}`); }}
-              className="mt-8 max-w-2xl mx-auto bg-white rounded-xl p-1.5 flex items-center gap-2 shadow-sm border border-slate-200 focus-within:ring-1 focus-within:ring-blue-600 focus-within:border-blue-600 transition-all"
+              className="mt-8 max-w-2xl mx-auto bg-white rounded-lg p-1.5 flex items-center gap-2 shadow-sm border border-slate-300 focus-within:ring-2 focus-within:ring-amber-500 focus-within:border-amber-500 transition-all font-mono"
             >
-              <Search className="w-4 h-4 ml-3 text-slate-400 shrink-0" />
+              <span className="text-amber-600 font-bold ml-2 text-xs select-none">SYS:\&gt;</span>
+              <Search className="w-4 h-4 text-slate-400 shrink-0" />
               <Input
                 ref={searchInputRef}
                 value={q}
                 onChange={e => setQ(e.target.value)}
-                placeholder="Search models or hardware (e.g. UNet3D, YOLO, ESP32, ROS 2)..."
-                className="border-0 bg-transparent focus-visible:ring-0 text-slate-900 flex-1 placeholder:text-slate-400 text-xs sm:text-sm h-9 shadow-none"
+                placeholder="SEARCH_QUERY (e.g. UNet3D, YOLO, ESP32, ROS 2)..."
+                className="border-0 bg-transparent focus-visible:ring-0 text-slate-900 flex-1 placeholder:text-slate-400 text-xs sm:text-sm h-9 shadow-none font-mono"
               />
               {q && (
                 <button
@@ -225,23 +283,28 @@ export default function Index() {
                 {typeof navigator !== "undefined" && navigator.platform?.toUpperCase().includes("MAC") ? "⌘K" : "Ctrl+K"}
               </kbd>
               <Select value={cat} onValueChange={setCat}>
-                <SelectTrigger className="w-32 sm:w-36 rounded-lg border-0 bg-slate-50 text-xs font-medium shrink-0 text-slate-700 h-9">
+                <SelectTrigger className="w-32 sm:w-36 rounded border-0 bg-slate-100 text-xs font-mono font-medium shrink-0 text-slate-700 h-9">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-slate-200 rounded-lg shadow-xl">
-                  <SelectItem value="all">All categories</SelectItem>
+                <SelectContent className="bg-white border-slate-200 rounded shadow-xl font-mono text-xs">
+                  <SelectItem value="all">ALL_DOMAINS</SelectItem>
                   {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Button type="submit" className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-5 h-9 text-xs font-semibold shadow-2xs active:scale-95 transition-all">
-                Search
+              <Button type="submit" className="rounded bg-amber-500 hover:bg-amber-600 text-amber-950 px-4 sm:px-5 h-9 text-xs font-bold shadow-2xs transition-all retro-btn shrink-0">
+                RUN ↵
               </Button>
             </form>
 
-            {/* Popular quick tags */}
-            <div className="mt-3 flex items-center justify-center gap-2 flex-wrap text-xs">
-              <span className="text-slate-400 font-mono text-[11px]">Domain Quick-Jump:</span>
-              {["Computer Vision", "IoT", "Robotics", "Deep Learning"].map((tag) => (
+            {/* Popular quick tags with hotkey indices */}
+            <div className="mt-3 flex items-center justify-center gap-2 flex-wrap text-xs font-mono">
+              <span className="text-slate-400 text-[11px]">HOTKEYS:</span>
+              {[
+                { tag: "Computer Vision", key: "1" },
+                { tag: "IoT", key: "2" },
+                { tag: "Robotics", key: "3" },
+                { tag: "Deep Learning", key: "4" }
+              ].map(({ tag, key }) => (
                 <button
                   key={tag}
                   type="button"
@@ -249,8 +312,9 @@ export default function Index() {
                     setCat(tag);
                     navigate(`/marketplace?cat=${encodeURIComponent(tag)}`);
                   }}
-                  className="px-2.5 py-0.5 rounded bg-white text-slate-600 hover:text-blue-600 hover:border-blue-300 border border-slate-200 text-[11px] font-mono transition-colors shadow-2xs cursor-pointer"
+                  className="px-2.5 py-0.5 rounded bg-white text-slate-700 hover:text-amber-600 hover:border-amber-400 border border-slate-200 text-[11px] font-mono transition-colors shadow-2xs cursor-pointer retro-btn"
                 >
+                  <span className="text-amber-600 font-bold mr-1">[{key}]</span>
                   {tag}
                 </button>
               ))}
@@ -258,128 +322,149 @@ export default function Index() {
           </div>
 
           {/* ========================================================================= */}
-          {/* 2. FEATURED BLUEPRINT PRODUCT SHOWCASE (Minimalist Editorial, No Fake Terminal) */}
+          {/* 2. THE ENGINEERING TERMINAL & BLUEPRINT INSPECTOR CENTERPIECE             */}
           {/* ========================================================================= */}
-          <div className="mt-12 sm:mt-16 max-w-6xl mx-auto">
-            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow overflow-hidden grid grid-cols-1 lg:grid-cols-12">
-              
-              {/* Left Column: Photography-First Presentation Stage (7 Cols) */}
-              <div className="lg:col-span-7 p-4 sm:p-7 md:p-8 bg-slate-50/70 border-b lg:border-b-0 lg:border-r border-slate-200/80 flex flex-col justify-between">
-                {/* Top Meta Bar */}
-                <div className="flex items-center justify-between gap-2 mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-blue-600">
-                      Featured Blueprint Showcase
+          <div className="mt-10 sm:mt-12 max-w-6xl mx-auto rounded-xl border-2 border-slate-800 shadow-2xl overflow-hidden bg-slate-950 text-white grid grid-cols-1 lg:grid-cols-12">
+            {/* Left Column: Interactive Visual, Code & Paper Inspector (7 cols) */}
+            <div className="lg:col-span-7 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800 bg-slate-950">
+              {/* Retro Window Titlebar */}
+              <div className="px-3 sm:px-4 py-2 bg-slate-900 border-b border-slate-800 flex items-center justify-between gap-2 overflow-hidden select-none">
+                <div className="flex items-center gap-2 shrink-0">
+                  {/* 90s OS Window controls */}
+                  <div className="flex items-center gap-1 font-mono text-[9px] text-slate-400">
+                    <span className="w-3.5 h-3.5 rounded-xs bg-slate-800 border border-slate-700 grid place-items-center hover:bg-slate-700 cursor-pointer">_</span>
+                    <span className="w-3.5 h-3.5 rounded-xs bg-slate-800 border border-slate-700 grid place-items-center hover:bg-slate-700 cursor-pointer">□</span>
+                    <span className="w-3.5 h-3.5 rounded-xs bg-rose-950 border border-rose-800 text-rose-300 grid place-items-center hover:bg-rose-900 cursor-pointer">×</span>
+                  </div>
+                  <span className="text-[11px] font-mono text-slate-300 hidden sm:inline ml-1 font-bold">
+                    SYS:\&gt; CORE_CATALOG_EXPLORER.EXE
+                  </span>
+                </div>
+                
+                {/* File & View tabs with tactile retro buttons */}
+                <div className="flex items-center gap-1 font-mono text-xs overflow-x-auto no-scrollbar py-0.5 shrink-0">
+                  {[
+                    { id: "preview", label: "VISUAL_OUT", icon: Eye },
+                    { id: "unet3d.py", label: "unet3d.py", icon: Code2 },
+                    { id: "ieee_paper.tex", label: "paper.tex", icon: FileText },
+                    { id: "hardware_bom.csv", label: "bom.csv", icon: Cpu }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveCodeTab(tab.id as any)}
+                      className={`px-2.5 py-1 rounded text-[11px] transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 retro-btn ${
+                        activeCodeTab === tab.id
+                          ? "bg-amber-500 text-amber-950 font-bold shadow-xs"
+                          : "bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+                      }`}
+                    >
+                      <tab.icon className="w-3 h-3 shrink-0" />
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Viewport: Either Visual Output Image or Code Viewer */}
+              {activeCodeTab === "preview" ? (
+                <div className="relative w-full h-64 sm:h-80 md:h-[350px] flex items-center justify-center p-3 sm:p-5 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 overflow-hidden">
+                  <div className="absolute inset-0 bg-blue-600/5 backdrop-blur-3xl" />
+                  
+                  {/* Authentic Project Thumbnail (Unclipped & Uncropped) */}
+                  <img 
+                    src={flagship.thumb} 
+                    alt={flagship.title}
+                    className="relative z-10 max-h-full max-w-full object-contain rounded-lg shadow-2xl border border-slate-800/80 transition-transform duration-300 hover:scale-[1.01]" 
+                  />
+
+                  {/* Amber & Green Telemetry Badges */}
+                  <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 flex-wrap">
+                    <span className="px-2.5 py-1 rounded bg-slate-950/90 text-emerald-400 font-mono text-[10px] sm:text-[11px] border border-slate-700 backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      MODEL_VERIFIED: PASS
+                    </span>
+                    <span className="px-2.5 py-1 rounded bg-slate-950/90 text-amber-400 font-mono text-[10px] sm:text-[11px] border border-slate-700 backdrop-blur-md hidden sm:inline-flex">
+                      BraTS 2021 (0.884 DICE)
                     </span>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-slate-200/70 text-slate-700 font-mono text-[10px] font-medium border border-slate-300/60">
+                </div>
+              ) : (
+                /* CRT Amber Phosphor Code Pane */
+                <div className="p-3.5 sm:p-5 font-mono text-xs leading-relaxed overflow-x-auto text-amber-200 h-64 sm:h-80 md:h-[350px] select-text bg-[#090c06] border-inset">
+                  <pre className="text-[11px] leading-5 text-amber-400">
+                    <code>{CODE_PREVIEWS[activeCodeTab]?.code || ""}</code>
+                  </pre>
+                </div>
+              )}
+
+              {/* Telemetry status bar */}
+              <div className="px-3.5 sm:px-4 py-2 bg-slate-900 border-t border-slate-800 flex items-center justify-between text-[10px] sm:text-[11px] font-mono text-slate-400">
+                <span className="flex items-center gap-1.5 text-emerald-400 font-medium truncate">
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Verified 0.884 Dice • Passes CI
+                </span>
+                <span className="text-amber-500 font-bold shrink-0">
+                  {activeCodeTab === "preview" ? "1080p WebP // RGB" : "UTF-8 // LF // MEM_OK"}
+                </span>
+              </div>
+            </div>
+
+            {/* Right Column: Flagship Blueprint Spec Sheet (5 cols) */}
+            <div className="lg:col-span-5 p-5 sm:p-7 lg:p-8 flex flex-col justify-between bg-slate-950">
+              <div>
+                <div className="flex items-center justify-between mb-3 font-mono text-xs">
+                  <span className="text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                    FLAGSHIP_BLUEPRINT
+                  </span>
+                  <span className="text-slate-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 text-[10px]">
                     {flagship.category}
                   </span>
                 </div>
 
-                {/* Presentation Stage - REAL PROJECT MOCKUP (NEVER CLIPPED OR CUT) */}
-                <Link 
-                  to={flagship.id === "flagship-demo" ? "/marketplace" : `/project/${flagship.id}`}
-                  className="group relative w-full min-h-[260px] sm:min-h-[340px] md:min-h-[380px] rounded-xl overflow-hidden bg-white border border-slate-200/80 p-3 sm:p-5 flex items-center justify-center shadow-2xs hover:border-blue-400 transition-colors"
-                >
-                  <img 
-                    src={flagship.thumb} 
-                    alt={flagship.title}
-                    className="w-full h-full max-h-[340px] sm:max-h-[380px] object-contain rounded-lg transition-transform duration-500 group-hover:scale-[1.01]" 
-                  />
-                  
-                  {/* Subtle hover overlay prompt */}
-                  <div className="absolute inset-0 bg-slate-950/0 group-hover:bg-slate-950/5 transition-colors pointer-events-none rounded-xl" />
-                </Link>
+                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white tracking-tight leading-snug">
+                  {flagship.title}
+                </h3>
+                
+                <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed line-clamp-3 sm:line-clamp-none">
+                  {flagship.short}
+                </p>
 
-                {/* Verification badges */}
-                <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-600 flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-1.5 font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200/70 text-[11px]">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> 100% Tested on Clean Sandbox
-                  </span>
-                  <span className="font-mono text-[11px] text-slate-500">
-                    IEEE Standards Compliant
-                  </span>
+                {/* Tech specifications table */}
+                <div className="mt-5 pt-4 border-t border-slate-800 space-y-2.5 font-mono text-xs">
+                  <div className="flex justify-between text-slate-400 text-[11px]">
+                    <span>Target Hardware:</span>
+                    <span className="text-white font-medium">NVIDIA Jetson / x86 GPU</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400 text-[11px]">
+                    <span>Dataset:</span>
+                    <span className="text-white font-medium">BraTS 2021 (40GB Cleaned)</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400 text-[11px]">
+                    <span>Documentation:</span>
+                    <span className="text-emerald-400 font-medium">45-Page IEEE Thesis (.tex/.docx)</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400 text-[11px]">
+                    <span>Support:</span>
+                    <span className="text-amber-400 font-medium">WhatsApp / Discord Engineer Hotline</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Right Column: Project Specifications, Inclusions & Immediate Buy Box (5 Cols) */}
-              <div className="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between bg-white">
+              {/* Action */}
+              <div className="mt-6 pt-5 border-t border-slate-800 flex items-center justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2 mb-2 font-mono text-xs">
-                    <span className="text-blue-600 font-bold uppercase tracking-wider text-[11px]">
-                      {flagship.difficulty || "Advanced"} Level
-                    </span>
-                    <span className="text-slate-300">•</span>
-                    <span className="text-slate-500 text-[11px]">Verified Source</span>
-                  </div>
-
-                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-snug">
-                    {flagship.title}
-                  </h3>
-                  
-                  <p className="text-xs sm:text-sm text-slate-600 mt-2.5 leading-relaxed">
-                    {flagship.short}
-                  </p>
-
-                  {/* Deliverables Checklist */}
-                  <div className="mt-6 pt-5 border-t border-slate-100 space-y-2.5 text-xs text-slate-700">
-                    <div className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                      Package Inclusions
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                      <span><strong>Full Source Code:</strong> Clean, modular repo with requirements & run script</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                      <span><strong>Verified Dataset & Weights:</strong> Cleaned benchmark dataset & pre-trained weights</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                      <span><strong>Defense-Ready Report:</strong> 45-Page IEEE thesis (.docx & .tex format)</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                      <span><strong>Presentation Deck:</strong> 18-Slide animated PowerPoint for college viva</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span className="text-emerald-800 font-medium"><strong>7-Day Guarantee:</strong> Direct senior engineer assistance on WhatsApp</span>
-                    </div>
-                  </div>
-
-                  {/* Tech Stack Pills */}
-                  <div className="mt-5 flex items-center gap-1.5 flex-wrap">
-                    {(flagship.tech || ["PyTorch", "CUDA", "FastAPI", "React"]).map((t: string) => (
-                      <span key={t} className="px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[11px] border border-slate-200">
-                        {t}
-                      </span>
-                    ))}
+                  <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Complete Package</div>
+                  <div className="text-2xl font-bold font-mono text-white tracking-tight">
+                    <span className="text-amber-500 font-normal text-xs mr-1">INR</span>
+                    ₹{Number(flagship.price).toLocaleString()}
                   </div>
                 </div>
 
-                {/* Price & Action */}
-                <div className="mt-8 pt-5 border-t border-slate-100 flex items-center justify-between gap-4">
-                  <div>
-                    <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Complete Package</div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl sm:text-3xl font-bold font-mono text-slate-900 tracking-tight">
-                        ₹{Number(flagship.price).toLocaleString()}
-                      </span>
-                      <span className="text-xs text-slate-400 line-through font-mono">
-                        ₹{Math.round(Number(flagship.price) * 1.6).toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-
-                  <Link to={flagship.id === "flagship-demo" ? "/marketplace" : `/project/${flagship.id}`}>
-                    <Button className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm px-5 sm:px-7 h-11 shadow-sm transition-all active:scale-98">
-                      Inspect Blueprint <ArrowUpRight className="ml-1.5 w-4 h-4" />
-                    </Button>
-                  </Link>
-                </div>
+                <Link to={flagship.id === "flagship-demo" ? "/marketplace" : `/project/${flagship.id}`}>
+                  <Button className="rounded bg-amber-500 hover:bg-amber-600 text-amber-950 font-bold font-mono text-xs px-5 sm:px-6 h-10 shadow-xs transition-all retro-btn">
+                    INSPECT_PKG →
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

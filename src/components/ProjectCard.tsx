@@ -54,7 +54,10 @@ export default function ProjectCard({ project, view = "grid" }: { project: Proje
 
               {/* Price on Desktop (Right Aligned) */}
               <div className="mt-1 sm:mt-0 sm:text-right shrink-0">
-                <div className="text-2xl font-bold font-mono text-slate-900 tracking-tight">₹{Number(project.price).toLocaleString()}</div>
+                <div className="text-2xl font-bold font-mono text-slate-900 tracking-tight flex items-baseline sm:justify-end">
+                  <span className="text-amber-600 font-bold text-xs mr-1 select-none">INR</span>
+                  <span>₹{Number(project.price).toLocaleString()}</span>
+                </div>
                 {project.price_note ? (
                   <div className="text-[10px] font-semibold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded border border-rose-200 inline-block truncate max-w-[180px]" title={project.price_note}>
                     {project.price_note}
@@ -81,9 +84,9 @@ export default function ProjectCard({ project, view = "grid" }: { project: Proje
               )}
             </div>
 
-            <div className="inline-flex items-center gap-2 text-xs font-semibold text-blue-600 group-hover:text-blue-700 shrink-0">
-              <span>Inspect Specs</span>
-              <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 text-blue-600 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 grid place-items-center transition-all duration-200 shadow-2xs">
+            <div className="inline-flex items-center gap-2 text-xs font-semibold text-blue-600 group-hover:text-blue-700 shrink-0 font-mono">
+              <span>INSPECT_PKG</span>
+              <div className="w-7 h-7 rounded bg-blue-50 border border-blue-200 text-blue-600 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 grid place-items-center transition-all duration-200 shadow-2xs retro-btn">
                 <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </div>
             </div>
@@ -152,7 +155,10 @@ export default function ProjectCard({ project, view = "grid" }: { project: Proje
         {/* Unified Baseline Footer */}
         <div className="px-4 pb-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-3 mt-auto">
           <div className="min-w-0">
-            <div className="text-lg font-bold font-mono text-slate-900 tracking-tight">₹{Number(project.price).toLocaleString()}</div>
+            <div className="text-lg font-bold font-mono text-slate-900 tracking-tight flex items-baseline">
+              <span className="text-amber-600 font-bold text-[10px] mr-1 select-none">INR</span>
+              <span>₹{Number(project.price).toLocaleString()}</span>
+            </div>
             {project.price_note ? (
               <div className="text-[10px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 inline-block truncate max-w-[140px]" title={project.price_note}>
                 {project.price_note}
@@ -163,7 +169,7 @@ export default function ProjectCard({ project, view = "grid" }: { project: Proje
               </div>
             )}
           </div>
-          <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 text-blue-600 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 grid place-items-center transition-all duration-200 shadow-2xs shrink-0">
+          <div className="w-8 h-8 rounded bg-blue-50 border border-blue-200 text-blue-600 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 grid place-items-center transition-all duration-200 shadow-2xs shrink-0 retro-btn">
             <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </div>
         </div>

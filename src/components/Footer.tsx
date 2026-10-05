@@ -86,15 +86,15 @@ export default function Footer() {
               <Button 
                 type="submit" 
                 disabled={isLoading} 
-                className="rounded-lg bg-slate-950 hover:bg-slate-800 text-white font-semibold text-xs h-9 px-4 shrink-0 transition-all shadow-xs"
+                className="rounded bg-slate-950 hover:bg-slate-800 text-white font-mono font-bold text-xs h-9 px-4 shrink-0 transition-all shadow-xs retro-btn"
               >
-                {isLoading ? "Subscribing..." : "Get Drops"}
+                {isLoading ? "Subscribing..." : "EXEC_DROP ↵"}
               </Button>
             </form>
 
             <div className="mt-4 flex items-center gap-2 font-mono text-[11px] text-slate-500">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-              <span>All Systems Operational • Edge Verified</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981] animate-pulse shrink-0" />
+              <span>SYS_DAEMON: ONLINE • SHA-256 VERIFIED • 115200 BAUD</span>
             </div>
           </div>
 
