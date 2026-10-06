@@ -591,16 +591,36 @@ export default function AdminDashboard() {
   const handleRevokeLotteryAccess = async (convo: any) => {
     if (!convo) return;
     try {
+      const revokedMsg = {
+        id: `msg-${Date.now()}`,
+        sender_id: adminUser?.id || "admin",
+        sender_role: "admin",
+        sender_name: "Lead Systems Engineer",
+        message: "⚠️ Student raffle ticket has been deactivated / revoked by engineer.",
+        type: "lottery_revoked",
+        created_at: new Date().toISOString()
+      };
+      const currentMessages = Array.isArray(convo.messages) ? convo.messages : [];
+      const updatedMessages = [...currentMessages, revokedMsg];
+
+      let updatePayload: any = {
+        lottery_unlocked: false,
+        messages: updatedMessages,
+        updated_at: new Date().toISOString()
+      };
+
       let { error } = await supabase
         .from('product_conversations')
-        .update({
-          lottery_unlocked: false,
-          updated_at: new Date().toISOString()
-        })
+        .update(updatePayload)
         .eq('id', convo.id);
 
       if (error && error.message?.includes("lottery_unlocked")) {
-        error = null;
+        delete updatePayload.lottery_unlocked;
+        const res = await supabase
+          .from('product_conversations')
+          .update(updatePayload)
+          .eq('id', convo.id);
+        error = res.error;
       }
 
       if (error) throw error;
@@ -608,7 +628,12 @@ export default function AdminDashboard() {
       toast.info("Lottery ticket access revoked for this inquiry");
       fetchConversations();
       if (selectedConvo?.id === convo.id) {
-        setSelectedConvo((prev: any) => ({ ...prev, lottery_unlocked: false }));
+        setSelectedConvo((prev: any) => ({
+          ...prev,
+          lottery_unlocked: false,
+          messages: updatedMessages
+        }));
+        setAdminChatMessages(updatedMessages);
       }
     } catch (err: any) {
       toast.error("Failed to revoke lottery ticket");
@@ -2503,96 +2528,159 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* Right Column: Chat Console (Visible on mobile if convo selected, or desktop) */}
-                    <div className={`lg:col-span-7 xl:col-span-8 flex flex-col bg-[#0c101d] ${
+                    <div className={`lg:col-span-7 xl:col-span-8 flex flex-col bg-[#0c101d] min-w-0 overflow-hidden ${
                       selectedConvo ? "flex" : "hidden lg:flex"
                     }`}>
                       {selectedConvo ? (
                         <>
-                          {/* Chat Header */}
-                          <div className="p-3 sm:p-4 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-2.5 bg-[#090e1c]/80 shrink-0">
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setSelectedConvo(null)}
-                                className="lg:hidden h-8 px-2 -ml-1 text-slate-400 hover:text-amber-400 gap-1 text-xs font-mono shrink-0"
-                              >
-                                <ArrowLeft className="w-4 h-4" />
-                                <span className="hidden xs:inline">INQUIRIES</span>
-                              </Button>
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <h4 className="font-semibold text-xs sm:text-sm text-white truncate max-w-[150px] sm:max-w-none">
-                                    {selectedConvo.user_name || "Customer"}
-                                  </h4>
-                                  <a 
-                                    href={`mailto:${selectedConvo.user_email}`} 
-                                    className="text-[11px] sm:text-xs text-amber-400 hover:underline flex items-center gap-1 font-mono truncate max-w-[160px] sm:max-w-none"
-                                  >
-                                    {selectedConvo.user_email}
-                                  </a>
-                                </div>
-                                <div className="flex items-center gap-2 mt-0.5 text-[11px] sm:text-xs text-slate-400">
-                                  <span className="truncate max-w-[180px] sm:max-w-xs font-mono">
-                                    KIT: <strong className="text-slate-200">{selectedConvo.project_title}</strong>
-                                  </span>
-                                  {selectedConvo.project_price > 0 && (
-                                    <span className="font-mono font-semibold text-emerald-400 shrink-0">
-                                      ₹{Number(selectedConvo.project_price).toLocaleString('en-IN')}
+                          {/* Chat Header: 2-Tier Cyber Command Deck (Zero Overflow / Impeccable Alignment) */}
+                          <div className="border-b border-slate-800/80 bg-[#090e1c] shrink-0">
+                            {/* Tier 1: Identity & Primary Status Bar */}
+                            <div className="p-3 sm:px-4 sm:py-3 border-b border-slate-800/60 flex items-center justify-between gap-3 min-w-0 flex-wrap sm:flex-nowrap">
+                              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setSelectedConvo(null)}
+                                  className="lg:hidden h-8 px-2 -ml-1 text-slate-400 hover:text-amber-400 gap-1 text-xs font-mono shrink-0"
+                                >
+                                  <ArrowLeft className="w-4 h-4" />
+                                  <span className="hidden xs:inline">INQUIRIES</span>
+                                </Button>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <h4 className="font-semibold text-xs sm:text-sm text-white truncate max-w-[140px] sm:max-w-none">
+                                      {selectedConvo.user_name || "Customer"}
+                                    </h4>
+                                    <a 
+                                      href={`mailto:${selectedConvo.user_email}`} 
+                                      className="text-[11px] sm:text-xs text-amber-400 hover:underline flex items-center gap-1 font-mono truncate max-w-[170px] sm:max-w-none"
+                                    >
+                                      {selectedConvo.user_email}
+                                    </a>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-0.5 text-[11px] sm:text-xs text-slate-400">
+                                    <span className="truncate max-w-[200px] sm:max-w-xs md:max-w-md font-mono">
+                                      KIT: <strong className="text-slate-200">{selectedConvo.project_title}</strong>
                                     </span>
-                                  )}
+                                    {selectedConvo.project_price > 0 && (
+                                      <span className="font-mono font-semibold text-emerald-400 shrink-0">
+                                        ₹{Number(selectedConvo.project_price).toLocaleString('en-IN')}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
+                              </div>
+
+                              {/* Right: Status Dropdown, Purge & More Options (Never clipped or pushed offscreen) */}
+                              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                                <Select
+                                  value={selectedConvo.status || "active"}
+                                  onValueChange={(val) => updateConvoStatus(selectedConvo.id, val)}
+                                >
+                                  <SelectTrigger className="h-8 text-xs font-mono w-[130px] sm:w-[142px] border-slate-800 bg-[#070a12] text-slate-200 shrink-0 focus:ring-1 focus:ring-cyan-500/50">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-[#0d121f] border-slate-800 text-slate-200 z-50">
+                                    <SelectItem value="active">🟢 In Review</SelectItem>
+                                    <SelectItem value="ready_to_purchase">⚡ Access Ready</SelectItem>
+                                    <SelectItem value="purchased">✓ Purchased</SelectItem>
+                                    <SelectItem value="archived">📁 Archived</SelectItem>
+                                  </SelectContent>
+                                </Select>
+
+                                {/* Compact Direct Cancel & Purge Action */}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleCancelAndPurgeRequest(selectedConvo.id)}
+                                  className="h-8 w-8 p-0 border-rose-500/50 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
+                                  title="Cancel build request & delete chat"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                                </Button>
+
+                                {/* More Options for selected chat */}
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-white border border-slate-800 bg-slate-900/60 shrink-0">
+                                      <MoreHorizontal className="w-4 h-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-52 bg-[#0d121f] border-slate-800 text-slate-200 shadow-2xl rounded-xl p-1 z-50 font-mono text-xs">
+                                    <DropdownMenuItem
+                                      onClick={() => updateConvoStatus(selectedConvo.id, selectedConvo.status === 'archived' ? 'active' : 'archived')}
+                                      className="flex items-center gap-2 py-2 px-2.5 rounded-lg cursor-pointer hover:bg-slate-800/80 text-slate-300"
+                                    >
+                                      <Archive className="w-4 h-4 text-slate-400" />
+                                      {selectedConvo.status === 'archived' ? 'Unarchive Inquiry' : 'Archive Inquiry'}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator className="bg-slate-800 my-1" />
+                                    <DropdownMenuItem
+                                      onClick={() => handleCancelAndPurgeRequest(selectedConvo.id)}
+                                      className="flex items-center gap-2 py-2 px-2.5 rounded-lg cursor-pointer hover:bg-rose-500/10 text-rose-400 font-semibold"
+                                    >
+                                      <Trash2 className="w-4 h-4 text-rose-400" />
+                                      Cancel & Delete Chat
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                            {/* Tier 2: Cyber Quick Action Command Ribbon */}
+                            <div className="px-3 sm:px-4 py-2 bg-[#070b14]/90 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0 flex-wrap">
                               {/* One-Click Buy Access Action Button */}
                               {selectedConvo.status === 'ready_to_purchase' ? (
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleRevokePurchaseAccess(selectedConvo)}
-                                  className="h-8 text-xs font-mono border-emerald-500/50 bg-emerald-500/10 text-emerald-400 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/40 flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+                                  className="h-7.5 px-2.5 text-xs font-mono border-emerald-500/50 bg-emerald-500/10 text-emerald-400 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/40 flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
                                   title="Customer has permission to purchase. Click to revoke."
                                 >
                                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                                   <span className="font-bold">ACCESS_GRANTED</span>
-                                  <span className="text-[10px] text-slate-400">(Revoke)</span>
+                                  <span className="text-[10px] text-slate-400 font-normal">(Revoke)</span>
                                 </Button>
                               ) : selectedConvo.status !== 'purchased' ? (
                                 <Button
                                   size="sm"
                                   onClick={() => handleGrantPurchaseAccess(selectedConvo)}
-                                  className="h-8 text-xs font-mono font-black bg-emerald-500 hover:bg-emerald-400 text-slate-950 border border-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.35)] flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
+                                  className="h-7.5 px-3 text-xs font-mono font-black bg-emerald-500 hover:bg-emerald-400 text-slate-950 border border-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.3)] flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
                                   title="Grant customer permission to buy this project"
                                 >
                                   <Key className="w-3.5 h-3.5" />
                                   <span>GRANT_BUY_ACCESS</span>
                                 </Button>
                               ) : (
-                                <Badge className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono text-[11px] h-8 px-2.5 shrink-0">
+                                <Badge className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono text-[10px] h-7 px-2.5 shrink-0">
                                   ✓ PURCHASED
                                 </Badge>
                               )}
 
                               {/* One-Click Individual Student Scratch Lottery Action */}
-                              {Boolean(selectedConvo.lottery_unlocked) ? (
+                              {Boolean(
+                                selectedConvo.lottery_unlocked !== false && 
+                                (selectedConvo.lottery_unlocked === true || selectedConvo.messages?.some((m: any) => m.type === "lottery_ticket")) &&
+                                !selectedConvo.messages?.some((m: any) => m.type === "lottery_revoked")
+                              ) ? (
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleRevokeLotteryAccess(selectedConvo)}
-                                  className="h-8 text-xs font-mono border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/40 flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+                                  className="h-7.5 px-2.5 text-xs font-mono border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/40 flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
                                   title="Student raffle ticket is active. Click to revoke."
                                 >
                                   <Ticket className="w-3.5 h-3.5 text-amber-400" />
                                   <span className="font-bold">🎟️ TICKET_ACTIVE</span>
-                                  <span className="text-[10px] text-slate-400">(Revoke)</span>
+                                  <span className="text-[10px] text-slate-400 font-normal">(Revoke)</span>
                                 </Button>
                               ) : (
                                 <Button
                                   size="sm"
                                   onClick={() => handleGrantLotteryAccess(selectedConvo)}
-                                  className="h-8 text-xs font-mono font-black bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 border border-amber-400 shadow-[0_0_14px_rgba(245,158,11,0.35)] flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
+                                  className="h-7.5 px-3 text-xs font-mono font-black bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 border border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)] flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
                                   title="Grant an exclusive vintage scratch lottery ticket to this student"
                                 >
                                   <Ticket className="w-3.5 h-3.5" />
@@ -2606,75 +2694,15 @@ export default function AdminDashboard() {
                                   variant="outline"
                                   size="sm"
                                   asChild
-                                  className="h-8 text-xs font-mono border-slate-800 bg-slate-900/60 text-slate-300 hover:text-cyan-400 hover:bg-slate-800 px-2 sm:px-2.5 shrink-0"
+                                  className="h-7.5 px-2.5 text-xs font-mono border-slate-800 bg-slate-900/60 text-slate-300 hover:text-cyan-400 hover:bg-slate-800 shrink-0"
                                   title="View product page in new tab"
                                 >
                                   <a href={`/project/${selectedConvo.project_id}`} target="_blank" rel="noreferrer">
-                                    <ExternalLink className="w-3.5 h-3.5 sm:mr-1" />
-                                    <span className="hidden md:inline">VIEW_PRODUCT</span>
+                                    <ExternalLink className="w-3.5 h-3.5 mr-1" />
+                                    <span>VIEW_PRODUCT</span>
                                   </a>
                                 </Button>
                               )}
-
-                              {/* Status Dropdown - Clean fit without ellipsis */}
-                              <Select
-                                value={selectedConvo.status || "active"}
-                                onValueChange={(val) => updateConvoStatus(selectedConvo.id, val)}
-                              >
-                                <SelectTrigger className="h-8 text-xs font-mono w-[125px] sm:w-[138px] border-slate-800 bg-[#070a12] text-slate-200 shrink-0">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-[#0d121f] border-slate-800 text-slate-200">
-                                  <SelectItem value="active">🟢 In Review</SelectItem>
-                                  <SelectItem value="ready_to_purchase">⚡ Access Ready</SelectItem>
-                                  <SelectItem value="purchased">✓ Purchased</SelectItem>
-                                  <SelectItem value="archived">📁 Archived</SelectItem>
-                                </SelectContent>
-                              </Select>
-
-                              {/* Compact Direct Cancel & Purge Action */}
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleCancelAndPurgeRequest(selectedConvo.id)}
-                                className="h-8 w-8 p-0 border-rose-500/50 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
-                                title="Cancel build request & delete chat"
-                              >
-                                <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-                              </Button>
-
-                              {/* More Options for selected chat */}
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-white border border-slate-800 bg-slate-900/60">
-                                    <MoreHorizontal className="w-4 h-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-48 bg-[#0d121f] border-slate-800 text-slate-200 shadow-2xl rounded-xl p-1 z-50">
-                                  <DropdownMenuItem
-                                    onClick={() => updateConvoStatus(selectedConvo.id, selectedConvo.status === 'archived' ? 'active' : 'archived')}
-                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-slate-800/80 text-slate-300"
-                                  >
-                                    <Archive className="w-4 h-4 text-slate-400" />
-                                    {selectedConvo.status === 'archived' ? 'Unarchive Inquiry' : 'Archive Inquiry'}
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator className="bg-slate-800 my-1" />
-                                  <DropdownMenuItem
-                                    onClick={() => handleDeleteForAdmin(selectedConvo.id)}
-                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-slate-800/80 text-slate-400 focus:text-slate-200"
-                                  >
-                                    <Archive className="w-4 h-4 text-slate-400" />
-                                    Hide from Admin View
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => handleCancelAndPurgeRequest(selectedConvo.id)}
-                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-lg cursor-pointer hover:bg-rose-500/10 text-rose-400 focus:text-rose-400 focus:bg-rose-500/10 font-bold"
-                                  >
-                                    <Trash2 className="w-4 h-4 text-rose-400" />
-                                    Cancel Request & Delete Chat
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
                             </div>
                           </div>
 
@@ -2980,7 +3008,11 @@ export default function AdminDashboard() {
                         {conversations
                           .filter(c => c.status !== 'archived')
                           .map((convo) => {
-                            const isGranted = Boolean(convo.lottery_unlocked);
+                            const isGranted = Boolean(
+                              convo.lottery_unlocked !== false && 
+                              (convo.lottery_unlocked === true || convo.messages?.some((m: any) => m.type === "lottery_ticket")) &&
+                              !convo.messages?.some((m: any) => m.type === "lottery_revoked")
+                            );
 
                             return (
                               <div

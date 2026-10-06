@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import CyberConfirmDialog from "@/components/CyberConfirmDialog";
+import StudentLotteryTicketModal from "@/components/StudentLotteryTicketModal";
 import { toast } from "sonner";
 import { isUserAdmin } from "@/lib/authUtils";
 import { 
@@ -62,7 +63,22 @@ export default function ProductChatDrawer({
   const [isSending, setIsSending] = useState(false);
   const [isDrawerConfirmOpen, setIsDrawerConfirmOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isInternalLotteryOpen, setIsInternalLotteryOpen] = useState(false);
+  const [internalDiscount, setInternalDiscount] = useState<number>(0);
+  const [internalCoupon, setInternalCoupon] = useState<string>("");
   const drawerChatFeedRef = useRef<HTMLDivElement>(null);
+
+  const effectiveDiscount = appliedDiscount || internalDiscount;
+  const effectiveCoupon = appliedCoupon || internalCoupon;
+
+  const hasTicketInChat = Boolean(
+    messages?.some((msg: any) => msg.type === "lottery_ticket" || msg.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"))
+  );
+  const isTicketRevoked = Boolean(
+    conversation?.lottery_unlocked === false || 
+    messages?.some((msg: any) => msg.type === "lottery_revoked" || msg.message?.includes("ticket has been revoked") || msg.message?.includes("ticket has been deactivated"))
+  );
+  const isTicketActive = (Boolean(isLotteryUnlocked || conversation?.lottery_unlocked) || hasTicketInChat) && !isTicketRevoked;
 
   const handleDrawerCancelRequest = () => {
     if (onCancelRequest) {
@@ -545,12 +561,12 @@ export default function ProductChatDrawer({
                 )}
 
                 {/* Individual Student Lottery Pass Banner */}
-                {Boolean(isLotteryUnlocked || conversation?.lottery_unlocked) && (
-                  appliedDiscount && appliedDiscount > 0 ? (
+                {isTicketActive && (
+                  effectiveDiscount && effectiveDiscount > 0 ? (
                     <div className="mt-2 bg-emerald-950/60 border border-emerald-500/50 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-[11px] font-mono text-emerald-300">
                       <span className="flex items-center gap-1.5 truncate">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span className="truncate">★ STUDENT GRANT: {appliedDiscount}% OFF ({appliedCoupon})</span>
+                        <span className="truncate">★ STUDENT GRANT: {effectiveDiscount}% OFF ({effectiveCoupon})</span>
                       </span>
                       <Badge className="bg-emerald-500 text-slate-950 font-black text-[9px] h-4 py-0 shrink-0">SAVED</Badge>
                     </div>
@@ -562,7 +578,10 @@ export default function ProductChatDrawer({
                       </span>
                       <button
                         type="button"
-                        onClick={() => onOpenLottery && onOpenLottery()}
+                        onClick={() => {
+                          if (onOpenLottery) onOpenLottery();
+                          else setIsInternalLotteryOpen(true);
+                        }}
                         className="bg-amber-400 hover:bg-amber-300 text-amber-950 font-black px-2.5 py-0.5 rounded text-[10px] cursor-pointer shadow-sm transition-all shrink-0 tracking-wider"
                       >
                         SCRATCH →
@@ -633,16 +652,16 @@ export default function ProductChatDrawer({
                             </p>
 
                             <div className="relative z-10 pt-1">
-                              {appliedDiscount && appliedDiscount > 0 ? (
+                              {effectiveDiscount && effectiveDiscount > 0 ? (
                                 <div className="p-2.5 rounded-lg bg-emerald-950/60 border border-emerald-500/50 flex items-center justify-between gap-2">
                                   <div className="flex items-center gap-2">
                                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                                     <div>
                                       <div className="text-xs font-bold text-emerald-300 font-mono">
-                                        {appliedDiscount}% DISCOUNT APPLIED
+                                        {effectiveDiscount}% DISCOUNT APPLIED
                                       </div>
                                       <div className="text-[10px] text-emerald-400/80 font-mono">
-                                        Code: {appliedCoupon} active on checkout
+                                        Code: {effectiveCoupon} active on checkout
                                       </div>
                                     </div>
                                   </div>
@@ -657,9 +676,12 @@ export default function ProductChatDrawer({
                                     PAY NOW
                                   </Button>
                                 </div>
-                              ) : Boolean(isLotteryUnlocked || conversation?.lottery_unlocked) ? (
+                              ) : isTicketActive ? (
                                 <Button
-                                  onClick={() => onOpenLottery && onOpenLottery()}
+                                  onClick={() => {
+                                    if (onOpenLottery) onOpenLottery();
+                                    else setIsInternalLotteryOpen(true);
+                                  }}
                                   className="w-full h-11 rounded-lg bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-amber-950 font-black font-mono text-xs flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all cursor-pointer active:scale-98 retro-btn border border-amber-300"
                                 >
                                   <Ticket className="w-4 h-4" />
@@ -757,6 +779,20 @@ export default function ProductChatDrawer({
         cancelText="KEEP_REQUEST"
         variant="danger"
         isLoading={isCancelling}
+      />
+
+      {/* Internal Student Scratch Lottery Modal */}
+      <StudentLotteryTicketModal
+        isOpen={isInternalLotteryOpen}
+        onClose={() => setIsInternalLotteryOpen(false)}
+        projectTitle={project?.title || ""}
+        originalPrice={project?.price || 0}
+        onApplyDiscount={(disc, code) => {
+          setInternalDiscount(disc);
+          setInternalCoupon(code);
+          setIsInternalLotteryOpen(false);
+          toast.success(`🎉 ${disc}% Lucky Discount Applied! Promo: ${code}`);
+        }}
       />
     </Sheet>
   );
