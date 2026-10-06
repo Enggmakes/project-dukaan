@@ -266,7 +266,7 @@ export default function ProjectDetails() {
             const prevLottery = Boolean(activeConvo?.lottery_unlocked || activeConvo?.messages?.some((m: any) => m.type === "lottery_ticket"));
             const nextLottery = Boolean(payload.new.lottery_unlocked || payload.new.messages?.some((m: any) => m.type === "lottery_ticket"));
             if (nextLottery && !prevLottery) {
-              toast.success("🎟️ Lead Engineer granted you an exclusive Student Lucky Ticket! Scratch it now to claim your discount.", {
+              toast.success("Lead Engineer granted you an exclusive Student Lucky Ticket! Scratch it now to claim your discount.", {
                 duration: 8000
               });
             }
@@ -925,7 +925,7 @@ export default function ProjectDetails() {
                   >
                     <span className="flex items-center gap-2">
                       <Ticket className="w-4 h-4 text-amber-400 group-hover:rotate-12 transition-transform animate-pulse" />
-                      <span className="font-['Cinzel',serif] tracking-wider font-bold">★ ENGINEER GRANTED RAFFLE TICKET ★</span>
+                      <span className="font-['Cinzel',serif] tracking-wider font-bold">ENGINEER GRANTED RAFFLE TICKET</span>
                     </span>
                     <span className="text-[10px] bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 font-black px-2.5 py-1 rounded shadow-md tracking-wider">
                       SCRATCH →
@@ -1169,7 +1169,7 @@ export default function ProjectDetails() {
                     >
                       <span className="flex items-center gap-1.5">
                         <Ticket className="w-3.5 h-3.5 text-amber-400" />
-                        <span className="font-['Cinzel',serif] font-bold">★ ENGINEER GRANTED RAFFLE TICKET</span>
+                        <span className="font-['Cinzel',serif] font-bold">ENGINEER GRANTED RAFFLE TICKET</span>
                       </span>
                       <span className="text-[10px] bg-amber-400 text-amber-950 px-2 py-0.5 rounded font-black tracking-wider">
                         SCRATCH NOW →

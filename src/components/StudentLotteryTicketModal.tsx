@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { X, Sparkles, Ticket, CheckCircle2, Zap, Coins, Copy, Check } from "lucide-react";
+import { X, CheckCircle2, Coins, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getLotteryConfig } from "@/lib/lotteryConfig";
 import { toast } from "sonner";
@@ -102,20 +102,20 @@ export default function StudentLotteryTicketModal({
     ctx.lineWidth = 1;
     ctx.strokeRect(9, 9, width - 18, height - 18);
 
-    // Decorative corner stars on the foil
+    // Decorative corner dots on the foil
     ctx.fillStyle = "#5c3d06";
-    ctx.font = "bold 11px sans-serif";
+    ctx.font = "bold 13px 'Special Elite', monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("★", 16, 16);
-    ctx.fillText("★", width - 16, 16);
-    ctx.fillText("★", 16, height - 16);
-    ctx.fillText("★", width - 16, height - 16);
+    ctx.fillText("•", 16, 16);
+    ctx.fillText("•", width - 16, 16);
+    ctx.fillText("•", 16, height - 16);
+    ctx.fillText("•", width - 16, height - 16);
 
     // Embossed center vintage stamp on foil
     ctx.fillStyle = "#523405";
     ctx.font = "bold 13px 'Cinzel', serif, Georgia, 'Times New Roman'";
-    ctx.fillText("★  OFFICIAL SCRATCH SEAL  ★", width / 2, height / 2 - 18);
+    ctx.fillText("OFFICIAL SCRATCH SEAL", width / 2, height / 2 - 18);
 
     ctx.fillStyle = "#3e2503";
     ctx.font = "bold 14px 'Special Elite', 'Courier New', monospace";
@@ -123,7 +123,7 @@ export default function StudentLotteryTicketModal({
 
     ctx.fillStyle = "#6d470a";
     ctx.font = "italic 11px 'Special Elite', 'Courier New', monospace";
-    ctx.fillText("★ SCRATCH TO REVEAL ACADEMIC GRANT ★", width / 2, height / 2 + 23);
+    ctx.fillText("SCRATCH TO REVEAL ACADEMIC GRANT", width / 2, height / 2 + 23);
   }, []);
 
   const calculateScratchPercent = useCallback(() => {
@@ -246,8 +246,8 @@ export default function StudentLotteryTicketModal({
           <div className="relative bg-gradient-to-b from-[#181309] via-[#100d07] to-[#0a0d18] border-b border-amber-500/40 px-5 pt-5 pb-3.5 text-center">
             {/* Top Serial & Ornamental Filigree */}
             <div className="flex items-center justify-between text-[11px] font-mono text-amber-400/90 tracking-widest uppercase mb-1.5 px-1">
-              <span className="flex items-center gap-1 font-bold">
-                <Sparkles className="w-3 h-3 text-amber-400" />
+              <span className="flex items-center gap-1.5 font-bold tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
                 <span>OFFICIAL ADMISSION</span>
               </span>
               <span className="font-['Special_Elite',monospace] font-bold text-amber-300 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/40">
@@ -257,7 +257,7 @@ export default function StudentLotteryTicketModal({
 
             {/* Vintage Carnival Headline */}
             <h2 className="text-xl sm:text-2xl font-black font-['Cinzel',serif] tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-[#fef08a] via-[#f59e0b] to-[#b45309] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-              ★ THE GREAT STUDENT RAFFLE ★
+              THE GREAT STUDENT RAFFLE
             </h2>
 
             <p className="text-[11px] font-mono text-slate-300 mt-1 max-w-sm mx-auto truncate">
@@ -283,7 +283,12 @@ export default function StudentLotteryTicketModal({
           <div className="p-5 sm:p-6 pt-2">
             
             {/* Scratch Arena Shell with Sunburst Rays Backdrop */}
-            <div className="relative rounded-xl border-2 border-amber-500/60 bg-[#050811] shadow-[inset_0_2px_12px_rgba(0,0,0,0.9)] overflow-hidden">
+            <div 
+              className={`relative rounded-xl border-2 border-amber-500/60 bg-[#050811] shadow-[inset_0_2px_12px_rgba(0,0,0,0.9)] overflow-hidden ${!isScratched ? "lottery-scratch-surface" : ""}`}
+              style={{
+                cursor: !isScratched ? "url('/hand-cursor.cur'), pointer" : undefined
+              }}
+            >
               
               {/* Radiating Vintage Sunburst Background */}
               <div className="absolute inset-0 opacity-20 pointer-events-none vintage-sunburst" />
@@ -294,7 +299,7 @@ export default function StudentLotteryTicketModal({
                 {/* Vintage Rubber Stamp: VERIFIED WINNER */}
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-emerald-950/70 border border-emerald-500/60 text-emerald-300 text-[11px] font-['Special_Elite',monospace] font-bold tracking-widest uppercase mb-1 shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-pulse">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>★ OFFICIAL STUDENT WINNER ★</span>
+                  <span>OFFICIAL STUDENT WINNER</span>
                 </div>
 
                 {/* Stately Gilded Prize Percentage */}
@@ -342,8 +347,9 @@ export default function StudentLotteryTicketModal({
                   onPointerDown={handlePointerDown}
                   onPointerMove={handlePointerMove}
                   onPointerUp={handlePointerUp}
-                  className="absolute inset-0 w-full h-full cursor-crosshair touch-none transition-opacity duration-300 z-10"
+                  className="absolute inset-0 w-full h-full lottery-scratch-surface touch-none transition-opacity duration-300 z-10"
                   style={{
+                    cursor: "url('/hand-cursor.cur'), pointer",
                     opacity: scratchPercent > 38 ? 0 : 1,
                     pointerEvents: scratchPercent > 38 ? "none" : "auto",
                   }}
@@ -379,8 +385,8 @@ export default function StudentLotteryTicketModal({
                   }}
                   className="w-full rounded-xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 hover:from-emerald-400 hover:to-emerald-300 text-slate-950 font-black font-mono text-xs sm:text-sm h-12 shadow-[0_0_25px_rgba(16,185,129,0.4)] border border-emerald-300 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 retro-btn"
                 >
-                  <Zap className="w-4 h-4 fill-slate-950" />
-                  <span>[ 🎟️ REDEEM TICKET · APPLY {discountPercent}% DISCOUNT ]</span>
+                  <CheckCircle2 className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+                  <span>[ REDEEM TICKET · APPLY {discountPercent}% DISCOUNT ]</span>
                 </Button>
               ) : (
                 <Button
@@ -393,7 +399,7 @@ export default function StudentLotteryTicketModal({
                   className="w-full rounded-xl bg-[#0c1322] hover:bg-[#121c33] text-amber-300 hover:text-amber-200 border border-amber-500/50 hover:border-amber-400 font-mono text-xs h-11 flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-all"
                 >
                   <Coins className="w-4 h-4 text-amber-400" />
-                  <span>🪙 Auto-Scratch with Coin</span>
+                  <span>Auto-Scratch with Coin</span>
                 </Button>
               )}
             </div>
@@ -401,9 +407,10 @@ export default function StudentLotteryTicketModal({
             {/* Vintage Ticket Seal & Terms Footer */}
             <div className="mt-3.5 text-center">
               <p className="text-[9px] text-slate-500 font-['Special_Elite',monospace] tracking-wider uppercase">
-                ★ 100% Guaranteed Academic Grant · Single Use Per Verification Cycle · Dukaan Capstone Labs ★
+                100% Guaranteed Academic Grant · Single Use Per Verification Cycle · Dukaan Capstone Labs
               </p>
             </div>
+
           </div>
         </div>
       </div>

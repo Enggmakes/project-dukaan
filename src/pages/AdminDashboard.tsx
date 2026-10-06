@@ -538,7 +538,7 @@ export default function AdminDashboard() {
         sender_id: adminUser?.id || "admin",
         sender_role: "admin",
         sender_name: "Lead Systems Engineer",
-        message: `🎟️ [STUDENT LUCKY RAFFLE UNLOCKED] An exclusive vintage student raffle ticket (${randomTicketId}) has been granted for "${convo.project_title}"! Scratch your authentic golden ticket below to reveal your lucky discount.`,
+        message: `[STUDENT LUCKY RAFFLE UNLOCKED] An exclusive vintage student raffle ticket (${randomTicketId}) has been granted for "${convo.project_title}"! Scratch your authentic golden ticket below to reveal your lucky discount.`,
         type: "lottery_ticket",
         ticket_id: randomTicketId,
         created_at: new Date().toISOString()
@@ -550,7 +550,7 @@ export default function AdminDashboard() {
       let updatePayload: any = {
         lottery_unlocked: true,
         messages: updatedMessages,
-        last_message: `🎟️ Student raffle ticket granted (${randomTicketId})`,
+        last_message: `Student raffle ticket granted (${randomTicketId})`,
         last_message_at: ticketMsg.created_at,
         updated_at: new Date().toISOString()
       };
@@ -572,7 +572,7 @@ export default function AdminDashboard() {
 
       if (error) throw error;
 
-      toast.success(`🎟️ Student scratch ticket granted to ${convo.user_name || convo.user_email}!`);
+      toast.success(`Student scratch ticket granted to ${convo.user_name || convo.user_email}!`);
       fetchConversations();
       if (selectedConvo?.id === convo.id) {
         setSelectedConvo((prev: any) => ({
@@ -2488,7 +2488,7 @@ export default function AdminDashboard() {
                                         </span>
                                         {Boolean(c.lottery_unlocked) && (
                                           <span className="text-[9px] font-mono font-bold text-amber-300 bg-amber-950/80 border border-amber-500/40 px-1.5 py-0.5 rounded shadow-[0_0_6px_rgba(245,158,11,0.25)]">
-                                            🎟️ RAFFLE
+                                            RAFFLE
                                           </span>
                                         )}
                                       </div>
@@ -2675,7 +2675,7 @@ export default function AdminDashboard() {
                                   title="Student raffle ticket is active. Click to revoke."
                                 >
                                   <Ticket className="w-3.5 h-3.5 text-amber-400" />
-                                  <span className="font-bold">🎟️ TICKET_ACTIVE</span>
+                                  <span className="font-bold">TICKET_ACTIVE</span>
                                   <span className="text-[10px] text-slate-400 font-normal">(Revoke)</span>
                                 </Button>
                               ) : (
@@ -2686,7 +2686,7 @@ export default function AdminDashboard() {
                                   title="Grant an exclusive vintage scratch lottery ticket to this student"
                                 >
                                   <Ticket className="w-3.5 h-3.5" />
-                                  <span>🎟️ GRANT_LOTTERY</span>
+                                  <span>GRANT_LOTTERY</span>
                                 </Button>
                               )}
 
@@ -2924,7 +2924,7 @@ export default function AdminDashboard() {
                           <span>Student Psychology & Isolated Per-User Granting:</span>
                         </div>
                         <p className="text-[11px] text-slate-400 leading-relaxed">
-                          Lottery tickets are strictly isolated per student and hidden from general visitors on project pages. When chatting with an inquiring student, click <strong className="text-amber-400">[🎟️ GRANT_LOTTERY_TICKET]</strong> in the conversation toolbar. Only that specific student receives the vintage scratch ticket to reveal their lucky academic discount between <strong className="text-amber-400">{lotteryMinInput}%</strong> and <strong className="text-amber-400">{lotteryMaxInput}%</strong>.
+                          Lottery tickets are strictly isolated per student and hidden from general visitors on project pages. When chatting with an inquiring student, click <strong className="text-amber-400">[GRANT_LOTTERY_TICKET]</strong> in the conversation toolbar. Only that specific student receives the vintage scratch ticket to reveal their lucky academic discount between <strong className="text-amber-400">{lotteryMinInput}%</strong> and <strong className="text-amber-400">{lotteryMaxInput}%</strong>.
                         </p>
                       </div>
 
@@ -3031,7 +3031,7 @@ export default function AdminDashboard() {
                                     </span>
                                     {isGranted ? (
                                       <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded font-bold">
-                                        🎟️ TICKET_ACTIVE
+                                        TICKET_ACTIVE
                                       </span>
                                     ) : (
                                       <span className="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">

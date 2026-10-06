@@ -575,7 +575,7 @@ export default function ProductChatDrawer({
                     <div className="mt-2 bg-emerald-950/60 border border-emerald-500/50 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-[11px] font-mono text-emerald-300">
                       <span className="flex items-center gap-1.5 truncate">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span className="truncate">★ STUDENT GRANT: {effectiveDiscount}% OFF ({effectiveCoupon})</span>
+                        <span className="truncate">STUDENT GRANT: {effectiveDiscount}% OFF ({effectiveCoupon})</span>
                       </span>
                       <Badge className="bg-emerald-500 text-slate-950 font-black text-[9px] h-4 py-0 shrink-0">SAVED</Badge>
                     </div>
@@ -583,7 +583,7 @@ export default function ProductChatDrawer({
                     <div className="mt-2 bg-gradient-to-r from-amber-950/80 via-[#181206] to-amber-950/80 border border-amber-500/60 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-[11px] font-mono text-amber-300">
                       <span className="flex items-center gap-1.5 truncate">
                         <Ticket className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
-                        <span className="font-['Cinzel',serif] font-bold truncate">★ RAFFLE TICKET GRANTED</span>
+                        <span className="font-['Cinzel',serif] font-bold truncate">RAFFLE TICKET GRANTED</span>
                       </span>
                       <button
                         type="button"
@@ -647,9 +647,7 @@ export default function ProductChatDrawer({
                             
                             <div className="relative z-10 flex items-center justify-between border-b border-amber-500/30 pb-2">
                               <div className="flex items-center gap-1.5 text-amber-400 text-xs font-['Cinzel',serif] font-bold tracking-wider">
-                                <span>★</span>
                                 <span>STUDENT RAFFLE PASS</span>
-                                <span>★</span>
                               </div>
                               <span className="text-[10px] font-['Special_Elite',monospace] text-amber-300 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/40">
                                 {m.ticket_id || "№ 008530 · 1984"}
@@ -694,7 +692,7 @@ export default function ProductChatDrawer({
                                   className="w-full h-11 rounded-lg bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-amber-950 font-black font-mono text-xs flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all cursor-pointer active:scale-98 retro-btn border border-amber-300"
                                 >
                                   <Ticket className="w-4 h-4" />
-                                  <span>[ 🎟️ SCRATCH YOUR LUCKY TICKET ]</span>
+                                  <span>[ SCRATCH YOUR LUCKY TICKET ]</span>
                                 </Button>
                               ) : (
                                 <div className="p-2.5 rounded bg-slate-900/80 border border-slate-800 text-slate-400 text-xs font-mono text-center flex items-center justify-center gap-1.5">
