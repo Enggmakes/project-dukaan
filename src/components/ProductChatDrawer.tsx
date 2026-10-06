@@ -20,7 +20,9 @@ import {
   Loader2, 
   Layers, 
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  Ticket,
+  Zap
 } from "lucide-react";
 
 interface ProductChatDrawerProps {
@@ -35,9 +37,23 @@ interface ProductChatDrawerProps {
   } | null;
   onOpenCheckout?: () => void;
   onCancelRequest?: () => void;
+  isLotteryUnlocked?: boolean;
+  onOpenLottery?: () => void;
+  appliedDiscount?: number;
+  appliedCoupon?: string;
 }
 
-export default function ProductChatDrawer({ isOpen, onClose, project, onOpenCheckout, onCancelRequest }: ProductChatDrawerProps) {
+export default function ProductChatDrawer({ 
+  isOpen, 
+  onClose, 
+  project, 
+  onOpenCheckout, 
+  onCancelRequest,
+  isLotteryUnlocked,
+  onOpenLottery,
+  appliedDiscount,
+  appliedCoupon
+}: ProductChatDrawerProps) {
   const [user, setUser] = useState<any>(null);
   const [conversation, setConversation] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -527,6 +543,33 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
                     </div>
                   </div>
                 )}
+
+                {/* Individual Student Lottery Pass Banner */}
+                {(isLotteryUnlocked || Boolean(conversation?.lottery_unlocked || messages?.some((m) => m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]")))) && (
+                  appliedDiscount && appliedDiscount > 0 ? (
+                    <div className="mt-2 bg-emerald-950/60 border border-emerald-500/50 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-[11px] font-mono text-emerald-300">
+                      <span className="flex items-center gap-1.5 truncate">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span className="truncate">★ STUDENT GRANT: {appliedDiscount}% OFF ({appliedCoupon})</span>
+                      </span>
+                      <Badge className="bg-emerald-500 text-slate-950 font-black text-[9px] h-4 py-0 shrink-0">SAVED</Badge>
+                    </div>
+                  ) : (
+                    <div className="mt-2 bg-gradient-to-r from-amber-950/80 via-[#181206] to-amber-950/80 border border-amber-500/60 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-[11px] font-mono text-amber-300">
+                      <span className="flex items-center gap-1.5 truncate">
+                        <Ticket className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
+                        <span className="font-['Cinzel',serif] font-bold truncate">★ RAFFLE TICKET GRANTED</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onOpenLottery && onOpenLottery()}
+                        className="bg-amber-400 hover:bg-amber-300 text-amber-950 font-black px-2.5 py-0.5 rounded text-[10px] cursor-pointer shadow-sm transition-all shrink-0 tracking-wider"
+                      >
+                        SCRATCH →
+                      </button>
+                    </div>
+                  )
+                )}
               </div>
             )}
 
@@ -547,6 +590,7 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
                     .map((m) => {
                     const isAdmin = m.sender_role === "admin";
                     const isMe = m.sender_id === user.id;
+                    const isLotteryTicketMsg = m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]");
 
                     return (
                       <div
@@ -569,17 +613,74 @@ export default function ProductChatDrawer({ isOpen, onClose, project, onOpenChec
                           </span>
                         </div>
 
-                        <div
-                          className={`max-w-[85%] rounded px-3.5 py-2 text-xs leading-relaxed font-mono shadow-md ${
-                            isMe
-                              ? "bg-amber-500 text-amber-950 font-semibold"
-                              : isAdmin
-                              ? "bg-[#0d121e] text-cyan-300 border border-cyan-800/80"
-                              : "bg-[#0d121e] text-slate-200 border border-slate-700"
-                          }`}
-                        >
-                          <p className="whitespace-pre-wrap">{m.message}</p>
-                        </div>
+                        {isLotteryTicketMsg ? (
+                          <div className="w-full max-w-sm rounded-xl bg-gradient-to-br from-[#121a2c] via-[#0b101c] to-[#070b14] border-2 border-amber-500/70 p-3.5 sm:p-4 shadow-[0_0_25px_rgba(245,158,11,0.25)] text-left relative overflow-hidden font-mono space-y-3">
+                            <div className="absolute inset-0 opacity-15 pointer-events-none vintage-sunburst" />
+                            
+                            <div className="relative z-10 flex items-center justify-between border-b border-amber-500/30 pb-2">
+                              <div className="flex items-center gap-1.5 text-amber-400 text-xs font-['Cinzel',serif] font-bold tracking-wider">
+                                <span>★</span>
+                                <span>STUDENT RAFFLE PASS</span>
+                                <span>★</span>
+                              </div>
+                              <span className="text-[10px] font-['Special_Elite',monospace] text-amber-300 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/40">
+                                {m.ticket_id || "№ 008530 · 1984"}
+                              </span>
+                            </div>
+
+                            <p className="relative z-10 text-xs text-slate-200 font-mono leading-relaxed">
+                              {m.message}
+                            </p>
+
+                            <div className="relative z-10 pt-1">
+                              {appliedDiscount && appliedDiscount > 0 ? (
+                                <div className="p-2.5 rounded-lg bg-emerald-950/60 border border-emerald-500/50 flex items-center justify-between gap-2">
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                                    <div>
+                                      <div className="text-xs font-bold text-emerald-300 font-mono">
+                                        {appliedDiscount}% DISCOUNT APPLIED
+                                      </div>
+                                      <div className="text-[10px] text-emerald-400/80 font-mono">
+                                        Code: {appliedCoupon} active on checkout
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => {
+                                      onClose();
+                                      if (onOpenCheckout) onOpenCheckout();
+                                    }}
+                                    className="h-7 text-[10px] font-mono font-black bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-2.5 rounded cursor-pointer"
+                                  >
+                                    PAY NOW
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button
+                                  onClick={() => onOpenLottery && onOpenLottery()}
+                                  className="w-full h-11 rounded-lg bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-amber-950 font-black font-mono text-xs flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all cursor-pointer active:scale-98 retro-btn border border-amber-300"
+                                >
+                                  <Ticket className="w-4 h-4" />
+                                  <span>[ 🎟️ SCRATCH YOUR LUCKY TICKET ]</span>
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            className={`max-w-[85%] rounded px-3.5 py-2 text-xs leading-relaxed font-mono shadow-md ${
+                              isMe
+                                ? "bg-amber-500 text-amber-950 font-semibold"
+                                : isAdmin
+                                ? "bg-[#0d121e] text-cyan-300 border border-cyan-800/80"
+                                : "bg-[#0d121e] text-slate-200 border border-slate-700"
+                            }`}
+                          >
+                            <p className="whitespace-pre-wrap">{m.message}</p>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

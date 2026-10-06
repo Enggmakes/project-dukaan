@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Special+Elite&family=Outfit:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -459,5 +459,34 @@
 }
 .quiet-code-scroll::-webkit-scrollbar-corner {
   background: transparent;
+}
+
+/* ========================================================================= */
+/* Vintage Carnival & Retro-Fusion Ticket Styles                             */
+/* ========================================================================= */
+.vintage-sunburst {
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(212, 175, 55, 0.07) 0deg 12deg,
+    transparent 12deg 24deg
+  );
+}
+
+.vintage-stamp {
+  border: 2px dashed rgba(239, 68, 68, 0.75);
+  color: #f87171;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  transform: rotate(-3deg);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+}
+
+.vintage-gold-stamp {
+  border: 2px dashed rgba(245, 158, 11, 0.7);
+  color: #fbbf24;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  transform: rotate(-2deg);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
 }
 

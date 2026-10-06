@@ -529,6 +529,92 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleGrantLotteryAccess = async (convo: any) => {
+    if (!convo) return;
+    try {
+      const randomTicketId = `№ 00${Math.floor(1000 + Math.random() * 9000)} · SERIES 1984`;
+      const ticketMsg = {
+        id: `msg-${Date.now()}`,
+        sender_id: adminUser?.id || "admin",
+        sender_role: "admin",
+        sender_name: "Lead Systems Engineer",
+        message: `🎟️ [STUDENT LUCKY RAFFLE UNLOCKED] An exclusive vintage student raffle ticket (${randomTicketId}) has been granted for "${convo.project_title}"! Scratch your authentic golden ticket below to reveal your lucky discount.`,
+        type: "lottery_ticket",
+        ticket_id: randomTicketId,
+        created_at: new Date().toISOString()
+      };
+
+      const currentMessages = Array.isArray(convo.messages) ? convo.messages : [];
+      const updatedMessages = [...currentMessages, ticketMsg];
+
+      let updatePayload: any = {
+        lottery_unlocked: true,
+        messages: updatedMessages,
+        last_message: `🎟️ Student raffle ticket granted (${randomTicketId})`,
+        last_message_at: ticketMsg.created_at,
+        updated_at: new Date().toISOString()
+      };
+
+      let { error } = await supabase
+        .from('product_conversations')
+        .update(updatePayload)
+        .eq('id', convo.id);
+
+      // Fallback if lottery_unlocked column doesn't exist yet on table
+      if (error && error.message?.includes("lottery_unlocked")) {
+        delete updatePayload.lottery_unlocked;
+        const res = await supabase
+          .from('product_conversations')
+          .update(updatePayload)
+          .eq('id', convo.id);
+        error = res.error;
+      }
+
+      if (error) throw error;
+
+      toast.success(`🎟️ Student scratch ticket granted to ${convo.user_name || convo.user_email}!`);
+      fetchConversations();
+      if (selectedConvo?.id === convo.id) {
+        setSelectedConvo((prev: any) => ({
+          ...prev,
+          lottery_unlocked: true,
+          messages: updatedMessages
+        }));
+        setAdminChatMessages(updatedMessages);
+      }
+    } catch (err: any) {
+      console.error("Failed to grant lottery access:", err);
+      toast.error("Failed to grant lottery ticket in Supabase");
+    }
+  };
+
+  const handleRevokeLotteryAccess = async (convo: any) => {
+    if (!convo) return;
+    try {
+      let { error } = await supabase
+        .from('product_conversations')
+        .update({
+          lottery_unlocked: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', convo.id);
+
+      if (error && error.message?.includes("lottery_unlocked")) {
+        error = null;
+      }
+
+      if (error) throw error;
+
+      toast.info("Lottery ticket access revoked for this inquiry");
+      fetchConversations();
+      if (selectedConvo?.id === convo.id) {
+        setSelectedConvo((prev: any) => ({ ...prev, lottery_unlocked: false }));
+      }
+    } catch (err: any) {
+      toast.error("Failed to revoke lottery ticket");
+    }
+  };
+
   const updateConvoStatus = async (convoId: string, newStatus: string) => {
     try {
       const { error } = await supabase
@@ -2373,6 +2459,11 @@ export default function AdminDashboard() {
                                         }`}>
                                           {c.status === 'ready_to_purchase' ? 'ACCESS_GRANTED' : (c.status || 'active')}
                                         </span>
+                                        {(c.lottery_unlocked || c.messages?.some((m: any) => m.type === "lottery_ticket")) && (
+                                          <span className="text-[9px] font-mono font-bold text-amber-300 bg-amber-950/80 border border-amber-500/40 px-1.5 py-0.5 rounded shadow-[0_0_6px_rgba(245,158,11,0.25)]">
+                                            🎟️ RAFFLE
+                                          </span>
+                                        )}
                                       </div>
                                       <p className="text-[11px] text-slate-400 truncate">
                                         {c.last_message || "New inquiry started..."}
@@ -2483,6 +2574,32 @@ export default function AdminDashboard() {
                                 <Badge className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono text-[11px] h-8 px-2.5">
                                   ✓ PURCHASED
                                 </Badge>
+                              )}
+
+                              {/* One-Click Individual Student Scratch Lottery Action */}
+                              {selectedConvo.lottery_unlocked || selectedConvo.messages?.some((m: any) => m.type === "lottery_ticket") ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleRevokeLotteryAccess(selectedConvo)}
+                                  className="h-8 text-xs font-mono border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/40 flex items-center gap-1.5 transition-all group"
+                                  title="Student raffle ticket is active. Click to revoke."
+                                >
+                                  <Ticket className="w-3.5 h-3.5 text-amber-400 group-hover:hidden" />
+                                  <X className="w-3.5 h-3.5 text-rose-400 hidden group-hover:inline" />
+                                  <span className="group-hover:hidden font-bold">🎟️ TICKET_ACTIVE</span>
+                                  <span className="hidden group-hover:inline">REVOKE_TICKET</span>
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleGrantLotteryAccess(selectedConvo)}
+                                  className="h-8 text-xs font-mono font-black bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 border border-amber-400 shadow-[0_0_14px_rgba(245,158,11,0.35)] flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                                  title="Grant an exclusive vintage scratch lottery ticket to this student"
+                                >
+                                  <Ticket className="w-3.5 h-3.5" />
+                                  <span>🎟️ GRANT_LOTTERY_TICKET</span>
+                                </Button>
                               )}
 
                               {/* Open Project Link */}
@@ -2776,10 +2893,10 @@ export default function AdminDashboard() {
                       <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 text-xs font-mono text-slate-300 space-y-1">
                         <div className="flex items-center gap-1.5 text-amber-400 font-bold">
                           <Sparkles className="w-3.5 h-3.5" />
-                          <span>Student Psychology & Gamification Rule:</span>
+                          <span>Student Psychology & Isolated Per-User Granting:</span>
                         </div>
                         <p className="text-[11px] text-slate-400 leading-relaxed">
-                          Students are never shown the discount numbers in advance on the page. They only see &ldquo;Claim Student Lucky Ticket&rdquo;. Scratching the ticket generates a random discount between <strong className="text-amber-400">{lotteryMinInput}%</strong> and <strong className="text-amber-400">{lotteryMaxInput}%</strong>.
+                          Lottery tickets are strictly isolated per student and hidden from general visitors on project pages. When chatting with an inquiring student, click <strong className="text-amber-400">[🎟️ GRANT_LOTTERY_TICKET]</strong> in the conversation toolbar. Only that specific student receives the vintage scratch ticket to reveal their lucky academic discount between <strong className="text-amber-400">{lotteryMinInput}%</strong> and <strong className="text-amber-400">{lotteryMaxInput}%</strong>.
                         </p>
                       </div>
 

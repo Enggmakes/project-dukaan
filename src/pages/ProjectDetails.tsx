@@ -102,6 +102,12 @@ export default function ProjectDetails() {
   const [isCancellingRequest, setIsCancellingRequest] = useState(false);
   const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
 
+  // Student Scratch Lottery is strictly isolated per-user/conversation (unlocked only when engineer grants it)
+  const isLotteryUnlocked = Boolean(
+    activeConvo?.lottery_unlocked || 
+    activeConvo?.messages?.some((m: any) => m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"))
+  );
+
   // Check user ownership, admin status, and build inquiry permission
   useEffect(() => {
     let isMounted = true;
@@ -252,6 +258,15 @@ export default function ProjectDetails() {
             toast.info("Build request has been cancelled.");
           } else if (payload.new) {
             const newStatus = payload.new.status;
+            // Detect real-time lottery grant from engineer
+            const prevLottery = Boolean(activeConvo?.lottery_unlocked || activeConvo?.messages?.some((m: any) => m.type === "lottery_ticket"));
+            const nextLottery = Boolean(payload.new.lottery_unlocked || payload.new.messages?.some((m: any) => m.type === "lottery_ticket"));
+            if (nextLottery && !prevLottery) {
+              toast.success("🎟️ Lead Engineer granted you an exclusive Student Lucky Ticket! Scratch it now to claim your discount.", {
+                duration: 8000
+              });
+            }
+
             if (newStatus === "withdrawn" || newStatus === "cancelled" || payload.new.admin_deleted) {
               setActiveConvo(null);
               setConvoStatus("none");
@@ -889,17 +904,17 @@ export default function ProjectDetails() {
                       Remove
                     </button>
                   </div>
-                ) : lotteryConfig.enabled ? (
+                ) : isLotteryUnlocked ? (
                   <button
                     type="button"
                     onClick={() => setIsLotteryModalOpen(true)}
-                    className="w-full mt-3 p-2.5 rounded-lg bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-amber-500/10 border border-amber-500/40 hover:border-amber-400 text-amber-300 font-mono text-xs font-bold flex items-center justify-between shadow-[0_0_15px_rgba(245,158,11,0.15)] hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all cursor-pointer group retro-btn"
+                    className="w-full mt-3 p-2.5 rounded-xl bg-gradient-to-r from-amber-950/80 via-[#181206] to-amber-950/80 border-2 border-amber-500/70 hover:border-amber-400 text-amber-300 font-mono text-xs font-bold flex items-center justify-between shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] transition-all cursor-pointer group retro-btn"
                   >
                     <span className="flex items-center gap-2">
-                      <Ticket className="w-4 h-4 text-amber-400 group-hover:rotate-12 transition-transform" />
-                      <span>🎟️ CLAIM STUDENT LUCKY TICKET</span>
+                      <Ticket className="w-4 h-4 text-amber-400 group-hover:rotate-12 transition-transform animate-pulse" />
+                      <span className="font-['Cinzel',serif] tracking-wider font-bold">★ ENGINEER GRANTED RAFFLE TICKET ★</span>
                     </span>
-                    <span className="text-[10px] bg-amber-400 text-amber-950 font-black px-2.5 py-0.5 rounded shadow-sm">
+                    <span className="text-[10px] bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 font-black px-2.5 py-1 rounded shadow-md tracking-wider">
                       SCRATCH →
                     </span>
                   </button>
@@ -1133,18 +1148,18 @@ export default function ProjectDetails() {
                       <strong className="text-amber-400">₹{project.price.toLocaleString()}</strong>
                     )}
                   </p>
-                  {lotteryConfig.enabled && appliedDiscount === 0 && (
+                  {isLotteryUnlocked && appliedDiscount === 0 && (
                     <button
                       type="button"
                       onClick={() => setIsLotteryModalOpen(true)}
-                      className="mt-2 w-full text-left p-2 rounded bg-amber-950/30 border border-amber-500/30 hover:border-amber-400 text-amber-300 text-xs font-mono flex items-center justify-between transition-colors cursor-pointer"
+                      className="mt-2 w-full text-left p-2.5 rounded-lg bg-amber-950/40 border border-amber-500/40 hover:border-amber-400 text-amber-300 text-xs font-mono flex items-center justify-between transition-colors cursor-pointer"
                     >
                       <span className="flex items-center gap-1.5">
                         <Ticket className="w-3.5 h-3.5 text-amber-400" />
-                        <span>Have a student pass? Scratch for lucky discount</span>
+                        <span className="font-['Cinzel',serif] font-bold">★ ENGINEER GRANTED RAFFLE TICKET</span>
                       </span>
-                      <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-bold">
-                        SCRATCH CARD →
+                      <span className="text-[10px] bg-amber-400 text-amber-950 px-2 py-0.5 rounded font-black tracking-wider">
+                        SCRATCH NOW →
                       </span>
                     </button>
                   )}
@@ -1542,6 +1557,10 @@ export default function ProjectDetails() {
         project={project}
         onOpenCheckout={handlePurchaseClick}
         onCancelRequest={handleCancelRequest}
+        isLotteryUnlocked={isLotteryUnlocked}
+        onOpenLottery={() => setIsLotteryModalOpen(true)}
+        appliedDiscount={appliedDiscount}
+        appliedCoupon={appliedCoupon}
       />
 
       {/* Cyber-Deck Themed Cancel / Withdraw Confirmation Modal */}
