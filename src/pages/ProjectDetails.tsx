@@ -102,11 +102,14 @@ export default function ProjectDetails() {
   const [isCancellingRequest, setIsCancellingRequest] = useState(false);
   const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
 
-  // Student Scratch Lottery is strictly isolated per-user/conversation (unlocked only when engineer grants it)
+  // Student Scratch Lottery is strictly isolated per-user/conversation (unlocked only when engineer explicitly grants it in this active chat)
   const isLotteryUnlocked = Boolean(
-    activeConvo?.lottery_unlocked !== false && 
-    (activeConvo?.lottery_unlocked === true || activeConvo?.messages?.some((m: any) => m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"))) &&
-    !activeConvo?.messages?.some((m: any) => m.type === "lottery_revoked")
+    (convoStatus === "active" || convoStatus === "ready_to_purchase") &&
+    activeConvo?.status !== "withdrawn" &&
+    activeConvo?.status !== "cancelled" &&
+    activeConvo?.lottery_unlocked !== false &&
+    !activeConvo?.messages?.some((m: any) => m.type === "lottery_revoked" || m.message?.includes("ticket has been revoked") || m.message?.includes("ticket has been deactivated")) &&
+    activeConvo?.messages?.some((m: any) => m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"))
   );
 
   // Check user ownership, admin status, and build inquiry permission
@@ -334,12 +337,13 @@ export default function ProjectDetails() {
         };
 
         if (existing) {
-          // Reactivate previously withdrawn conversation
+          // Reactivate previously withdrawn conversation with clean lottery state
           const { data: reactivated, error } = await supabase
             .from("product_conversations")
             .update({
               status: "active",
               admin_deleted: false,
+              lottery_unlocked: false,
               last_message: initialMsg.message,
               last_message_at: initialMsg.created_at,
               messages: [initialMsg],
@@ -352,6 +356,8 @@ export default function ProjectDetails() {
           if (error) throw error;
           if (reactivated) setActiveConvo(reactivated);
           setConvoStatus("active");
+          setAppliedDiscount(0);
+          setAppliedCoupon("");
           setIsChatDrawerOpen(true);
           toast.success("Build request submitted! Engineering team notified.");
         } else {
@@ -366,6 +372,7 @@ export default function ProjectDetails() {
               project_thumb: project.thumb || "/placeholder.svg",
               project_price: project.price || 0,
               status: "active",
+              lottery_unlocked: false,
               last_message: initialMsg.message,
               last_message_at: initialMsg.created_at,
               messages: [initialMsg]
@@ -376,6 +383,8 @@ export default function ProjectDetails() {
           if (error) throw error;
           if (created) setActiveConvo(created);
           setConvoStatus("active");
+          setAppliedDiscount(0);
+          setAppliedCoupon("");
           setIsChatDrawerOpen(true);
           toast.success("Build request submitted! Engineering team notified.");
         }
@@ -403,12 +412,13 @@ export default function ProjectDetails() {
       const convoId = activeConvo.id;
       const userId = currentUser?.id || activeConvo?.user_id;
 
-      // 1. Wipe chat messages and update status in database
+      // 1. Wipe chat messages and reset lottery status in database
       const { error: updateError } = await supabase
         .from("product_conversations")
         .update({
           status: "withdrawn",
           admin_deleted: true,
+          lottery_unlocked: false,
           messages: [],
           last_message: "Build request withdrawn by user",
           updated_at: new Date().toISOString()
@@ -435,6 +445,8 @@ export default function ProjectDetails() {
 
       setActiveConvo(null);
       setConvoStatus("none");
+      setAppliedDiscount(0);
+      setAppliedCoupon("");
       setIsChatDrawerOpen(false);
       setIsConfirmCancelOpen(false);
       toast.success("Build request withdrawn & chat deleted successfully.");

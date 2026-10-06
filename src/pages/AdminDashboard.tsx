@@ -668,6 +668,7 @@ export default function AdminDashboard() {
         .update({ 
           admin_deleted: true, 
           admin_cleared_at: now,
+          lottery_unlocked: false,
           updated_at: now 
         })
         .eq('id', convoId);
@@ -675,7 +676,7 @@ export default function AdminDashboard() {
       if (error) {
         await supabase
           .from('product_conversations')
-          .update({ status: 'archived', updated_at: now })
+          .update({ status: 'archived', lottery_unlocked: false, updated_at: now })
           .eq('id', convoId);
       }
 
@@ -702,12 +703,13 @@ export default function AdminDashboard() {
       "CANCEL_BUILD_REQUEST",
       "Are you sure you want to cancel this build request and PERMANENTLY delete the conversation and chat history from the database? This cannot be undone.",
       async () => {
-        // 1. Wipe chat messages and update status in database
+        // 1. Wipe chat messages, reset lottery, and update status in database
         await supabase
           .from('product_conversations')
           .update({
             status: 'cancelled',
             admin_deleted: true,
+            lottery_unlocked: false,
             messages: [],
             last_message: "Build request cancelled by administrator",
             updated_at: new Date().toISOString()
@@ -2662,8 +2664,8 @@ export default function AdminDashboard() {
                               {/* One-Click Individual Student Scratch Lottery Action */}
                               {Boolean(
                                 selectedConvo.lottery_unlocked !== false && 
-                                (selectedConvo.lottery_unlocked === true || selectedConvo.messages?.some((m: any) => m.type === "lottery_ticket")) &&
-                                !selectedConvo.messages?.some((m: any) => m.type === "lottery_revoked")
+                                !selectedConvo.messages?.some((m: any) => m.type === "lottery_revoked" || m.message?.includes("ticket has been revoked")) &&
+                                selectedConvo.messages?.some((m: any) => m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"))
                               ) ? (
                                 <Button
                                   size="sm"
@@ -3010,8 +3012,8 @@ export default function AdminDashboard() {
                           .map((convo) => {
                             const isGranted = Boolean(
                               convo.lottery_unlocked !== false && 
-                              (convo.lottery_unlocked === true || convo.messages?.some((m: any) => m.type === "lottery_ticket")) &&
-                              !convo.messages?.some((m: any) => m.type === "lottery_revoked")
+                              !convo.messages?.some((m: any) => m.type === "lottery_revoked" || m.message?.includes("ticket has been revoked")) &&
+                              convo.messages?.some((m: any) => m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"))
                             );
 
                             return (

@@ -78,7 +78,13 @@ export default function ProductChatDrawer({
     conversation?.lottery_unlocked === false || 
     messages?.some((msg: any) => msg.type === "lottery_revoked" || msg.message?.includes("ticket has been revoked") || msg.message?.includes("ticket has been deactivated"))
   );
-  const isTicketActive = (Boolean(isLotteryUnlocked || conversation?.lottery_unlocked) || hasTicketInChat) && !isTicketRevoked;
+  const isTicketActive = Boolean(
+    hasTicketInChat &&
+    !isTicketRevoked && 
+    conversation?.lottery_unlocked !== false &&
+    conversation?.status !== "withdrawn" &&
+    conversation?.status !== "cancelled"
+  );
 
   const handleDrawerCancelRequest = () => {
     if (onCancelRequest) {
@@ -93,12 +99,13 @@ export default function ProductChatDrawer({
     if (!conversation?.id) return;
     setIsCancelling(true);
     try {
-      // 1. Wipe chat messages and update status in database
+      // 1. Wipe chat messages, reset lottery state, and update status in database
       await supabase
         .from("product_conversations")
         .update({
           status: "withdrawn",
           admin_deleted: true,
+          lottery_unlocked: false,
           messages: [],
           last_message: "Build request withdrawn by user",
           updated_at: new Date().toISOString()
@@ -116,6 +123,8 @@ export default function ProductChatDrawer({
         await supabase.from("product_conversations").delete().eq("id", conversation.id);
       }
 
+      setInternalDiscount(0);
+      setInternalCoupon("");
       toast.success("Build request withdrawn & chat deleted.");
       setIsDrawerConfirmOpen(false);
       setConversation(null);
