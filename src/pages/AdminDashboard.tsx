@@ -97,6 +97,8 @@ export default function AdminDashboard() {
   const [isAdminSending, setIsAdminSending] = useState(false);
   const [chatSearch, setChatSearch] = useState("");
   const [chatStatusFilter, setChatStatusFilter] = useState<"all" | "active" | "purchased" | "archived">("all");
+  const [isRefreshingChats, setIsRefreshingChats] = useState(false);
+  const [chatWsStatus, setChatWsStatus] = useState<"connected" | "connecting" | "reconnecting">("connecting");
   const adminChatFeedRef = useRef<HTMLDivElement>(null);
   const selectedConvoRef = useRef<any>(null);
 
@@ -172,14 +174,13 @@ export default function AdminDashboard() {
     fetchConversations();
   }, []);
 
-  const fetchConversations = async () => {
+  const fetchConversations = async (silent = false) => {
+    if (!silent) setIsRefreshingChats(true);
     try {
-      const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
       const { data, error } = await supabase
         .from('product_conversations')
         .select('*')
-        .gte('last_message_at', fiveDaysAgo)
-        .order('last_message_at', { ascending: false });
+        .order('last_message_at', { ascending: false, nullsFirst: false });
 
       if (!error && data) {
         // Group by user_id and project_id to ensure strictly ONE thread per client per project
@@ -209,6 +210,15 @@ export default function AdminDashboard() {
         const deduplicated = Array.from(pairMap.values());
         setConversations(deduplicated);
 
+        // Keep selected conversation in sync if it was updated
+        if (selectedConvoRef.current) {
+          const freshSelected = deduplicated.find(c => c.id === selectedConvoRef.current?.id);
+          if (freshSelected) {
+            setSelectedConvo(freshSelected);
+            syncAdminMessages(freshSelected);
+          }
+        }
+
         // Automatically clean up duplicate ghost rows from Supabase in the background
         if (duplicateIdsToDelete.length > 0) {
           supabase
@@ -220,6 +230,8 @@ export default function AdminDashboard() {
       }
     } catch (e) {
       console.warn("Could not fetch conversations:", e);
+    } finally {
+      if (!silent) setIsRefreshingChats(false);
     }
   };
 
@@ -259,11 +271,37 @@ export default function AdminDashboard() {
     syncAdminMessages(selectedConvo);
   }, [selectedConvo?.id, selectedConvo?.admin_cleared_at]);
 
-  // Active live-sync heartbeat: guarantees realtime message delivery every 3s while admin views a chat
+  // Continuous background sync (every 2.5s) when viewing chats tab so inquiries appear without refresh
+  useEffect(() => {
+    if (activeTab !== "chats") return;
+    const interval = setInterval(() => {
+      fetchConversations(true);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [activeTab]);
+
+  // Active chat room broadcast channel for sub-30ms instant peer-to-peer message delivery
   useEffect(() => {
     if (!selectedConvo?.id) return;
     const currentId = selectedConvo.id;
 
+    // 1. Instant Peer-to-Peer Chat Room Broadcast (< 30ms latency)
+    const roomChannel = supabase.channel(`convo-room-${currentId}`, {
+      config: { broadcast: { self: false } }
+    });
+
+    roomChannel
+      .on('broadcast', { event: 'chat_message' }, ({ payload }) => {
+        if (payload && payload.id) {
+          setAdminChatMessages((prev) => {
+            if (prev.some((m) => m.id === payload.id)) return prev;
+            return [...prev, payload];
+          });
+        }
+      })
+      .subscribe();
+
+    // 2. High-speed 1.5-second live sync heartbeat fallback for active chat
     const interval = setInterval(async () => {
       try {
         const { data, error } = await supabase
@@ -279,7 +317,7 @@ export default function AdminDashboard() {
           if (selectedConvoRef.current?.id === currentId) {
             setSelectedConvo(null);
             setAdminChatMessages([]);
-            fetchConversations();
+            fetchConversations(true);
           }
           return;
         }
@@ -294,27 +332,76 @@ export default function AdminDashboard() {
           if (selectedConvoRef.current?.id === currentId) {
             setSelectedConvo(data);
             syncAdminMessages(data);
-            // Refresh conversation list preview in sidebar as well
-            fetchConversations();
+            fetchConversations(true);
           }
         }
       } catch {
         // Network drop fallback
       }
-    }, 3000);
+    }, 1500);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(roomChannel);
+    };
   }, [selectedConvo?.id]);
 
-  // Realtime subscription for conversation list and active chat (all in product_conversations)
+  // Realtime subscription for global inquiries stream and database updates
   useEffect(() => {
-    const convoChannel = supabase
-      .channel('admin-convo-feed')
+    // 1. Instant global broadcast channel: catches newly created inquiries & message snippets in < 30ms
+    const globalChannel = supabase
+      .channel('admin-global-inquiries', {
+        config: { broadcast: { self: false } }
+      })
+      .on('broadcast', { event: 'inquiry_created' }, ({ payload }) => {
+        if (payload && payload.id) {
+          setConversations((prev) => {
+            if (prev.some(c => c.id === payload.id)) return prev;
+            return [payload, ...prev];
+          });
+          fetchConversations(true);
+          toast.info(`🔔 New inquiry received from ${payload.user_name || payload.user_email}!`);
+        }
+      })
+      .on('broadcast', { event: 'inquiry_message' }, ({ payload }) => {
+        if (payload && payload.conversation_id) {
+          setConversations((prev) => {
+            return prev.map(c => {
+              if (c.id === payload.conversation_id) {
+                const currentMsgs = Array.isArray(c.messages) ? c.messages : [];
+                return {
+                  ...c,
+                  last_message: payload.message,
+                  last_message_at: payload.created_at,
+                  messages: currentMsgs.some((m: any) => m.id === payload.id)
+                    ? currentMsgs
+                    : [...currentMsgs, payload]
+                };
+              }
+              return c;
+            }).sort((a, b) => new Date(b.last_message_at || 0).getTime() - new Date(a.last_message_at || 0).getTime());
+          });
+
+          if (selectedConvoRef.current?.id === payload.conversation_id) {
+            setAdminChatMessages((prev) => {
+              if (prev.some(m => m.id === payload.id)) return prev;
+              return [...prev, payload];
+            });
+          }
+        }
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') setChatWsStatus("connected");
+        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setChatWsStatus("reconnecting");
+      });
+
+    // 2. Database changes on product_conversations (for DB persistence events)
+    const dbChannel = supabase
+      .channel('admin-db-convo-feed')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'product_conversations' },
         (payload: any) => {
-          fetchConversations();
           if (payload.eventType === 'DELETE') {
             const deletedId = payload.old?.id;
             setConversations((prev) => prev.filter((c) => c.id !== deletedId));
@@ -331,32 +418,50 @@ export default function AdminDashboard() {
                 setAdminChatMessages([]);
                 toast.info("Build request / chat was deleted.");
               }
-            } else if (selectedConvoRef.current?.id === payload.new.id) {
-              // Ensure we have full messages array even if postgres replica identity omits jsonb
-              if (!Array.isArray(payload.new.messages)) {
-                supabase
-                  .from('product_conversations')
-                  .select('*')
-                  .eq('id', payload.new.id)
-                  .maybeSingle()
-                  .then(({ data }) => {
-                    if (data && selectedConvoRef.current?.id === data.id) {
-                      setSelectedConvo(data);
-                      syncAdminMessages(data);
-                    }
-                  });
-              } else {
-                setSelectedConvo(payload.new);
-                syncAdminMessages(payload.new);
+            } else {
+              // Immediately update or insert in conversations state (0 delay!)
+              setConversations((prev) => {
+                const existingIndex = prev.findIndex(c => c.id === payload.new.id || (c.user_id === payload.new.user_id && c.project_id === payload.new.project_id));
+                if (existingIndex >= 0) {
+                  const updated = [...prev];
+                  updated[existingIndex] = { ...updated[existingIndex], ...payload.new };
+                  return updated.sort((a, b) => new Date(b.last_message_at || b.created_at || 0).getTime() - new Date(a.last_message_at || a.created_at || 0).getTime());
+                } else {
+                  return [payload.new, ...prev];
+                }
+              });
+
+              if (selectedConvoRef.current?.id === payload.new.id) {
+                // Ensure we have full messages array even if postgres replica identity omits jsonb
+                if (!Array.isArray(payload.new.messages)) {
+                  supabase
+                    .from('product_conversations')
+                    .select('*')
+                    .eq('id', payload.new.id)
+                    .maybeSingle()
+                    .then(({ data }) => {
+                      if (data && selectedConvoRef.current?.id === data.id) {
+                        setSelectedConvo(data);
+                        syncAdminMessages(data);
+                      }
+                    });
+                } else {
+                  setSelectedConvo(payload.new);
+                  syncAdminMessages(payload.new);
+                }
               }
             }
           }
+          fetchConversations(true);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') setChatWsStatus("connected");
+      });
 
     return () => {
-      supabase.removeChannel(convoChannel);
+      supabase.removeChannel(globalChannel);
+      supabase.removeChannel(dbChannel);
     };
   }, []);
 
@@ -395,11 +500,18 @@ export default function AdminDashboard() {
       created_at: new Date().toISOString(),
     };
 
-    // Optimistic update
+    // 1. Optimistic update (0ms admin latency)
     setAdminChatMessages((prev) => {
       if (prev.some((m) => m.id === newMsg.id)) return prev;
       return [...prev, newMsg];
     });
+
+    // 2. Broadcast immediately over websocket room (< 30ms latency to user)
+    supabase.channel(`convo-room-${targetId}`).send({
+      type: 'broadcast',
+      event: 'chat_message',
+      payload: newMsg
+    }).then(() => {}).catch(() => {});
 
     // Chain sequentially to guarantee no concurrent writes drop each other's messages
     adminSendQueueRef.current = adminSendQueueRef.current.then(async () => {
@@ -2354,17 +2466,25 @@ export default function AdminDashboard() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2.5">
-                      <Badge className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-[11px] px-2.5 py-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1.5 inline-block" />
-                        WEBSOCKET_ACTIVE
+                      <Badge className={
+                        chatWsStatus === "connected"
+                          ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono text-[11px] px-2.5 py-1"
+                          : "bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono text-[11px] px-2.5 py-1"
+                      }>
+                        <span className={`w-1.5 h-1.5 rounded-full mr-1.5 inline-block ${
+                          chatWsStatus === "connected" ? "bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" : "bg-amber-400 animate-ping"
+                        }`} />
+                        {chatWsStatus === "connected" ? "REALTIME_ACTIVE" : "RECONNECTING..."}
                       </Badge>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={fetchConversations}
-                        className="h-8 text-xs font-mono border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-white gap-1.5"
+                        onClick={() => fetchConversations()}
+                        disabled={isRefreshingChats}
+                        className="h-8 text-xs font-mono border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-white gap-1.5 cursor-pointer"
                       >
-                        <RefreshCw className="w-3.5 h-3.5" /> REFRESH
+                        <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingChats ? "animate-spin text-cyan-400" : ""}`} />
+                        {isRefreshingChats ? "SYNCING..." : "REFRESH"}
                       </Button>
                     </div>
                   </div>

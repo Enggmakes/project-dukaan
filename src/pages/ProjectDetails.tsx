@@ -354,7 +354,15 @@ export default function ProjectDetails() {
             .maybeSingle();
 
           if (error) throw error;
-          if (reactivated) setActiveConvo(reactivated);
+          if (reactivated) {
+            setActiveConvo(reactivated);
+            // Instantly notify admin dashboard over WebSocket broadcast
+            supabase.channel('admin-global-inquiries').send({
+              type: 'broadcast',
+              event: 'inquiry_created',
+              payload: reactivated
+            }).then(() => {}).catch(() => {});
+          }
           setConvoStatus("active");
           setAppliedDiscount(0);
           setAppliedCoupon("");
@@ -381,7 +389,15 @@ export default function ProjectDetails() {
             .maybeSingle();
 
           if (error) throw error;
-          if (created) setActiveConvo(created);
+          if (created) {
+            setActiveConvo(created);
+            // Instantly notify admin dashboard over WebSocket broadcast
+            supabase.channel('admin-global-inquiries').send({
+              type: 'broadcast',
+              event: 'inquiry_created',
+              payload: created
+            }).then(() => {}).catch(() => {});
+          }
           setConvoStatus("active");
           setAppliedDiscount(0);
           setAppliedCoupon("");

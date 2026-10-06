@@ -253,37 +253,65 @@ export default function ProductChatDrawer({
     conversationRef.current = conversation;
   }, [conversation]);
 
-  // Realtime WebSocket Subscription & live heartbeat sync while drawer is open
+  // Realtime Broadcast Room & WebSocket Subscription while drawer is open
   useEffect(() => {
     if (!isOpen || !conversation?.id || conversation.id.startsWith("local-")) return;
 
     let isSubscribed = true;
+    const convoId = conversation.id;
 
-    // 1. Supabase Realtime Channel
-    const channel = supabase
-      .channel(`chat-convo-${conversation.id}`)
+    // 1. Instant Peer-to-Peer Chat Room Broadcast (sub-30ms latency)
+    const roomChannel = supabase.channel(`convo-room-${convoId}`, {
+      config: { broadcast: { self: false } }
+    });
+
+    roomChannel
+      .on("broadcast", { event: "chat_message" }, ({ payload }) => {
+        if (!isSubscribed || !payload || !payload.id) return;
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === payload.id)) return prev;
+          return [...prev, payload];
+        });
+      })
+      .subscribe();
+
+    // 2. Supabase Realtime Database Channel for persistent record updates
+    const dbChannel = supabase
+      .channel(`chat-db-${convoId}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "product_conversations",
-          filter: `id=eq.${conversation.id}`,
+          filter: `id=eq.${convoId}`,
         },
-        (payload) => {
+        (payload: any) => {
           if (!isSubscribed) return;
           if (payload.new) {
             setConversation(payload.new);
             if (Array.isArray(payload.new.messages)) {
               setMessages(payload.new.messages);
+            } else {
+              // Fetch full messages if postgres replica identity omits JSONB
+              supabase
+                .from("product_conversations")
+                .select("messages")
+                .eq("id", convoId)
+                .maybeSingle()
+                .then(({ data }) => {
+                  if (data && Array.isArray(data.messages) && isSubscribed) {
+                    setMessages(data.messages);
+                  }
+                });
             }
           }
         }
       )
       .subscribe();
 
-    // 2. High-speed 3-second live sync heartbeat while chat drawer is open
-    // Guarantees real-time message delivery even if websockets drop or lag
+    // 3. Fast 1.5-second live sync heartbeat while chat drawer is open
+    // Guarantees delivery even if websockets drop or lag
     const pollInterval = setInterval(async () => {
       const activeId = conversationRef.current?.id;
       if (!isSubscribed || !activeId || activeId.startsWith("local-")) return;
@@ -311,12 +339,13 @@ export default function ProductChatDrawer({
       } catch (e) {
         // Silently catch background poll jitter
       }
-    }, 3000);
+    }, 1500);
 
     return () => {
       isSubscribed = false;
       clearInterval(pollInterval);
-      supabase.removeChannel(channel);
+      supabase.removeChannel(roomChannel);
+      supabase.removeChannel(dbChannel);
     };
   }, [isOpen, conversation?.id]);
 
@@ -355,10 +384,26 @@ export default function ProductChatDrawer({
       created_at: new Date().toISOString(),
     };
 
-    // Optimistically update message feed immediately
+    // 1. Optimistically update message feed immediately (0ms user latency)
     setMessages((prev) => [...prev, newMsg]);
 
-    // Chain sequentially to guarantee no concurrent writes drop each other's messages
+    // 2. Broadcast immediately over websocket room (< 30ms latency to admin)
+    if (!currentConvo.id.startsWith("local-")) {
+      supabase.channel(`convo-room-${currentConvo.id}`).send({
+        type: "broadcast",
+        event: "chat_message",
+        payload: newMsg,
+      }).then(() => {}).catch(() => {});
+
+      // Also broadcast snippet to admin global inquiry stream so the sidebar updates in real time
+      supabase.channel("admin-global-inquiries").send({
+        type: "broadcast",
+        event: "inquiry_message",
+        payload: newMsg,
+      }).then(() => {}).catch(() => {});
+    }
+
+    // 3. Chain sequentially to persist to Supabase
     userSendQueueRef.current = userSendQueueRef.current.then(async () => {
       setIsSending(true);
       try {
@@ -388,6 +433,20 @@ export default function ProductChatDrawer({
           if (created) {
             setConversation(created);
             conversationRef.current = created;
+
+            // Instantly notify admin dashboard over WebSocket broadcast
+            supabase.channel("admin-global-inquiries").send({
+              type: "broadcast",
+              event: "inquiry_created",
+              payload: created,
+            }).then(() => {}).catch(() => {});
+
+            // Broadcast message into room
+            supabase.channel(`convo-room-${created.id}`).send({
+              type: "broadcast",
+              event: "chat_message",
+              payload: newMsg,
+            }).then(() => {}).catch(() => {});
           }
         } else {
           // Fetch current message list from DB to append cleanly
