@@ -2955,6 +2955,107 @@ export default function AdminDashboard() {
                       </Button>
                     </div>
                   </div>
+
+                  {/* Individual Student Inquiry Quick-Grant Table */}
+                  <div className="bg-[#070b14] p-5 sm:p-6 rounded-xl border border-slate-800 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                      <div>
+                        <h4 className="text-sm font-bold text-white font-mono flex items-center gap-2">
+                          <Ticket className="w-4 h-4 text-amber-400" />
+                          INDIVIDUAL_STUDENT_LOTTERY_DISPATCH
+                        </h4>
+                        <p className="text-[11px] text-slate-400 font-mono mt-0.5">
+                          Grant or revoke scratch lottery tickets per student conversation. Only students granted here or inside the Inquiry chat will see the scratch card.
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-mono text-slate-500 bg-slate-900 px-2.5 py-1 rounded border border-slate-800 shrink-0">
+                        {conversations.filter(c => c.status !== 'archived').length} Active Inquiries
+                      </span>
+                    </div>
+
+                    {conversations.filter(c => c.status !== 'archived').length === 0 ? (
+                      <div className="py-8 text-center text-slate-500 text-xs font-mono">
+                        No active student inquiries found. When a student clicks &ldquo;Request Build &amp; Inquire Access&rdquo;, their inquiry will appear here.
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-slate-800/80 max-h-80 overflow-y-auto quiet-code-scroll">
+                        {conversations
+                          .filter(c => c.status !== 'archived')
+                          .map((convo) => {
+                            const isGranted = Boolean(
+                              convo.lottery_unlocked || 
+                              convo.messages?.some((m: any) => m.type === "lottery_ticket")
+                            );
+
+                            return (
+                              <div
+                                key={convo.id}
+                                className="py-3 px-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-900/40 rounded transition-colors font-mono"
+                              >
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-xs font-bold text-white truncate">
+                                      {convo.user_name || "Student"}
+                                    </span>
+                                    <span className="text-[10px] text-amber-400/90 truncate">
+                                      ({convo.user_email})
+                                    </span>
+                                    {isGranted ? (
+                                      <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded font-bold">
+                                        🎟️ TICKET_ACTIVE
+                                      </span>
+                                    ) : (
+                                      <span className="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">
+                                        NO_TICKET
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-[11px] text-slate-400 truncate mt-0.5">
+                                    Project: <strong className="text-slate-300">{convo.project_title}</strong>
+                                    {convo.project_price > 0 && ` · ₹${Number(convo.project_price).toLocaleString('en-IN')}`}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedConvo(convo);
+                                      const tabBtn = document.querySelector('button[value="inquiries"]') as HTMLElement;
+                                      if (tabBtn) tabBtn.click();
+                                    }}
+                                    className="h-8 text-[11px] font-mono border-slate-700 bg-slate-900 text-slate-300 hover:text-white cursor-pointer"
+                                  >
+                                    OPEN_CHAT
+                                  </Button>
+
+                                  {isGranted ? (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleRevokeLotteryAccess(convo)}
+                                      className="h-8 text-[11px] font-mono border-rose-500/40 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 cursor-pointer"
+                                    >
+                                      REVOKE_TICKET
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleGrantLotteryAccess(convo)}
+                                      className="h-8 text-[11px] font-mono font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 border border-amber-400 shadow-sm cursor-pointer"
+                                    >
+                                      <Ticket className="w-3.5 h-3.5 mr-1" />
+                                      GRANT_TICKET
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
