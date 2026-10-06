@@ -63,6 +63,19 @@ export default function ProjectDetails() {
   const [isCashfreeOpen, setIsCashfreeOpen] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+
+  // Builder Allocation & Purchase Access States
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [convoStatus, setConvoStatus] = useState<"none" | "active" | "ready_to_purchase" | "purchased">("none");
+  const [activeConvo, setActiveConvo] = useState<any | null>(null);
+  const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
+  const [isOwned, setIsOwned] = useState(false);
+  const [isRequestingBuild, setIsRequestingBuild] = useState(false);
+  const [isCancellingRequest, setIsCancellingRequest] = useState(false);
+  const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
 
   // Student Scratch Lottery Ticket States
   const [isLotteryModalOpen, setIsLotteryModalOpen] = useState(false);
@@ -167,20 +180,6 @@ export default function ProjectDetails() {
   const finalPrice = project
     ? (appliedDiscount > 0 ? Math.round(project.price * (1 - appliedDiscount / 100)) : project.price)
     : 0;
-  
-  const [isWishlisted, setIsWishlisted] = useState(false);
-  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
-
-  // Builder Allocation & Purchase Access States
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [convoStatus, setConvoStatus] = useState<"none" | "active" | "ready_to_purchase" | "purchased">("none");
-  const [activeConvo, setActiveConvo] = useState<any | null>(null);
-  const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
-  const [isOwned, setIsOwned] = useState(false);
-  const [isRequestingBuild, setIsRequestingBuild] = useState(false);
-  const [isCancellingRequest, setIsCancellingRequest] = useState(false);
-  const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
 
   // Student Scratch Lottery is strictly isolated per-user/conversation (unlocked only when engineer explicitly grants it in this active chat)
   const isLotteryUnlocked = Boolean(

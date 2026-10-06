@@ -36,31 +36,6 @@ export default function StudentLotteryTicketModal({
   const isDrawingRef = useRef(false);
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
 
-  // Initialize or reset ticket when opened
-  useEffect(() => {
-    if (isOpen) {
-      const config = getLotteryConfig();
-      const boundMin = typeof minDiscount === "number" && minDiscount > 0 ? minDiscount : config.minDiscount;
-      const boundMax = typeof maxDiscount === "number" && maxDiscount > 0 ? maxDiscount : config.maxDiscount;
-      const min = Math.min(boundMin, boundMax);
-      const max = Math.max(boundMin, boundMax);
-      // Random integer between min and max (inclusive)
-      const randomDisc = Math.floor(Math.random() * (max - min + 1)) + min;
-      const code = `STUDENT-${randomDisc}`;
-      const randomSerial = ticketIdProp || `№ 00${Math.floor(1000 + Math.random() * 9000)} · SERIES 1984`;
-
-      setDiscountPercent(randomDisc);
-      setCouponCode(code);
-      setTicketId(randomSerial);
-      setIsScratched(false);
-      setScratchPercent(0);
-      setIsCopied(false);
-
-      // Setup canvas on next tick
-      setTimeout(initCanvas, 60);
-    }
-  }, [isOpen, minDiscount, maxDiscount, ticketIdProp, initCanvas]);
-
   const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -133,6 +108,31 @@ export default function StudentLotteryTicketModal({
     ctx.font = "italic 11px 'Special Elite', 'Courier New', monospace";
     ctx.fillText("SCRATCH TO REVEAL ACADEMIC GRANT", width / 2, height / 2 + 23);
   }, []);
+
+  // Initialize or reset ticket when opened
+  useEffect(() => {
+    if (isOpen) {
+      const config = getLotteryConfig();
+      const boundMin = typeof minDiscount === "number" && minDiscount > 0 ? minDiscount : config.minDiscount;
+      const boundMax = typeof maxDiscount === "number" && maxDiscount > 0 ? maxDiscount : config.maxDiscount;
+      const min = Math.min(boundMin, boundMax);
+      const max = Math.max(boundMin, boundMax);
+      // Random integer between min and max (inclusive)
+      const randomDisc = Math.floor(Math.random() * (max - min + 1)) + min;
+      const code = `STUDENT-${randomDisc}`;
+      const randomSerial = ticketIdProp || `№ 00${Math.floor(1000 + Math.random() * 9000)} · SERIES 1984`;
+
+      setDiscountPercent(randomDisc);
+      setCouponCode(code);
+      setTicketId(randomSerial);
+      setIsScratched(false);
+      setScratchPercent(0);
+      setIsCopied(false);
+
+      // Setup canvas on next tick
+      setTimeout(initCanvas, 60);
+    }
+  }, [isOpen, minDiscount, maxDiscount, ticketIdProp, initCanvas]);
 
   const calculateScratchPercent = useCallback(() => {
     const canvas = canvasRef.current;
