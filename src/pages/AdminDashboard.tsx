@@ -2582,7 +2582,7 @@ export default function AdminDashboard() {
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleRevokeLotteryAccess(selectedConvo)}
-                                  className="h-8 text-xs font-mono border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/40 flex items-center gap-1.5 transition-all group"
+                                  className="h-8 text-xs font-mono border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/40 flex items-center gap-1.5 transition-all group shrink-0"
                                   title="Student raffle ticket is active. Click to revoke."
                                 >
                                   <Ticket className="w-3.5 h-3.5 text-amber-400 group-hover:hidden" />
@@ -2594,11 +2594,11 @@ export default function AdminDashboard() {
                                 <Button
                                   size="sm"
                                   onClick={() => handleGrantLotteryAccess(selectedConvo)}
-                                  className="h-8 text-xs font-mono font-black bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 border border-amber-400 shadow-[0_0_14px_rgba(245,158,11,0.35)] flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                                  className="h-8 text-xs font-mono font-black bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 border border-amber-400 shadow-[0_0_14px_rgba(245,158,11,0.35)] flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
                                   title="Grant an exclusive vintage scratch lottery ticket to this student"
                                 >
                                   <Ticket className="w-3.5 h-3.5" />
-                                  <span>🎟️ GRANT_LOTTERY_TICKET</span>
+                                  <span>🎟️ GRANT_LOTTERY</span>
                                 </Button>
                               )}
 
@@ -2608,41 +2608,41 @@ export default function AdminDashboard() {
                                   variant="outline"
                                   size="sm"
                                   asChild
-                                  className="h-8 text-xs font-mono border-slate-800 bg-slate-900/60 text-slate-300 hover:text-cyan-400 hover:bg-slate-800 px-2 sm:px-3"
+                                  className="h-8 text-xs font-mono border-slate-800 bg-slate-900/60 text-slate-300 hover:text-cyan-400 hover:bg-slate-800 px-2 sm:px-2.5 shrink-0"
+                                  title="View product page in new tab"
                                 >
                                   <a href={`/project/${selectedConvo.project_id}`} target="_blank" rel="noreferrer">
                                     <ExternalLink className="w-3.5 h-3.5 sm:mr-1" />
-                                    <span className="hidden sm:inline">VIEW_PRODUCT</span>
+                                    <span className="hidden md:inline">VIEW_PRODUCT</span>
                                   </a>
                                 </Button>
                               )}
 
-                              {/* Status Dropdown */}
+                              {/* Status Dropdown - Clean fit without ellipsis */}
                               <Select
                                 value={selectedConvo.status || "active"}
                                 onValueChange={(val) => updateConvoStatus(selectedConvo.id, val)}
                               >
-                                <SelectTrigger className="h-8 text-xs font-mono w-[125px] sm:w-[155px] border-slate-800 bg-[#070a12] text-slate-200">
+                                <SelectTrigger className="h-8 text-xs font-mono w-[125px] sm:w-[138px] border-slate-800 bg-[#070a12] text-slate-200 shrink-0">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#0d121f] border-slate-800 text-slate-200">
-                                  <SelectItem value="active">🟢 In Review (Active)</SelectItem>
-                                  <SelectItem value="ready_to_purchase">⚡ Access Granted</SelectItem>
-                                  <SelectItem value="purchased">✅ Purchased</SelectItem>
+                                  <SelectItem value="active">🟢 In Review</SelectItem>
+                                  <SelectItem value="ready_to_purchase">⚡ Access Ready</SelectItem>
+                                  <SelectItem value="purchased">✓ Purchased</SelectItem>
                                   <SelectItem value="archived">📁 Archived</SelectItem>
                                 </SelectContent>
                               </Select>
 
-                              {/* Direct Cancel & Purge Action */}
+                              {/* Compact Direct Cancel & Purge Action */}
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleCancelAndPurgeRequest(selectedConvo.id)}
-                                className="h-8 text-xs font-mono border-rose-500/50 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 flex items-center gap-1.5 transition-all cursor-pointer"
-                                title="Cancel this build request and permanently delete chat from database"
+                                className="h-8 w-8 p-0 border-rose-500/50 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
+                                title="Cancel build request & delete chat"
                               >
                                 <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-                                <span className="hidden sm:inline">CANCEL_REQUEST</span>
                               </Button>
 
                               {/* More Options for selected chat */}
