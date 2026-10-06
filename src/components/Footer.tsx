@@ -36,13 +36,13 @@ export default function Footer() {
 
       if (error) {
         if (error.code === '23505') {
-          toast.error("You're already subscribed to radar transmissions!");
+          toast.error("You're already subscribed to ProjectDukaan!");
         } else {
           toast.error("Failed to subscribe. Please try again.");
           console.error(error);
         }
       } else {
-        toast.success("Subscribed! You will receive verified blueprint releases.");
+        toast.success("Subscribed! You will receive ProjectDukaan releases & updates.");
         setEmail("");
       }
     } catch (err) {
@@ -93,7 +93,7 @@ export default function Footer() {
             {/* Newsletter Dispatch Box */}
             <div className="pt-2">
               <label htmlFor="newsletter-email" className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-2">
-                Subscribe to Blueprint Radar
+                Subscribe to ProjectDukaan
               </label>
               <form onSubmit={submit} className="flex items-center gap-2 max-w-lg">
                 <div className="relative flex-1">

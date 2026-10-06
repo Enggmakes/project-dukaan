@@ -1,5 +1,5 @@
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot, Heart, Headphones, Terminal, Layers, Cpu, Code2, Wrench, MessageSquare, FolderGit2, Key, Clock, Sparkles, XCircle } from "lucide-react";
+import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot, Heart, Headphones, Terminal, Layers, Cpu, Code2, Wrench, MessageSquare, FolderGit2, Key, Clock, Sparkles, XCircle, Ticket, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
 import { load } from '@cashfreepayments/cashfree-js';
 import { Helmet } from 'react-helmet-async';
@@ -7,6 +7,8 @@ import Layout from "@/components/Layout";
 import ProjectCard from "@/components/ProjectCard";
 import ProductChatDrawer from "@/components/ProductChatDrawer";
 import CyberConfirmDialog from "@/components/CyberConfirmDialog";
+import StudentLotteryTicketModal from "@/components/StudentLotteryTicketModal";
+import { getLotteryConfig, LotteryConfig } from "@/lib/lotteryConfig";
 import { Project } from "@/lib/mockData";
 import { supabase } from "@/lib/supabase";
 import { isUserAdmin, checkAdminStatus } from "@/lib/authUtils";
@@ -61,6 +63,30 @@ export default function ProjectDetails() {
   const [isCashfreeOpen, setIsCashfreeOpen] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+
+  // Student Scratch Lottery Ticket States
+  const [isLotteryModalOpen, setIsLotteryModalOpen] = useState(false);
+  const [appliedDiscount, setAppliedDiscount] = useState<number>(0);
+  const [appliedCoupon, setAppliedCoupon] = useState<string>("");
+  const [lotteryConfig, setLotteryConfig] = useState<LotteryConfig>(() => getLotteryConfig());
+
+  useEffect(() => {
+    const handleConfigChange = (e: any) => {
+      setLotteryConfig(e.detail || getLotteryConfig());
+    };
+    window.addEventListener("dukaan_lottery_config_changed", handleConfigChange);
+    return () => window.removeEventListener("dukaan_lottery_config_changed", handleConfigChange);
+  }, []);
+
+  const handleApplyDiscount = (discount: number, code: string) => {
+    setAppliedDiscount(discount);
+    setAppliedCoupon(code);
+    toast.success(`🎉 ${discount}% Lucky Discount Applied! Promo: ${code}`);
+  };
+
+  const finalPrice = project
+    ? (appliedDiscount > 0 ? Math.round(project.price * (1 - appliedDiscount / 100)) : project.price)
+    : 0;
   
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
@@ -462,7 +488,7 @@ export default function ProjectDetails() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: project.price,
+          amount: finalPrice,
           customer_name: form.name.trim(),
           customer_email: form.email.trim().toLowerCase(),
           customer_phone: form.phone?.trim() && form.phone.trim().length >= 10 ? form.phone.trim() : "9999999999"
@@ -518,7 +544,7 @@ export default function ProjectDetails() {
         customer_phone: form.phone || null,
         project_id: project.id.length === 36 ? project.id : null,
         project_title: project.title,
-        amount: project.price,
+        amount: finalPrice,
         delivery_type: project.delivery_type || 'digital',
         github_url: project.github_url || null,
         shipping_address: project.delivery_type === 'physical' ? form.address : null,
@@ -837,9 +863,48 @@ export default function ProjectDetails() {
                 <div className="flex items-baseline gap-2">
                   <span className="font-mono text-xs text-amber-500 font-bold">INR</span>
                   <div className="text-3xl sm:text-4xl font-mono font-black text-amber-400 drop-shadow-[0_0_14px_rgba(255,176,0,0.35)]">
-                    ₹{project.price.toLocaleString()}
+                    ₹{finalPrice.toLocaleString()}
                   </div>
+                  {appliedDiscount > 0 && (
+                    <span className="line-through text-slate-500 font-mono text-sm ml-1.5">
+                      ₹{project.price.toLocaleString()}
+                    </span>
+                  )}
                 </div>
+
+                {appliedDiscount > 0 ? (
+                  <div className="flex items-center justify-between gap-2 mt-2 p-2 rounded bg-emerald-950/40 border border-emerald-500/40 text-[11px] font-mono">
+                    <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5 fill-emerald-400" />
+                      {appliedDiscount}% LUCKY DISCOUNT APPLIED ({appliedCoupon})
+                    </span>
+                    <button
+                      onClick={() => {
+                        setAppliedDiscount(0);
+                        setAppliedCoupon("");
+                        toast.info("Discount removed.");
+                      }}
+                      className="text-rose-400 hover:text-rose-300 underline cursor-pointer text-[10px]"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : lotteryConfig.enabled ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsLotteryModalOpen(true)}
+                    className="w-full mt-3 p-2.5 rounded-lg bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-amber-500/10 border border-amber-500/40 hover:border-amber-400 text-amber-300 font-mono text-xs font-bold flex items-center justify-between shadow-[0_0_15px_rgba(245,158,11,0.15)] hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all cursor-pointer group retro-btn"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Ticket className="w-4 h-4 text-amber-400 group-hover:rotate-12 transition-transform" />
+                      <span>🎟️ CLAIM STUDENT LUCKY TICKET</span>
+                    </span>
+                    <span className="text-[10px] bg-amber-400 text-amber-950 font-black px-2.5 py-0.5 rounded shadow-sm">
+                      SCRATCH →
+                    </span>
+                  </button>
+                ) : null}
+
                 <div className="text-xs text-slate-400 mt-1 font-mono">One-time purchase · Lifetime access & updates</div>
                 
                 {/* DYNAMIC ACCESS & PURCHASE BUTTON STATE MACHINE */}
@@ -1057,8 +1122,32 @@ export default function ProjectDetails() {
                     )}
                   </h3>
                   <p className="text-xs text-slate-400 mt-1 font-mono">
-                    PKG: <strong className="text-slate-200">{project.title}</strong> · PRICE: <strong className="text-amber-400">₹{project.price.toLocaleString()}</strong>
+                    PKG: <strong className="text-slate-200">{project.title}</strong> · PRICE:{" "}
+                    {appliedDiscount > 0 ? (
+                      <>
+                        <span className="line-through text-slate-500 mr-1.5">₹{project.price.toLocaleString()}</span>
+                        <strong className="text-emerald-400">₹{finalPrice.toLocaleString()}</strong>
+                        <span className="ml-1 text-[10px] text-emerald-400 font-bold">({appliedDiscount}% OFF)</span>
+                      </>
+                    ) : (
+                      <strong className="text-amber-400">₹{project.price.toLocaleString()}</strong>
+                    )}
                   </p>
+                  {lotteryConfig.enabled && appliedDiscount === 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setIsLotteryModalOpen(true)}
+                      className="mt-2 w-full text-left p-2 rounded bg-amber-950/30 border border-amber-500/30 hover:border-amber-400 text-amber-300 text-xs font-mono flex items-center justify-between transition-colors cursor-pointer"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Ticket className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Have a student pass? Scratch for lucky discount</span>
+                      </span>
+                      <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-bold">
+                        SCRATCH CARD →
+                      </span>
+                    </button>
+                  )}
                 </div>
 
                 <div className="space-y-4">
@@ -1317,7 +1406,7 @@ export default function ProjectDetails() {
 
               <div className="mt-8 pt-5 border-t border-slate-800">
                 <span className="text-[10px] uppercase text-slate-500 tracking-wider font-mono block mb-1">AMOUNT_DUE</span>
-                <span className="text-3xl font-black text-amber-400 font-mono drop-shadow-[0_0_12px_rgba(255,176,0,0.4)]">₹{project.price.toLocaleString()}</span>
+                <span className="text-3xl font-black text-amber-400 font-mono drop-shadow-[0_0_12px_rgba(255,176,0,0.4)]">₹{finalPrice.toLocaleString()}</span>
               </div>
             </div>
 
@@ -1466,6 +1555,15 @@ export default function ProjectDetails() {
         cancelText="KEEP_REQUEST"
         variant="danger"
         isLoading={isCancellingRequest}
+      />
+
+      {/* Student Scratch Lottery Ticket Modal */}
+      <StudentLotteryTicketModal
+        isOpen={isLotteryModalOpen}
+        onClose={() => setIsLotteryModalOpen(false)}
+        projectTitle={project?.title || ""}
+        originalPrice={project?.price || 0}
+        onApplyDiscount={handleApplyDiscount}
       />
     </Layout>
   );

@@ -18,13 +18,36 @@ interface TechParticle {
   settled: boolean;
 }
 
+interface SparkParticle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  color: string;
+  alpha: number;
+  decay: number;
+  size: number;
+}
+
+interface Shockwave {
+  x: number;
+  y: number;
+  radius: number;
+  maxRadius: number;
+  alpha: number;
+}
+
 const THEMES = ["#ef4444", "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ec4899"];
 
 export default function GravityLab() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [settledCount, setSettledCount] = useState(0);
+  const [clearing, setClearing] = useState(false);
+  const [hasTriggeredShockwave, setHasTriggeredShockwave] = useState(false);
 
   const particlesRef = useRef<TechParticle[]>([]);
+  const sparksRef = useRef<SparkParticle[]>([]);
+  const shockwavesRef = useRef<Shockwave[]>([]);
   const mouseRef = useRef({
     x: -9999,
     y: -9999,
@@ -64,8 +87,39 @@ export default function GravityLab() {
   }, []);
 
   const clearParticles = useCallback(() => {
-    particlesRef.current = [];
-    setSettledCount(0);
+    const particles = particlesRef.current;
+    if (particles.length === 0) return;
+
+    setClearing(true);
+
+    // Launch all settled components upward with dematerializing impulse
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      p.vy = -Math.random() * 9 - 4;
+      p.vx = (Math.random() - 0.5) * 8;
+      p.spin = (Math.random() - 0.5) * 0.45;
+      p.settled = false;
+
+      // Spawn electrical dematerialization sparks
+      if (sparksRef.current.length < 120) {
+        sparksRef.current.push({
+          x: p.x,
+          y: p.y,
+          vx: (Math.random() - 0.5) * 5,
+          vy: -Math.random() * 6 - 2,
+          color: p.colorTheme,
+          alpha: 1,
+          decay: 0.04,
+          size: Math.random() * 2 + 1,
+        });
+      }
+    }
+
+    setTimeout(() => {
+      particlesRef.current = [];
+      setSettledCount(0);
+      setClearing(false);
+    }, 280);
   }, []);
 
   useEffect(() => {
@@ -171,8 +225,67 @@ export default function GravityLab() {
       }
     };
 
+    const triggerWorkbenchImpulse = (x: number, y: number) => {
+      setHasTriggeredShockwave(true);
+
+      // 1. Shockwave wave ring
+      shockwavesRef.current.push({
+        x,
+        y,
+        radius: 8,
+        maxRadius: 240,
+        alpha: 1,
+      });
+
+      // 2. Burst of electrical phosphor sparks
+      const sparkCount = 20;
+      for (let i = 0; i < sparkCount; i++) {
+        const angle = (Math.PI * 2 * i) / sparkCount + (Math.random() - 0.5) * 0.3;
+        const speed = Math.random() * 5 + 2.5;
+        sparksRef.current.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 1.5,
+          color: Math.random() > 0.4 ? "#f59e0b" : "#38bdf8",
+          alpha: 1,
+          decay: 0.03 + Math.random() * 0.02,
+          size: Math.random() * 2 + 1,
+        });
+      }
+
+      // 3. Radial kinetic impulse on all nearby components
+      const particles = particlesRef.current;
+      const blastRadius = 260;
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        const dx = p.x - x;
+        const dy = p.y - y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < blastRadius) {
+          const normDist = Math.max(0.08, dist / blastRadius);
+          const force = (1 - normDist) * 16;
+          const angle = Math.atan2(dy, dx);
+
+          p.vx += Math.cos(angle) * force;
+          p.vy += Math.sin(angle) * force - 7 * (1 - normDist);
+          p.spin += (Math.random() - 0.5) * 0.35;
+          p.settled = false;
+        }
+      }
+    };
+
+    const handleCanvasClick = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      triggerWorkbenchImpulse(x, y);
+    };
+
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    canvas.addEventListener("click", handleCanvasClick);
 
     // Detailed Hardware Component Canvas Renderer
     const drawComponent = (c: CanvasRenderingContext2D, type: number, s: number, themeColor: string) => {
@@ -441,6 +554,24 @@ export default function GravityLab() {
           // Floor collision
           if (p.y + p.radius >= floorY) {
             p.y = floorY - p.radius;
+
+            // Micro-sparks delight on fast impact
+            if (p.vy > 3.2 && sparksRef.current.length < 80) {
+              const sparkCount = Math.min(4, Math.floor(p.vy * 0.7));
+              for (let s = 0; s < sparkCount; s++) {
+                sparksRef.current.push({
+                  x: p.x + (Math.random() - 0.5) * p.radius,
+                  y: floorY - 1,
+                  vx: (Math.random() - 0.5) * 3 + p.vx * 0.25,
+                  vy: -Math.random() * 2.5 - 1.2,
+                  color: Math.random() > 0.4 ? "#f59e0b" : "#38bdf8",
+                  alpha: 0.9,
+                  decay: 0.045 + Math.random() * 0.03,
+                  size: Math.random() * 1.5 + 0.8,
+                });
+              }
+            }
+
             p.vy = -p.vy * 0.32; // bounce
             p.vx *= 0.82; // ground friction
             p.spin *= 0.7;
@@ -542,6 +673,60 @@ export default function GravityLab() {
         ctx.restore();
       }
 
+      // 4. Update & Render Shockwaves
+      const shockwaves = shockwavesRef.current;
+      for (let i = shockwaves.length - 1; i >= 0; i--) {
+        const sw = shockwaves[i];
+        sw.radius += (sw.maxRadius - sw.radius) * 0.14 + 2;
+        sw.alpha *= 0.91;
+
+        if (sw.alpha < 0.02 || sw.radius >= sw.maxRadius) {
+          shockwaves.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        // Outer amber impulse ring
+        ctx.strokeStyle = `rgba(245, 158, 11, ${sw.alpha * 0.85})`;
+        ctx.lineWidth = Math.max(1, 2.5 * sw.alpha);
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Inner glowing cyan blueprint ring
+        ctx.strokeStyle = `rgba(56, 189, 248, ${sw.alpha * 0.65})`;
+        ctx.lineWidth = Math.max(0.5, 1.5 * sw.alpha);
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, sw.radius * 0.68, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 5. Update & Render Electrical Sparks
+      const sparks = sparksRef.current;
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const s = sparks[i];
+        s.x += s.vx;
+        s.y += s.vy;
+        s.vy += 0.14; // spark gravity
+        s.alpha -= s.decay;
+
+        if (s.alpha <= 0) {
+          sparks.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, s.alpha);
+        ctx.fillStyle = s.color;
+        ctx.shadowColor = s.color;
+        ctx.shadowBlur = 5;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
       // Floor Guide Line
       ctx.strokeStyle = "rgba(245, 158, 11, 0.4)";
       ctx.lineWidth = 1.5;
@@ -561,6 +746,7 @@ export default function GravityLab() {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("touchmove", handleTouchMove);
+      canvas.removeEventListener("click", handleCanvasClick);
     };
   }, []);
 
@@ -573,7 +759,11 @@ export default function GravityLab() {
       <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[length:100%_4px] opacity-40 z-0" />
 
       {/* Full Screen Interactive Canvas */}
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full cursor-default z-10" />
+      <canvas 
+        ref={canvasRef} 
+        className="absolute inset-0 w-full h-full cursor-crosshair z-10" 
+        title="Click anywhere to trigger kinetic impulse"
+      />
 
       {/* Top Header */}
       <header className="absolute top-5 left-5 right-5 z-20 flex items-center justify-between pointer-events-none">
@@ -585,38 +775,62 @@ export default function GravityLab() {
           <span>SYS:\RETURN_TO_DUKAAN</span>
         </Link>
 
-        <div className="flex items-center gap-3 pointer-events-auto">
-          <div className="px-3 py-1 rounded bg-[#0d121e]/90 border border-slate-800 text-xs text-amber-400 font-mono font-bold shadow-md">
-            <span>STORED_AT_BOTTOM: </span>
-            <span className="text-white">{settledCount}</span>
+        <div className="flex items-center gap-2.5 pointer-events-auto">
+          {/* Gravity Physics Readout */}
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded bg-[#0d121e]/90 border border-slate-800 text-xs font-mono shadow-md">
+            <img 
+              src="/gravity-apple-white.png" 
+              alt="Gravity" 
+              className="w-4 h-4 object-contain opacity-90 drop-shadow-[0_0_5px_rgba(255,255,255,0.4)] animate-apple-drop" 
+            />
+            <span className="text-slate-400">GRAVITY:</span>
+            <span className="text-amber-400 font-bold">9.81 m/s²</span>
+          </div>
+
+          {/* Stored Components Count */}
+          <div className="px-3 py-1.5 rounded bg-[#0d121e]/90 border border-slate-800 text-xs text-amber-400 font-mono font-bold shadow-md flex items-center gap-2">
+            <span>STORED_AT_BOTTOM:</span>
+            <span className="text-white font-black">{settledCount}</span>
           </div>
 
           {settledCount > 0 && (
             <button
               onClick={clearParticles}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#0d121e]/90 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-slate-800 hover:border-rose-500/50 text-xs font-mono transition-all"
-              title="Clear stored pile"
+              disabled={clearing}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#0d121e]/90 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-slate-800 hover:border-rose-500/50 text-xs font-mono transition-all active:scale-95 ${
+                clearing ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              title="Dematerialize stored components"
             >
-              <RotateCcw className="w-3 h-3" />
-              <span>CLEAR</span>
+              <RotateCcw className={`w-3 h-3 ${clearing ? "animate-spin" : ""}`} />
+              <span>{clearing ? "CLEARING..." : "CLEAR"}</span>
             </button>
           )}
         </div>
       </header>
 
-      {/* Floating Center Prompt */}
-      {settledCount === 0 && (
+      {/* Floating Guidance Prompts */}
+      {settledCount === 0 ? (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-15">
           <div className="p-4 rounded-xl bg-[#0a0e17]/85 border border-slate-800 text-center space-y-1 backdrop-blur-sm shadow-2xl">
             <p className="text-sm font-bold text-amber-400 font-mono tracking-wide">
               ✨ WAVE YOUR MOUSE ACROSS THE SCREEN
             </p>
             <p className="text-xs text-slate-400 font-mono">
-              Components trail from your mouse, arc gracefully, and fall all the way down to fill the floor.
+              Hardware components trail from your cursor and tumble to settle upon the workbench floor.
             </p>
           </div>
         </div>
-      )}
+      ) : !hasTriggeredShockwave ? (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none z-20">
+          <div className="px-3.5 py-1.5 rounded-full bg-[#0d121e]/90 border border-amber-500/40 text-center backdrop-blur-md shadow-[0_0_15px_rgba(245,158,11,0.2)] flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+            <span className="text-xs text-amber-300 font-mono font-semibold">
+              CLICK ANYWHERE ON WORKBENCH TO TRIGGER KINETIC SHOCKWAVE
+            </span>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

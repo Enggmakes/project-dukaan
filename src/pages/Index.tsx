@@ -50,68 +50,46 @@ const ICONS: Record<string, any> = {
   Brain, Eye, Bot, Cpu, Globe, Link2, Shield, Network: Database, Smartphone: Layers
 };
 
-const CODE_PREVIEWS: Record<string, { filename: string; language: string; code: string }> = {
-  "unet3d.py": {
-    filename: "models/unet3d.py",
-    language: "python",
-    code: `import torch
-import torch.nn as nn
-
-class UNet3D(nn.Module):
-    """3D Brain Tumor MRI Segmentation Engine (BraTS2021)."""
-    def __init__(self, in_channels=4, out_channels=3):
-        super().__init__()
-        self.encoder1 = self.conv_block(in_channels, 32)
-        self.encoder2 = self.conv_block(32, 64)
-        self.pool = nn.MaxPool3d(kernel_size=2, stride=2)
-        self.bottleneck = self.conv_block(64, 128)
-        self.upconv2 = nn.ConvTranspose3d(128, 64, kernel_size=2, stride=2)
-        self.decoder2 = self.conv_block(128, 64)
-        self.head = nn.Conv3d(64, out_channels, kernel_size=1)
-
-    def forward(self, x):
-        e1 = self.encoder1(x)
-        e2 = self.encoder2(self.pool(e1))
-        b = self.bottleneck(self.pool(e2))
-        d2 = self.decoder2(torch.cat([self.upconv2(b), e2], dim=1))
-        return self.head(d2) # Output: WT, TC, ET masks`
-  },
-  "ieee_paper.tex": {
-    filename: "docs/IEEE_Transactions.tex",
-    language: "latex",
-    code: `\\documentclass[journal]{IEEEtran}
-\\begin{document}
-\\title{Volumetric MRI Semantic Segmentation via UNet3D}
-\\author{ProjectDukaan Verified Capstone Standard}
-\\maketitle
-\\begin{abstract}
-We present a volumetric UNet3D architecture for accurate 
-glioma sub-region delineation on multimodal MRI scans.
-Evaluated on BraTS2021, the model achieves a Dice similarity 
-coefficient of 0.884 for Whole Tumor and 0.829 for Enhancing Tumor.
-Complete hardware runtime profiling on NVIDIA Jetson Orin Nano is provided.
-\\end{abstract}
-\\end{document}`
-  },
-  "hardware_bom.csv": {
-    filename: "hardware/bom_schematic.csv",
-    language: "csv",
-    code: `Item,Component,Spec / Part Number,Qty,Unit Price (INR)
-1,Edge AI SBC,NVIDIA Jetson Orin Nano 8GB,1,₹42000
-2,Camera Sensor,Sony IMX477 12.3MP HQ Module,1,₹5200
-3,Power Circuit,19V 4.74A DC-DC Regulated Supply,1,₹1850
-4,Thermal Unit,Active Fan-Sink Aluminum Chassis,1,₹1200
-5,Interface,PCIe M.2 2280 NVMe SSD 512GB,1,₹3400
--- Total Verified BOM: ₹53,650 // Status: In Stock`
-  }
+const DEFAULT_FLAGSHIP: Project = {
+  id: "e97ba455-53d6-4b68-8bb8-f073fe16b9e2",
+  title: "FitPulse: On-Device AI Workout Form Coach & Rep Counter",
+  short: "Production-ready project with full source code. Real-time smartphone pose estimation, automated repetition counting, and audio voice feedback.",
+  description: "Impressive visual demo where examiners stand in front of the phone and get their exercise form scored with real-time on-device edge pose detection.",
+  category: "Mobile Apps" as any,
+  difficulty: "Advanced" as any,
+  price: 24999,
+  rating: 5.0,
+  reviews: 0,
+  tech: [
+    "Flutter / React Native",
+    "Google ML Kit (Pose Detection)",
+    "SQLite",
+    "Riverpod / Redux"
+  ],
+  thumb: "https://azymqiplcibfwmfbsxji.supabase.co/storage/v1/object/public/project-images/1791269854875-oj9irmuanid.jpg",
+  delivery_type: "digital"
 };
 
 export default function Index() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
-  const [dbProjects, setDbProjects] = useState<Project[]>([]);
+  const [dbProjects, setDbProjects] = useState<Project[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("dukaan_cached_projects");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to read cached projects:", e);
+      }
+    }
+    return [DEFAULT_FLAGSHIP];
+  });
   const [selectedDomain, setSelectedDomain] = useState("all");
-  const [activeCodeTab, setActiveCodeTab] = useState<"preview" | "unet3d.py" | "ieee_paper.tex" | "hardware_bom.csv">("preview");
   const [liveStats, setLiveStats] = useState<{
     projects: number | null;
     orders: number | null;
@@ -156,13 +134,18 @@ export default function Index() {
             difficulty: p.difficulty as any,
             price: p.price,
             rating: p.rating || 5.0,
-            reviews: p.reviews_count || 12,
+            reviews: p.reviews_count || p.reviews || 0,
             tech: p.tech || p.tech_stack || [],
-            thumb: p.thumb || p.thumbnail_url || "https://images.unsplash.com/photo-1559757175-5700dde675bc?w=800&auto=format&fit=crop&q=80",
+            thumb: p.thumb || p.thumbnail_url || DEFAULT_FLAGSHIP.thumb,
             delivery_type: p.delivery_type || "digital",
             price_note: p.price_note || ""
           }));
           setDbProjects(mapped);
+          try {
+            localStorage.setItem("dukaan_cached_projects", JSON.stringify(mapped));
+          } catch (e) {
+            console.warn("Failed to cache projects:", e);
+          }
         }
 
         const { count: projCount } = await supabase.from("projects").select("*", { count: "exact", head: true });
@@ -179,19 +162,8 @@ export default function Index() {
     loadData();
   }, []);
 
-  // Default flagship showcase project
-  const flagship = dbProjects[0] || {
-    id: "flagship-demo",
-    title: "NeuroScan: 3D Brain Tumor MRI Segmentation via UNet3D",
-    short: "State-of-the-art volumetric medical image segmentation model trained on BraTS2021. Generates 3D tumor masks with IEEE thesis report and presentation slides.",
-    category: "AI & Machine Learning" as const,
-    difficulty: "Advanced" as const,
-    price: 3499,
-    rating: 4.9,
-    reviews: 42,
-    tech: ["PyTorch 2.3", "BraTS2021", "CUDA", "FastAPI", "React 19"],
-    thumb: "https://images.unsplash.com/photo-1559757175-5700dde675bc?w=800&auto=format&fit=crop&q=80"
-  };
+  // Flagship project: strictly the latest project from database, cached store, or default flagship
+  const flagship = dbProjects[0] || DEFAULT_FLAGSHIP;
 
   const filteredProjects = dbProjects.filter(p => {
     if (selectedDomain === "all") return true;
@@ -324,144 +296,110 @@ export default function Index() {
           {/* ========================================================================= */}
           {/* 2. THE ENGINEERING TERMINAL & BLUEPRINT INSPECTOR CENTERPIECE             */}
           {/* ========================================================================= */}
-          <div className="mt-10 sm:mt-12 max-w-6xl mx-auto rounded-xl border-2 border-slate-800 shadow-2xl overflow-hidden bg-slate-950 text-white grid grid-cols-1 lg:grid-cols-12">
-            {/* Left Column: Interactive Visual, Code & Paper Inspector (7 cols) */}
-            <div className="lg:col-span-7 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800 bg-slate-950">
-              {/* Retro Window Titlebar */}
-              <div className="px-3 sm:px-4 py-2 bg-slate-900 border-b border-slate-800 flex items-center justify-between gap-2 overflow-hidden select-none">
-                <div className="flex items-center gap-2 shrink-0">
-                  {/* 90s OS Window controls */}
-                  <div className="flex items-center gap-1 font-mono text-[9px] text-slate-400">
-                    <span className="w-3.5 h-3.5 rounded-xs bg-slate-800 border border-slate-700 grid place-items-center hover:bg-slate-700 cursor-pointer">_</span>
-                    <span className="w-3.5 h-3.5 rounded-xs bg-slate-800 border border-slate-700 grid place-items-center hover:bg-slate-700 cursor-pointer">□</span>
-                    <span className="w-3.5 h-3.5 rounded-xs bg-rose-950 border border-rose-800 text-rose-300 grid place-items-center hover:bg-rose-900 cursor-pointer">×</span>
-                  </div>
-                  <span className="text-[11px] font-mono text-slate-300 hidden sm:inline ml-1 font-bold">
-                    SYS:\&gt; CORE_CATALOG_EXPLORER.EXE
-                  </span>
-                </div>
-                
-                {/* File & View tabs with tactile retro buttons */}
-                <div className="flex items-center gap-1 font-mono text-xs overflow-x-auto no-scrollbar py-0.5 shrink-0">
-                  {[
-                    { id: "preview", label: "VISUAL_OUT", icon: Eye },
-                    { id: "unet3d.py", label: "unet3d.py", icon: Code2 },
-                    { id: "ieee_paper.tex", label: "paper.tex", icon: FileText },
-                    { id: "hardware_bom.csv", label: "bom.csv", icon: Cpu }
-                  ].map(tab => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveCodeTab(tab.id as any)}
-                      className={`px-2.5 py-1 rounded text-[11px] transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 retro-btn ${
-                        activeCodeTab === tab.id
-                          ? "bg-amber-500 text-amber-950 font-bold shadow-xs"
-                          : "bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
-                      }`}
-                    >
-                      <tab.icon className="w-3 h-3 shrink-0" />
-                      <span>{tab.label}</span>
-                    </button>
-                  ))}
-                </div>
+          {/* ========================================================================= */}
+          {/* 2. VERIFIED CAPSTONE BLUEPRINT SHOWCASE CENTERPIECE                      */}
+          {/* ========================================================================= */}
+          <div className="mt-10 sm:mt-12 max-w-6xl mx-auto rounded-2xl border border-slate-800 bg-gradient-to-b from-[#0c1220] via-[#080d18] to-[#050811] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-all">
+            
+            {/* Visual Showcase Stage (7 cols on lg, full width on mobile) */}
+            <div className="lg:col-span-7 relative flex items-center justify-center p-6 sm:p-8 lg:p-10 bg-slate-950/70 border-b lg:border-b-0 lg:border-r border-slate-800/80 overflow-hidden group">
+              {/* Subtle ambient lighting aura */}
+              <div className="absolute inset-0 bg-radial from-amber-500/5 via-blue-500/5 to-transparent pointer-events-none" />
+              
+              {/* Project Visual Thumbnail (Unclipped, Crisp, High-Res) */}
+              <div className="relative z-10 w-full max-h-[380px] flex items-center justify-center">
+                <img 
+                  src={flagship.thumb || DEFAULT_FLAGSHIP.thumb} 
+                  alt={flagship.title || "Flagship Blueprint"}
+                  className="max-h-[340px] sm:max-h-[360px] w-auto max-w-full object-contain rounded-xl shadow-2xl border border-slate-800/80 transition-transform duration-500 group-hover:scale-[1.01]" 
+                />
               </div>
 
-              {/* Viewport: Either Visual Output Image or Code Viewer */}
-              {activeCodeTab === "preview" ? (
-                <div className="relative w-full h-64 sm:h-80 md:h-[350px] flex items-center justify-center p-3 sm:p-5 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 overflow-hidden">
-                  <div className="absolute inset-0 bg-blue-600/5 backdrop-blur-3xl" />
-                  
-                  {/* Authentic Project Thumbnail (Unclipped & Uncropped) */}
-                  <img 
-                    src={flagship.thumb} 
-                    alt={flagship.title}
-                    className="relative z-10 max-h-full max-w-full object-contain rounded-lg shadow-2xl border border-slate-800/80 transition-transform duration-300 hover:scale-[1.01]" 
-                  />
-
-                  {/* Amber & Green Telemetry Badges */}
-                  <div className="absolute bottom-3 left-3 z-20 flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-1 rounded bg-slate-950/90 text-emerald-400 font-mono text-[10px] sm:text-[11px] border border-slate-700 backdrop-blur-md flex items-center gap-1.5 shadow-sm">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      MODEL_VERIFIED: PASS
-                    </span>
-                    <span className="px-2.5 py-1 rounded bg-slate-950/90 text-amber-400 font-mono text-[10px] sm:text-[11px] border border-slate-700 backdrop-blur-md hidden sm:inline-flex">
-                      BraTS 2021 (0.884 DICE)
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                /* CRT Amber Phosphor Code Pane */
-                <div className="p-3.5 sm:p-5 font-mono text-xs leading-relaxed overflow-x-auto text-amber-200 h-64 sm:h-80 md:h-[350px] select-text bg-[#090c06] border-inset">
-                  <pre className="text-[11px] leading-5 text-amber-400">
-                    <code>{CODE_PREVIEWS[activeCodeTab]?.code || ""}</code>
-                  </pre>
-                </div>
-              )}
-
-              {/* Telemetry status bar */}
-              <div className="px-3.5 sm:px-4 py-2 bg-slate-900 border-t border-slate-800 flex items-center justify-between text-[10px] sm:text-[11px] font-mono text-slate-400">
-                <span className="flex items-center gap-1.5 text-emerald-400 font-medium truncate">
-                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Verified 0.884 Dice • Passes CI
-                </span>
-                <span className="text-amber-500 font-bold shrink-0">
-                  {activeCodeTab === "preview" ? "1080p WebP // RGB" : "UTF-8 // LF // MEM_OK"}
+              {/* Floating Verified Telemetry Pill */}
+              <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-slate-900/95 text-emerald-400 font-mono text-[11px] border border-slate-700/80 backdrop-blur-md flex items-center gap-1.5 shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  VERIFIED BLUEPRINT
                 </span>
               </div>
             </div>
 
-            {/* Right Column: Flagship Blueprint Spec Sheet (5 cols) */}
-            <div className="lg:col-span-5 p-5 sm:p-7 lg:p-8 flex flex-col justify-between bg-slate-950">
+            {/* Blueprint Details & Spec Sheet (5 cols on lg) */}
+            <div className="lg:col-span-5 p-6 sm:p-8 lg:p-10 flex flex-col justify-between bg-transparent space-y-6">
               <div>
-                <div className="flex items-center justify-between mb-3 font-mono text-xs">
-                  <span className="text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
-                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                {/* Header Kicker & Domain */}
+                <div className="flex items-center justify-between gap-2 mb-3 font-mono text-xs">
+                  <span className="text-amber-400 font-semibold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                     FLAGSHIP_BLUEPRINT
                   </span>
-                  <span className="text-slate-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 text-[10px]">
+                  <span className="text-slate-300 bg-slate-900/90 px-2.5 py-1 rounded-md border border-slate-800 text-[11px]">
                     {flagship.category}
                   </span>
                 </div>
 
-                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white tracking-tight leading-snug">
+                {/* Project Title */}
+                <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight leading-snug">
                   {flagship.title}
                 </h3>
                 
-                <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed line-clamp-3 sm:line-clamp-none">
+                {/* Project Description */}
+                <p className="text-xs sm:text-sm text-slate-300 mt-2.5 leading-relaxed">
                   {flagship.short}
                 </p>
 
-                {/* Tech specifications table */}
-                <div className="mt-5 pt-4 border-t border-slate-800 space-y-2.5 font-mono text-xs">
-                  <div className="flex justify-between text-slate-400 text-[11px]">
-                    <span>Target Hardware:</span>
-                    <span className="text-white font-medium">NVIDIA Jetson / x86 GPU</span>
+                {/* Dynamic Tech Stack Tags */}
+                <div className="mt-5 pt-4 border-t border-slate-800/80">
+                  <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-2">
+                    Verified Tech Stack
                   </div>
-                  <div className="flex justify-between text-slate-400 text-[11px]">
-                    <span>Dataset:</span>
-                    <span className="text-white font-medium">BraTS 2021 (40GB Cleaned)</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(flagship.tech && flagship.tech.length > 0 ? flagship.tech : ["Production Build", "Full Source", "CI Tested"]).map(t => (
+                      <span key={t} className="px-2.5 py-1 rounded bg-[#0d121e] border border-slate-800 text-xs font-mono text-slate-200">
+                        {t}
+                      </span>
+                    ))}
                   </div>
-                  <div className="flex justify-between text-slate-400 text-[11px]">
-                    <span>Documentation:</span>
-                    <span className="text-emerald-400 font-medium">45-Page IEEE Thesis (.tex/.docx)</span>
+                </div>
+
+                {/* Verified Package Deliverables */}
+                <div className="mt-4 pt-4 border-t border-slate-800/80 space-y-2 text-xs font-mono">
+                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
+                    <span className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      Complete Source Code
+                    </span>
+                    <span className="text-slate-200 font-medium">100% Tested & Compiles</span>
                   </div>
-                  <div className="flex justify-between text-slate-400 text-[11px]">
-                    <span>Support:</span>
-                    <span className="text-amber-400 font-medium">WhatsApp / Discord Engineer Hotline</span>
+                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
+                    <span className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      IEEE Defense Thesis
+                    </span>
+                    <span className="text-slate-200 font-medium">Full Manuscript (.docx/.pdf)</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
+                    <span className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      Engineer Support
+                    </span>
+                    <span className="text-amber-400 font-medium">WhatsApp / Discord Hotline</span>
                   </div>
                 </div>
               </div>
 
-              {/* Action */}
-              <div className="mt-6 pt-5 border-t border-slate-800 flex items-center justify-between gap-3">
+              {/* Pricing & CTA Action */}
+              <div className="pt-5 border-t border-slate-800/80 flex items-center justify-between gap-3">
                 <div>
                   <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Complete Package</div>
-                  <div className="text-2xl font-bold font-mono text-white tracking-tight">
+                  <div className="text-2xl sm:text-3xl font-bold font-mono text-white tracking-tight">
                     <span className="text-amber-500 font-normal text-xs mr-1">INR</span>
                     ₹{Number(flagship.price).toLocaleString()}
                   </div>
                 </div>
 
-                <Link to={flagship.id === "flagship-demo" ? "/marketplace" : `/project/${flagship.id}`}>
-                  <Button className="rounded bg-amber-500 hover:bg-amber-600 text-amber-950 font-bold font-mono text-xs px-5 sm:px-6 h-10 shadow-xs transition-all retro-btn">
+                <Link to={flagship.id ? `/project/${flagship.id}` : "/marketplace"}>
+                  <Button className="rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold font-mono text-xs px-6 h-11 shadow-sm transition-all retro-btn">
                     INSPECT_PKG →
                   </Button>
                 </Link>

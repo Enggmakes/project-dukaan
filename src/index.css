@@ -269,6 +269,20 @@
 }
 
 /* ========================================================================= */
+/* Newton's Apple Drop Kinetic Delight Animation                              */
+/* ========================================================================= */
+@keyframes appleDrop {
+  0% { transform: translateY(-7px) scale(0.92); opacity: 0.6; }
+  45% { transform: translateY(3px) scale(1.1); opacity: 1; }
+  75% { transform: translateY(-1.5px) scale(0.98); }
+  100% { transform: translateY(0) scale(1.05); }
+}
+
+.animate-apple-drop {
+  animation: appleDrop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ========================================================================= */
 /* Uiverse.io by williamvdm - Scaled & Adapted for Desktop Navbar             */
 /* ========================================================================= */
 .uiverse-container {
@@ -418,5 +432,32 @@
   box-shadow:
     0 0 10px rgba(245, 158, 11, 0.7),
     inset 0 0 2px rgba(255, 255, 255, 0.4);
+}
+
+/* ========================================================================= */
+/* Impeccable Quieter: Subtle Translucent Developer Terminal Scrollbars      */
+/* Eliminates harsh 16px native yellow tracks and blocky arrows on Windows   */
+/* ========================================================================= */
+.quiet-code-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+}
+.quiet-code-scroll::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.quiet-code-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.quiet-code-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.22);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+.quiet-code-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 158, 11, 0.4);
+}
+.quiet-code-scroll::-webkit-scrollbar-corner {
+  background: transparent;
 }
 

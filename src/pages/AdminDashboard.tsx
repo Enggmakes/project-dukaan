@@ -6,10 +6,12 @@ import {
   Truck, Download, Pencil, ExternalLink, RefreshCw, Layers, Edit3, MessageSquare, 
   Send, Sparkles, CheckCircle2, Clock, User, Filter, Archive, ArrowLeft, FolderGit2, 
   HardDrive, Video, FileText, FileCode, PackageCheck, Copy, Menu, X, SlidersHorizontal, 
-  Terminal, Shield, ArrowUpRight, BarChart3, Inbox, FileSpreadsheet, Check, Key
+  Terminal, Shield, ArrowUpRight, BarChart3, Inbox, FileSpreadsheet, Check, Key, Ticket, Zap, Gift
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import CyberConfirmDialog from "@/components/CyberConfirmDialog";
+import StudentLotteryTicketModal from "@/components/StudentLotteryTicketModal";
+import { getLotteryConfig, saveLotteryConfig, LotteryConfig } from "@/lib/lotteryConfig";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -97,6 +99,47 @@ export default function AdminDashboard() {
   const [chatStatusFilter, setChatStatusFilter] = useState<"all" | "active" | "purchased" | "archived">("all");
   const adminChatFeedRef = useRef<HTMLDivElement>(null);
   const selectedConvoRef = useRef<any>(null);
+
+  // Student Scratch Lottery Ticket Config state
+  const [lotteryConfig, setLotteryConfig] = useState<LotteryConfig>(() => getLotteryConfig());
+  const [lotteryMinInput, setLotteryMinInput] = useState<number>(() => getLotteryConfig().minDiscount);
+  const [lotteryMaxInput, setLotteryMaxInput] = useState<number>(() => getLotteryConfig().maxDiscount);
+  const [isTestLotteryOpen, setIsTestLotteryOpen] = useState(false);
+
+  useEffect(() => {
+    const handleConfigChange = (e: any) => {
+      const cfg = e.detail || getLotteryConfig();
+      setLotteryConfig(cfg);
+      setLotteryMinInput(cfg.minDiscount);
+      setLotteryMaxInput(cfg.maxDiscount);
+    };
+    window.addEventListener("dukaan_lottery_config_changed", handleConfigChange);
+    return () => window.removeEventListener("dukaan_lottery_config_changed", handleConfigChange);
+  }, []);
+
+  const handleToggleLottery = () => {
+    const newCfg: LotteryConfig = {
+      ...lotteryConfig,
+      enabled: !lotteryConfig.enabled
+    };
+    setLotteryConfig(newCfg);
+    saveLotteryConfig(newCfg);
+    toast.success(newCfg.enabled ? "🟢 Student Scratch Lottery enabled storewide!" : "🔴 Student Scratch Lottery disabled storewide.");
+  };
+
+  const handleSaveLotteryRules = (e: React.FormEvent) => {
+    e.preventDefault();
+    const min = Math.max(1, Math.min(90, Number(lotteryMinInput) || 20));
+    const max = Math.max(min, Math.min(90, Number(lotteryMaxInput) || 30));
+    const newCfg: LotteryConfig = {
+      ...lotteryConfig,
+      minDiscount: min,
+      maxDiscount: max
+    };
+    setLotteryConfig(newCfg);
+    saveLotteryConfig(newCfg);
+    toast.success(`Lottery rules updated: ${min}% to ${max}% discount range!`);
+  };
 
   useEffect(() => {
     supabase.from('custom_requests').select('*').order('created_at', { ascending: false }).then(({ data }) => {
@@ -1110,6 +1153,45 @@ export default function AdminDashboard() {
                 })}
               </div>
 
+              <div className="space-y-1 pt-2">
+                <div className="px-2.5 pb-1.5 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
+                  Promotions
+                </div>
+                {[
+                  { 
+                    id: "lottery", 
+                    label: "Scratch Lottery", 
+                    icon: Ticket, 
+                    count: lotteryConfig.enabled ? "ON" : "OFF",
+                    isOnline: lotteryConfig.enabled 
+                  },
+                ].map(item => {
+                  const isActive = activeTab === item.id;
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id)}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+                        isActive
+                          ? "bg-amber-500/15 text-amber-300 border-l-2 border-amber-400 shadow-[inset_0_0_12px_rgba(245,158,11,0.1)] font-semibold"
+                          : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Icon className={`w-4 h-4 ${isActive ? "text-amber-400" : "text-slate-400"}`} />
+                        <span>{item.label}</span>
+                      </div>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
+                        item.isOnline ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-slate-800 text-slate-500"
+                      }`}>
+                        {item.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
               <div className="space-y-1 pt-2 border-t border-slate-800/80">
                 <div className="px-2.5 pb-1.5 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
                   Station Links
@@ -1183,6 +1265,7 @@ export default function AdminDashboard() {
                       { id: "orders", label: "Client Orders", icon: ShoppingBag, count: orders.length },
                       { id: "chats", label: "Live Inquiries", icon: MessageSquare, count: conversations.length },
                       { id: "messages", label: "Contact Form", icon: Mail, count: messages.length },
+                      { id: "lottery", label: "Scratch Lottery", icon: Ticket, count: lotteryConfig.enabled ? "ON" : "OFF" },
                     ].map(item => {
                       const isActive = activeTab === item.id;
                       const Icon = item.icon;
@@ -2595,6 +2678,168 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </TabsContent>
+
+              {/* Student Scratch Lottery Management Panel */}
+              <TabsContent value="lottery" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="bg-[#090e1c] border border-slate-800/90 rounded-xl p-4 sm:p-6 shadow-xl space-y-6">
+                  {/* Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-800 gap-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Ticket className="w-5 h-5 text-amber-400" />
+                        <h3 className="text-white font-bold text-base sm:text-lg font-mono">
+                          Student Scratch Lottery Engine
+                        </h3>
+                        <Badge className={lotteryConfig.enabled ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" : "bg-rose-500/20 text-rose-400 border-rose-500/40"}>
+                          {lotteryConfig.enabled ? "LIVE & ACTIVE" : "DISABLED"}
+                        </Badge>
+                      </div>
+                      <p className="text-slate-400 text-xs mt-1 font-mono">
+                        Admin authority over the interactive student scratch-off coupon cards and random discount range.
+                      </p>
+                    </div>
+
+                    {/* Master Switch Button */}
+                    <Button
+                      type="button"
+                      onClick={handleToggleLottery}
+                      className={`h-11 px-5 font-mono font-bold text-xs rounded transition-all cursor-pointer shadow-sm ${
+                        lotteryConfig.enabled
+                          ? "bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/80"
+                          : "bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-black border border-emerald-300"
+                      }`}
+                    >
+                      {lotteryConfig.enabled ? (
+                        <>
+                          <X className="w-4 h-4 mr-1.5" />
+                          DISABLE_LOTTERY_GLOBALLY
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-4 h-4 mr-1.5 fill-emerald-950" />
+                          ENABLE_LOTTERY_GLOBALLY
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Status & Rule Settings Grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Left: Configuration Form (7 cols) */}
+                    <form onSubmit={handleSaveLotteryRules} className="lg:col-span-7 space-y-5 bg-[#070b14] p-5 sm:p-6 rounded-xl border border-slate-800">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-bold text-white font-mono flex items-center gap-2">
+                          <SlidersHorizontal className="w-4 h-4 text-amber-400" />
+                          RANDOM_DISCOUNT_BOUNDS
+                        </h4>
+                        <span className="text-[10px] font-mono text-slate-500">
+                          MIN & MAX THRESHOLDS
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs font-mono text-slate-400 block mb-1.5">
+                            Minimum Discount (%)
+                          </label>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={90}
+                            value={lotteryMinInput}
+                            onChange={(e) => setLotteryMinInput(Number(e.target.value))}
+                            className="bg-[#090e1c] border-slate-700 text-white font-mono text-sm h-11"
+                          />
+                          <span className="text-[10px] text-slate-500 font-mono mt-1 block">
+                            Default: 20%
+                          </span>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-mono text-slate-400 block mb-1.5">
+                            Maximum Discount (%)
+                          </label>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={90}
+                            value={lotteryMaxInput}
+                            onChange={(e) => setLotteryMaxInput(Number(e.target.value))}
+                            className="bg-[#090e1c] border-slate-700 text-white font-mono text-sm h-11"
+                          />
+                          <span className="text-[10px] text-slate-500 font-mono mt-1 block">
+                            Default: 30%
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800 text-xs font-mono text-slate-300 space-y-1">
+                        <div className="flex items-center gap-1.5 text-amber-400 font-bold">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Student Psychology & Gamification Rule:</span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 leading-relaxed">
+                          Students are never shown the discount numbers in advance on the page. They only see &ldquo;Claim Student Lucky Ticket&rdquo;. Scratching the ticket generates a random discount between <strong className="text-amber-400">{lotteryMinInput}%</strong> and <strong className="text-amber-400">{lotteryMaxInput}%</strong>.
+                        </p>
+                      </div>
+
+                      <Button
+                        type="submit"
+                        className="w-full h-11 rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-black font-mono text-xs shadow-md border border-amber-300 retro-btn cursor-pointer"
+                      >
+                        [SAVE_&_APPLY_LOTTERY_RULES]
+                      </Button>
+                    </form>
+
+                    {/* Right: Live Preview & Admin Sandbox (5 cols) */}
+                    <div className="lg:col-span-5 bg-[#070b14] p-5 sm:p-6 rounded-xl border border-slate-800 flex flex-col justify-between space-y-5">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-bold text-white font-mono flex items-center gap-2">
+                            <Gift className="w-4 h-4 text-emerald-400" />
+                            ADMIN_SANDBOX_TEST
+                          </h4>
+                          <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                            SIMULATOR
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-400 font-mono leading-relaxed">
+                          Test scratch the lottery card as an administrator to inspect foil physics, particle reveal rates, and auto-discount vouchers.
+                        </p>
+
+                        <div className="p-3 rounded bg-[#090e1c] border border-slate-800/80 font-mono text-xs space-y-2">
+                          <div className="flex justify-between text-slate-400 text-[11px]">
+                            <span>Storewide State:</span>
+                            <span className={lotteryConfig.enabled ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
+                              {lotteryConfig.enabled ? "ACTIVE (Appears on checkout)" : "OFFLINE (Hidden from students)"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-slate-400 text-[11px]">
+                            <span>Active Range:</span>
+                            <span className="text-amber-400 font-bold">
+                              {lotteryConfig.minDiscount}% – {lotteryConfig.maxDiscount}% Random
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-slate-400 text-[11px]">
+                            <span>Eligible Target:</span>
+                            <span className="text-cyan-400 font-bold">Engineering Capstones</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="button"
+                        onClick={() => setIsTestLotteryOpen(true)}
+                        className="w-full h-11 rounded bg-[#0d1424] hover:bg-slate-800 text-amber-300 border border-amber-500/40 hover:border-amber-400 font-mono font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-all"
+                      >
+                        <Ticket className="w-4 h-4 text-amber-400" />
+                        <span>TEST SCRATCH CARD AS ADMIN</span>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
             </Tabs>
           </div>
         </div>
@@ -2984,6 +3229,17 @@ export default function AdminDashboard() {
         confirmText={confirmDialog.confirmText}
         variant={confirmDialog.variant}
         isLoading={confirmDialog.isLoading}
+      />
+
+      {/* Admin Test Simulator Scratch Lottery Ticket Modal */}
+      <StudentLotteryTicketModal
+        isOpen={isTestLotteryOpen}
+        onClose={() => setIsTestLotteryOpen(false)}
+        projectTitle="Admin Simulator Project"
+        originalPrice={24999}
+        onApplyDiscount={(disc, code) => {
+          toast.success(`Simulation verified: ${disc}% Lucky Discount (${code}) generated!`);
+        }}
       />
     </Layout>
   );

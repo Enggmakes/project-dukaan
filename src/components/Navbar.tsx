@@ -278,14 +278,33 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* Desktop-Only Gravity Mode Switch (Uiverse.io tactile button at extreme right) */}
-            <div className="hidden md:flex items-center pl-2.5 border-l border-slate-800/80">
+            {/* Desktop-Only Gravity Mode Switch (Uiverse.io tactile button with white falling apple icon) */}
+            <div className="hidden md:flex items-center gap-2 pl-3 border-l border-slate-800/80">
+              <label 
+                htmlFor="desktop-gravity-toggle"
+                className="cursor-pointer flex items-center justify-center p-1 rounded-md hover:bg-slate-800/50 transition-all active:scale-90 group"
+                title={gravityOn ? "Gravity Mode: ACTIVE (Click to turn OFF)" : "Gravity Mode: INACTIVE (Click to turn ON)"}
+              >
+                <img 
+                  key={gravityOn ? "gravity-engaged" : "gravity-dormant"}
+                  src="/gravity-apple-white.png" 
+                  alt="Gravity Mode" 
+                  className={`w-6 h-6 object-contain select-none transition-all duration-300 ${
+                    gravityOn 
+                      ? "opacity-100 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] animate-apple-drop" 
+                      : "opacity-55 group-hover:opacity-90"
+                  }`} 
+                />
+              </label>
+
               <div className="uiverse-container">
                 <label 
+                  htmlFor="desktop-gravity-toggle"
                   className="uiverse-switch" 
                   title={gravityOn ? "Gravity Mode: ACTIVE (Click to turn OFF)" : "Gravity Mode: INACTIVE (Click to turn ON)"}
                 >
                   <input 
+                    id="desktop-gravity-toggle"
                     type="checkbox" 
                     checked={gravityOn} 
                     onChange={toggleGravity} 
