@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import CyberConfirmDialog from "@/components/CyberConfirmDialog";
 import StudentLotteryTicketModal from "@/components/StudentLotteryTicketModal";
+import { isLotteryActiveForConvo, isMessageTicketActive } from "@/lib/lotteryConfig";
 import { toast } from "sonner";
 import { isUserAdmin } from "@/lib/authUtils";
 import { 
@@ -71,20 +72,7 @@ export default function ProductChatDrawer({
   const effectiveDiscount = appliedDiscount || internalDiscount;
   const effectiveCoupon = appliedCoupon || internalCoupon;
 
-  const hasTicketInChat = Boolean(
-    messages?.some((msg: any) => msg.type === "lottery_ticket" || msg.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"))
-  );
-  const isTicketRevoked = Boolean(
-    conversation?.lottery_unlocked === false || 
-    messages?.some((msg: any) => msg.type === "lottery_revoked" || msg.message?.includes("ticket has been revoked") || msg.message?.includes("ticket has been deactivated"))
-  );
-  const isTicketActive = Boolean(
-    hasTicketInChat &&
-    !isTicketRevoked && 
-    conversation?.lottery_unlocked !== false &&
-    conversation?.status !== "withdrawn" &&
-    conversation?.status !== "cancelled"
-  );
+  const isTicketActive = isLotteryActiveForConvo(conversation, messages);
 
   const handleDrawerCancelRequest = () => {
     if (onCancelRequest) {
@@ -272,6 +260,13 @@ export default function ProductChatDrawer({
           if (prev.some((m) => m.id === payload.id)) return prev;
           return [...prev, payload];
         });
+        if (payload.type === "lottery_ticket") {
+          setConversation((prev: any) => prev ? { ...prev, lottery_unlocked: true } : prev);
+        } else if (payload.type === "lottery_revoked") {
+          setConversation((prev: any) => prev ? { ...prev, lottery_unlocked: false } : prev);
+          setInternalDiscount(0);
+          setInternalCoupon("");
+        }
       })
       .subscribe();
 
@@ -674,10 +669,11 @@ export default function ProductChatDrawer({
                 <>
                   {messages
                     .filter((m, idx, arr) => arr.findIndex((x) => x.id === m.id) === idx)
-                    .map((m) => {
+                    .map((m, mIdx, filteredArr) => {
                     const isAdmin = m.sender_role === "admin";
                     const isMe = m.sender_id === user.id;
                     const isLotteryTicketMsg = m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]");
+                    const isCurrentTicketActive = isLotteryTicketMsg && isMessageTicketActive(mIdx, filteredArr, conversation);
 
                     return (
                       <div
@@ -718,7 +714,7 @@ export default function ProductChatDrawer({
                             </p>
 
                             <div className="relative z-10 pt-1">
-                              {effectiveDiscount && effectiveDiscount > 0 ? (
+                              {isCurrentTicketActive && effectiveDiscount && effectiveDiscount > 0 ? (
                                 <div className="p-2.5 rounded-lg bg-emerald-950/60 border border-emerald-500/50 flex items-center justify-between gap-2">
                                   <div className="flex items-center gap-2">
                                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -742,7 +738,7 @@ export default function ProductChatDrawer({
                                     PAY NOW
                                   </Button>
                                 </div>
-                              ) : isTicketActive ? (
+                              ) : isCurrentTicketActive ? (
                                 <Button
                                   onClick={() => {
                                     if (onOpenLottery) onOpenLottery();

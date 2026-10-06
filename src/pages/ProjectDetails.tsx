@@ -8,7 +8,7 @@ import ProjectCard from "@/components/ProjectCard";
 import ProductChatDrawer from "@/components/ProductChatDrawer";
 import CyberConfirmDialog from "@/components/CyberConfirmDialog";
 import StudentLotteryTicketModal from "@/components/StudentLotteryTicketModal";
-import { getLotteryConfig, LotteryConfig } from "@/lib/lotteryConfig";
+import { getLotteryConfig, LotteryConfig, isLotteryActiveForConvo } from "@/lib/lotteryConfig";
 import { Project } from "@/lib/mockData";
 import { supabase } from "@/lib/supabase";
 import { isUserAdmin, checkAdminStatus } from "@/lib/authUtils";
@@ -105,11 +105,7 @@ export default function ProjectDetails() {
   // Student Scratch Lottery is strictly isolated per-user/conversation (unlocked only when engineer explicitly grants it in this active chat)
   const isLotteryUnlocked = Boolean(
     (convoStatus === "active" || convoStatus === "ready_to_purchase") &&
-    activeConvo?.status !== "withdrawn" &&
-    activeConvo?.status !== "cancelled" &&
-    activeConvo?.lottery_unlocked !== false &&
-    !activeConvo?.messages?.some((m: any) => m.type === "lottery_revoked" || m.message?.includes("ticket has been revoked") || m.message?.includes("ticket has been deactivated")) &&
-    activeConvo?.messages?.some((m: any) => m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"))
+    isLotteryActiveForConvo(activeConvo, activeConvo?.messages)
   );
 
   // Check user ownership, admin status, and build inquiry permission
@@ -263,8 +259,8 @@ export default function ProjectDetails() {
           } else if (payload.new) {
             const newStatus = payload.new.status;
             // Detect real-time lottery grant from engineer
-            const prevLottery = Boolean(activeConvo?.lottery_unlocked || activeConvo?.messages?.some((m: any) => m.type === "lottery_ticket"));
-            const nextLottery = Boolean(payload.new.lottery_unlocked || payload.new.messages?.some((m: any) => m.type === "lottery_ticket"));
+            const prevLottery = isLotteryActiveForConvo(activeConvo, activeConvo?.messages);
+            const nextLottery = isLotteryActiveForConvo(payload.new, payload.new?.messages);
             if (nextLottery && !prevLottery) {
               toast.success("Lead Engineer granted you an exclusive Student Lucky Ticket! Scratch it now to claim your discount.", {
                 duration: 8000

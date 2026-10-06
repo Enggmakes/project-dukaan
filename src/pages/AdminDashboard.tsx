@@ -11,7 +11,7 @@ import {
 import Layout from "@/components/Layout";
 import CyberConfirmDialog from "@/components/CyberConfirmDialog";
 import StudentLotteryTicketModal from "@/components/StudentLotteryTicketModal";
-import { getLotteryConfig, saveLotteryConfig, LotteryConfig } from "@/lib/lotteryConfig";
+import { getLotteryConfig, saveLotteryConfig, LotteryConfig, isLotteryActiveForConvo } from "@/lib/lotteryConfig";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -390,6 +390,19 @@ export default function AdminDashboard() {
           }
         }
       })
+      .on('broadcast', { event: 'inquiry_updated' }, ({ payload }) => {
+        if (payload && payload.id) {
+          setConversations((prev) =>
+            prev.map(c => c.id === payload.id ? { ...c, ...payload } : c)
+          );
+          if (selectedConvoRef.current?.id === payload.id) {
+            setSelectedConvo((prev: any) => ({ ...prev, ...payload }));
+            if (Array.isArray(payload.messages)) {
+              setAdminChatMessages(payload.messages);
+            }
+          }
+        }
+      })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') setChatWsStatus("connected");
         else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setChatWsStatus("reconnecting");
@@ -659,6 +672,56 @@ export default function AdminDashboard() {
       const currentMessages = Array.isArray(convo.messages) ? convo.messages : [];
       const updatedMessages = [...currentMessages, ticketMsg];
 
+      // 1. Instant optimistic state update in Admin UI
+      setSelectedConvo((prev: any) => {
+        if (prev?.id === convo.id) {
+          return {
+            ...prev,
+            lottery_unlocked: true,
+            messages: updatedMessages,
+            last_message: `Student raffle ticket granted (${randomTicketId})`,
+            last_message_at: ticketMsg.created_at,
+          };
+        }
+        return prev;
+      });
+      if (selectedConvo?.id === convo.id) {
+        setAdminChatMessages(updatedMessages);
+      }
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === convo.id
+            ? {
+                ...c,
+                lottery_unlocked: true,
+                messages: updatedMessages,
+                last_message: `Student raffle ticket granted (${randomTicketId})`,
+                last_message_at: ticketMsg.created_at,
+              }
+            : c
+        )
+      );
+
+      // 2. Broadcast immediately over websocket room (< 30ms latency to user)
+      supabase.channel(`convo-room-${convo.id}`).send({
+        type: 'broadcast',
+        event: 'chat_message',
+        payload: ticketMsg
+      }).catch(() => {});
+
+      // 3. Broadcast to admin global feed
+      supabase.channel('admin-global-inquiries').send({
+        type: 'broadcast',
+        event: 'inquiry_updated',
+        payload: {
+          id: convo.id,
+          lottery_unlocked: true,
+          last_message: `Student raffle ticket granted (${randomTicketId})`,
+          last_message_at: ticketMsg.created_at,
+          messages: updatedMessages
+        }
+      }).catch(() => {});
+
       let updatePayload: any = {
         lottery_unlocked: true,
         messages: updatedMessages,
@@ -686,14 +749,6 @@ export default function AdminDashboard() {
 
       toast.success(`Student scratch ticket granted to ${convo.user_name || convo.user_email}!`);
       fetchConversations();
-      if (selectedConvo?.id === convo.id) {
-        setSelectedConvo((prev: any) => ({
-          ...prev,
-          lottery_unlocked: true,
-          messages: updatedMessages
-        }));
-        setAdminChatMessages(updatedMessages);
-      }
     } catch (err: any) {
       console.error("Failed to grant lottery access:", err);
       toast.error("Failed to grant lottery ticket in Supabase");
@@ -715,9 +770,61 @@ export default function AdminDashboard() {
       const currentMessages = Array.isArray(convo.messages) ? convo.messages : [];
       const updatedMessages = [...currentMessages, revokedMsg];
 
+      // 1. Instant optimistic state update in Admin UI
+      setSelectedConvo((prev: any) => {
+        if (prev?.id === convo.id) {
+          return {
+            ...prev,
+            lottery_unlocked: false,
+            messages: updatedMessages,
+            last_message: "⚠️ Student raffle ticket revoked by engineer",
+            last_message_at: revokedMsg.created_at,
+          };
+        }
+        return prev;
+      });
+      if (selectedConvo?.id === convo.id) {
+        setAdminChatMessages(updatedMessages);
+      }
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === convo.id
+            ? {
+                ...c,
+                lottery_unlocked: false,
+                messages: updatedMessages,
+                last_message: "⚠️ Student raffle ticket revoked by engineer",
+                last_message_at: revokedMsg.created_at,
+              }
+            : c
+        )
+      );
+
+      // 2. Broadcast immediately over websocket room (< 30ms latency to user)
+      supabase.channel(`convo-room-${convo.id}`).send({
+        type: 'broadcast',
+        event: 'chat_message',
+        payload: revokedMsg
+      }).catch(() => {});
+
+      // 3. Broadcast to admin global feed
+      supabase.channel('admin-global-inquiries').send({
+        type: 'broadcast',
+        event: 'inquiry_updated',
+        payload: {
+          id: convo.id,
+          lottery_unlocked: false,
+          last_message: "⚠️ Student raffle ticket revoked by engineer",
+          last_message_at: revokedMsg.created_at,
+          messages: updatedMessages
+        }
+      }).catch(() => {});
+
       let updatePayload: any = {
         lottery_unlocked: false,
         messages: updatedMessages,
+        last_message: "⚠️ Student raffle ticket revoked by engineer",
+        last_message_at: revokedMsg.created_at,
         updated_at: new Date().toISOString()
       };
 
@@ -739,14 +846,6 @@ export default function AdminDashboard() {
 
       toast.info("Lottery ticket access revoked for this inquiry");
       fetchConversations();
-      if (selectedConvo?.id === convo.id) {
-        setSelectedConvo((prev: any) => ({
-          ...prev,
-          lottery_unlocked: false,
-          messages: updatedMessages
-        }));
-        setAdminChatMessages(updatedMessages);
-      }
     } catch (err: any) {
       toast.error("Failed to revoke lottery ticket");
     }
@@ -2606,7 +2705,7 @@ export default function AdminDashboard() {
                                         }`}>
                                           {c.status === 'ready_to_purchase' ? 'ACCESS_GRANTED' : (c.status || 'active')}
                                         </span>
-                                        {Boolean(c.lottery_unlocked) && (
+                                        {isLotteryActiveForConvo(c, c.messages) && (
                                           <span className="text-[9px] font-mono font-bold text-amber-300 bg-amber-950/80 border border-amber-500/40 px-1.5 py-0.5 rounded shadow-[0_0_6px_rgba(245,158,11,0.25)]">
                                             RAFFLE
                                           </span>
@@ -2782,11 +2881,7 @@ export default function AdminDashboard() {
                               )}
 
                               {/* One-Click Individual Student Scratch Lottery Action */}
-                              {Boolean(
-                                selectedConvo.lottery_unlocked !== false && 
-                                !selectedConvo.messages?.some((m: any) => m.type === "lottery_revoked" || m.message?.includes("ticket has been revoked")) &&
-                                selectedConvo.messages?.some((m: any) => m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"))
-                              ) ? (
+                              {isLotteryActiveForConvo(selectedConvo, selectedConvo.messages) ? (
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -3130,11 +3225,7 @@ export default function AdminDashboard() {
                         {conversations
                           .filter(c => c.status !== 'archived')
                           .map((convo) => {
-                            const isGranted = Boolean(
-                              convo.lottery_unlocked !== false && 
-                              !convo.messages?.some((m: any) => m.type === "lottery_revoked" || m.message?.includes("ticket has been revoked")) &&
-                              convo.messages?.some((m: any) => m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"))
-                            );
+                            const isGranted = isLotteryActiveForConvo(convo, convo.messages);
 
                             return (
                               <div
