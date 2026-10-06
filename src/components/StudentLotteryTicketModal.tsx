@@ -10,6 +10,9 @@ interface StudentLotteryTicketModalProps {
   projectTitle: string;
   originalPrice: number;
   onApplyDiscount: (discountPercent: number, couponCode: string) => void;
+  minDiscount?: number;
+  maxDiscount?: number;
+  ticketId?: string;
 }
 
 export default function StudentLotteryTicketModal({
@@ -18,6 +21,9 @@ export default function StudentLotteryTicketModal({
   projectTitle,
   originalPrice,
   onApplyDiscount,
+  minDiscount,
+  maxDiscount,
+  ticketId: ticketIdProp,
 }: StudentLotteryTicketModalProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -34,12 +40,14 @@ export default function StudentLotteryTicketModal({
   useEffect(() => {
     if (isOpen) {
       const config = getLotteryConfig();
-      const min = Math.min(config.minDiscount, config.maxDiscount);
-      const max = Math.max(config.minDiscount, config.maxDiscount);
+      const boundMin = typeof minDiscount === "number" && minDiscount > 0 ? minDiscount : config.minDiscount;
+      const boundMax = typeof maxDiscount === "number" && maxDiscount > 0 ? maxDiscount : config.maxDiscount;
+      const min = Math.min(boundMin, boundMax);
+      const max = Math.max(boundMin, boundMax);
       // Random integer between min and max (inclusive)
       const randomDisc = Math.floor(Math.random() * (max - min + 1)) + min;
       const code = `STUDENT-${randomDisc}`;
-      const randomSerial = `№ 00${Math.floor(1000 + Math.random() * 9000)} · SERIES 1984`;
+      const randomSerial = ticketIdProp || `№ 00${Math.floor(1000 + Math.random() * 9000)} · SERIES 1984`;
 
       setDiscountPercent(randomDisc);
       setCouponCode(code);
@@ -51,7 +59,7 @@ export default function StudentLotteryTicketModal({
       // Setup canvas on next tick
       setTimeout(initCanvas, 60);
     }
-  }, [isOpen]);
+  }, [isOpen, minDiscount, maxDiscount, ticketIdProp, initCanvas]);
 
   const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;

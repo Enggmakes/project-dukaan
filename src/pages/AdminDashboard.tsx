@@ -11,7 +11,7 @@ import {
 import Layout from "@/components/Layout";
 import CyberConfirmDialog from "@/components/CyberConfirmDialog";
 import StudentLotteryTicketModal from "@/components/StudentLotteryTicketModal";
-import { getLotteryConfig, saveLotteryConfig, LotteryConfig, isLotteryActiveForConvo } from "@/lib/lotteryConfig";
+import { getLotteryConfig, saveLotteryConfig, LotteryConfig, isLotteryActiveForConvo, getConvoDiscountInfo } from "@/lib/lotteryConfig";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -140,6 +140,12 @@ export default function AdminDashboard() {
     };
     setLotteryConfig(newCfg);
     saveLotteryConfig(newCfg);
+    // Broadcast global lottery bounds over websocket to all clients
+    supabase.channel('admin-global-lottery-config').send({
+      type: 'broadcast',
+      event: 'config_updated',
+      payload: newCfg
+    }).catch(() => {});
     toast.success(`Lottery rules updated: ${min}% to ${max}% discount range!`);
   };
 
@@ -297,6 +303,14 @@ export default function AdminDashboard() {
             if (prev.some((m) => m.id === payload.id)) return prev;
             return [...prev, payload];
           });
+          if (payload.type === "coupon_applied") {
+            setSelectedConvo((prev: any) => ({
+              ...prev,
+              applied_discount: payload.discount_percent,
+              coupon_code: payload.coupon_code,
+              discounted_price: payload.discounted_price
+            }));
+          }
         }
       })
       .subscribe();
@@ -401,6 +415,44 @@ export default function AdminDashboard() {
               setAdminChatMessages(payload.messages);
             }
           }
+        }
+      })
+      .on('broadcast', { event: 'coupon_applied' }, ({ payload }) => {
+        if (payload && payload.conversation_id) {
+          setConversations((prev) =>
+            prev.map(c => {
+              if (c.id === payload.conversation_id) {
+                const currentMsgs = Array.isArray(c.messages) ? c.messages : [];
+                return {
+                  ...c,
+                  applied_discount: payload.applied_discount,
+                  coupon_code: payload.coupon_code,
+                  discounted_price: payload.discounted_price,
+                  last_message: payload.last_message || c.last_message,
+                  last_message_at: payload.last_message_at || c.last_message_at,
+                  messages: payload.message 
+                    ? [...currentMsgs.filter((m: any) => m.id !== payload.message?.id), payload.message]
+                    : currentMsgs
+                };
+              }
+              return c;
+            })
+          );
+          if (selectedConvoRef.current?.id === payload.conversation_id) {
+            setSelectedConvo((prev: any) => ({
+              ...prev,
+              applied_discount: payload.applied_discount,
+              coupon_code: payload.coupon_code,
+              discounted_price: payload.discounted_price,
+              messages: payload.message
+                ? [...(Array.isArray(prev?.messages) ? prev.messages.filter((m: any) => m.id !== payload.message?.id) : []), payload.message]
+                : prev?.messages
+            }));
+            if (payload.message) {
+              setAdminChatMessages((prev) => [...prev.filter(m => m.id !== payload.message?.id), payload.message]);
+            }
+          }
+          toast.success(`🎉 Student applied coupon: ${payload.applied_discount}% OFF (₹${Number(payload.discounted_price).toLocaleString('en-IN')})!`);
         }
       })
       .subscribe((status) => {
@@ -657,15 +709,19 @@ export default function AdminDashboard() {
   const handleGrantLotteryAccess = async (convo: any) => {
     if (!convo) return;
     try {
+      const minDisc = lotteryConfig.minDiscount;
+      const maxDisc = lotteryConfig.maxDiscount;
       const randomTicketId = `№ 00${Math.floor(1000 + Math.random() * 9000)} · SERIES 1984`;
       const ticketMsg = {
         id: `msg-${Date.now()}`,
         sender_id: adminUser?.id || "admin",
         sender_role: "admin",
         sender_name: "Lead Systems Engineer",
-        message: `[STUDENT LUCKY RAFFLE UNLOCKED] An exclusive vintage student raffle ticket (${randomTicketId}) has been granted for "${convo.project_title}"! Scratch your authentic golden ticket below to reveal your lucky discount.`,
+        message: `[STUDENT LUCKY RAFFLE UNLOCKED] An exclusive vintage student raffle ticket (${randomTicketId}) has been granted for "${convo.project_title}"! (Lucky Range: ${minDisc}% – ${maxDisc}% OFF) Scratch your authentic golden ticket below to reveal your lucky discount.`,
         type: "lottery_ticket",
         ticket_id: randomTicketId,
+        min_discount: minDisc,
+        max_discount: maxDisc,
         created_at: new Date().toISOString()
       };
 
@@ -678,6 +734,8 @@ export default function AdminDashboard() {
           return {
             ...prev,
             lottery_unlocked: true,
+            lottery_min_discount: minDisc,
+            lottery_max_discount: maxDisc,
             messages: updatedMessages,
             last_message: `Student raffle ticket granted (${randomTicketId})`,
             last_message_at: ticketMsg.created_at,
@@ -694,6 +752,8 @@ export default function AdminDashboard() {
             ? {
                 ...c,
                 lottery_unlocked: true,
+                lottery_min_discount: minDisc,
+                lottery_max_discount: maxDisc,
                 messages: updatedMessages,
                 last_message: `Student raffle ticket granted (${randomTicketId})`,
                 last_message_at: ticketMsg.created_at,
@@ -716,6 +776,8 @@ export default function AdminDashboard() {
         payload: {
           id: convo.id,
           lottery_unlocked: true,
+          lottery_min_discount: minDisc,
+          lottery_max_discount: maxDisc,
           last_message: `Student raffle ticket granted (${randomTicketId})`,
           last_message_at: ticketMsg.created_at,
           messages: updatedMessages
@@ -724,6 +786,8 @@ export default function AdminDashboard() {
 
       let updatePayload: any = {
         lottery_unlocked: true,
+        lottery_min_discount: minDisc,
+        lottery_max_discount: maxDisc,
         messages: updatedMessages,
         last_message: `Student raffle ticket granted (${randomTicketId})`,
         last_message_at: ticketMsg.created_at,
@@ -735,9 +799,11 @@ export default function AdminDashboard() {
         .update(updatePayload)
         .eq('id', convo.id);
 
-      // Fallback if lottery_unlocked column doesn't exist yet on table
-      if (error && error.message?.includes("lottery_unlocked")) {
+      // Fallback if lottery_min_discount or lottery_unlocked column doesn't exist yet on table
+      if (error && (error.message?.includes("lottery_unlocked") || error.message?.includes("lottery_min_discount"))) {
         delete updatePayload.lottery_unlocked;
+        delete updatePayload.lottery_min_discount;
+        delete updatePayload.lottery_max_discount;
         const res = await supabase
           .from('product_conversations')
           .update(updatePayload)
@@ -747,7 +813,7 @@ export default function AdminDashboard() {
 
       if (error) throw error;
 
-      toast.success(`Student scratch ticket granted to ${convo.user_name || convo.user_email}!`);
+      toast.success(`Student scratch ticket granted (${minDisc}%–${maxDisc}% OFF) to ${convo.user_name || convo.user_email}!`);
       fetchConversations();
     } catch (err: any) {
       console.error("Failed to grant lottery access:", err);
@@ -776,6 +842,9 @@ export default function AdminDashboard() {
           return {
             ...prev,
             lottery_unlocked: false,
+            applied_discount: 0,
+            coupon_code: null,
+            discounted_price: 0,
             messages: updatedMessages,
             last_message: "⚠️ Student raffle ticket revoked by engineer",
             last_message_at: revokedMsg.created_at,
@@ -792,6 +861,9 @@ export default function AdminDashboard() {
             ? {
                 ...c,
                 lottery_unlocked: false,
+                applied_discount: 0,
+                coupon_code: null,
+                discounted_price: 0,
                 messages: updatedMessages,
                 last_message: "⚠️ Student raffle ticket revoked by engineer",
                 last_message_at: revokedMsg.created_at,
@@ -814,6 +886,9 @@ export default function AdminDashboard() {
         payload: {
           id: convo.id,
           lottery_unlocked: false,
+          applied_discount: 0,
+          coupon_code: null,
+          discounted_price: 0,
           last_message: "⚠️ Student raffle ticket revoked by engineer",
           last_message_at: revokedMsg.created_at,
           messages: updatedMessages
@@ -822,6 +897,9 @@ export default function AdminDashboard() {
 
       let updatePayload: any = {
         lottery_unlocked: false,
+        applied_discount: 0,
+        coupon_code: null,
+        discounted_price: 0,
         messages: updatedMessages,
         last_message: "⚠️ Student raffle ticket revoked by engineer",
         last_message_at: revokedMsg.created_at,
@@ -833,8 +911,11 @@ export default function AdminDashboard() {
         .update(updatePayload)
         .eq('id', convo.id);
 
-      if (error && error.message?.includes("lottery_unlocked")) {
+      if (error && (error.message?.includes("lottery_unlocked") || error.message?.includes("applied_discount"))) {
         delete updatePayload.lottery_unlocked;
+        delete updatePayload.applied_discount;
+        delete updatePayload.coupon_code;
+        delete updatePayload.discounted_price;
         const res = await supabase
           .from('product_conversations')
           .update(updatePayload)
@@ -2710,6 +2791,17 @@ export default function AdminDashboard() {
                                             RAFFLE
                                           </span>
                                         )}
+                                        {(() => {
+                                          const discInfo = getConvoDiscountInfo(c);
+                                          if (discInfo && discInfo.discountPercent > 0) {
+                                            return (
+                                              <span className="text-[9px] font-mono font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 px-1.5 py-0.5 rounded shadow-[0_0_6px_rgba(16,185,129,0.25)]">
+                                                {discInfo.discountPercent}% OFF
+                                              </span>
+                                            );
+                                          }
+                                          return null;
+                                        })()}
                                       </div>
                                       <p className="text-[11px] text-slate-400 truncate">
                                         {c.last_message || "New inquiry started..."}
@@ -2784,11 +2876,36 @@ export default function AdminDashboard() {
                                     <span className="truncate max-w-[200px] sm:max-w-xs md:max-w-md font-mono">
                                       KIT: <strong className="text-slate-200">{selectedConvo.project_title}</strong>
                                     </span>
-                                    {selectedConvo.project_price > 0 && (
-                                      <span className="font-mono font-semibold text-emerald-400 shrink-0">
-                                        ₹{Number(selectedConvo.project_price).toLocaleString('en-IN')}
-                                      </span>
-                                    )}
+                                    {(() => {
+                                      const discInfo = getConvoDiscountInfo(selectedConvo);
+                                      const origPrice = Number(selectedConvo.project_price || 0);
+                                      if (origPrice <= 0) return null;
+
+                                      if (discInfo && discInfo.discountPercent > 0) {
+                                        return (
+                                          <span className="flex items-center gap-1.5 font-mono shrink-0">
+                                            <span className="line-through text-slate-500 text-[11px]">
+                                              ₹{origPrice.toLocaleString('en-IN')}
+                                            </span>
+                                            <span 
+                                              className="font-bold text-xs sm:text-sm text-emerald-400 bg-emerald-950/80 border border-emerald-500/50 px-2 py-0.5 rounded shadow-[0_0_12px_rgba(16,185,129,0.3)] flex items-center gap-1"
+                                              title={`Coupon ${discInfo.couponCode} applied: ${discInfo.discountPercent}% OFF`}
+                                            >
+                                              ₹{Number(discInfo.discountedPrice).toLocaleString('en-IN')}
+                                              <span className="text-[9px] bg-emerald-500 text-slate-950 font-black px-1 rounded">
+                                                {discInfo.discountPercent}% OFF
+                                              </span>
+                                            </span>
+                                          </span>
+                                        );
+                                      }
+
+                                      return (
+                                        <span className="font-mono font-semibold text-emerald-400 shrink-0">
+                                          ₹{origPrice.toLocaleString('en-IN')}
+                                        </span>
+                                      );
+                                    })()}
                                   </div>
                                 </div>
                               </div>
@@ -3252,7 +3369,22 @@ export default function AdminDashboard() {
                                   </div>
                                   <div className="text-[11px] text-slate-400 truncate mt-0.5">
                                     Project: <strong className="text-slate-300">{convo.project_title}</strong>
-                                    {convo.project_price > 0 && ` · ₹${Number(convo.project_price).toLocaleString('en-IN')}`}
+                                    {(() => {
+                                      const discInfo = getConvoDiscountInfo(convo);
+                                      const orig = Number(convo.project_price || 0);
+                                      if (orig <= 0) return null;
+                                      if (discInfo && discInfo.discountPercent > 0) {
+                                        return (
+                                          <span className="ml-1 font-mono inline-flex items-center gap-1">
+                                            · <span className="line-through text-slate-500 text-[10px]">₹{orig.toLocaleString('en-IN')}</span>
+                                            <span className="text-emerald-400 font-bold bg-emerald-950/70 border border-emerald-500/40 px-1.5 py-0.2 rounded text-[10px]">
+                                              ₹{discInfo.discountedPrice.toLocaleString('en-IN')} ({discInfo.discountPercent}% OFF)
+                                            </span>
+                                          </span>
+                                        );
+                                      }
+                                      return ` · ₹${orig.toLocaleString('en-IN')}`;
+                                    })()}
                                   </div>
                                 </div>
 

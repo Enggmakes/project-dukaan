@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import CyberConfirmDialog from "@/components/CyberConfirmDialog";
 import StudentLotteryTicketModal from "@/components/StudentLotteryTicketModal";
-import { isLotteryActiveForConvo, isMessageTicketActive } from "@/lib/lotteryConfig";
+import { isLotteryActiveForConvo, isMessageTicketActive, getConvoDiscountInfo, getConvoLotteryBounds } from "@/lib/lotteryConfig";
 import { toast } from "sonner";
 import { isUserAdmin } from "@/lib/authUtils";
 import { 
@@ -207,6 +207,11 @@ export default function ProductChatDrawer({
 
         if (isMounted) {
           setConversation(activeConvo);
+          const discInfo = getConvoDiscountInfo(activeConvo);
+          if (discInfo) {
+            setInternalDiscount(discInfo.discountPercent);
+            setInternalCoupon(discInfo.couponCode);
+          }
           if (activeConvo && Array.isArray(activeConvo.messages) && activeConvo.messages.length > 0) {
             setMessages(activeConvo.messages);
           } else {
@@ -266,6 +271,15 @@ export default function ProductChatDrawer({
           setConversation((prev: any) => prev ? { ...prev, lottery_unlocked: false } : prev);
           setInternalDiscount(0);
           setInternalCoupon("");
+        } else if (payload.type === "coupon_applied") {
+          setInternalDiscount(payload.discount_percent);
+          setInternalCoupon(payload.coupon_code);
+          setConversation((prev: any) => prev ? { 
+            ...prev, 
+            applied_discount: payload.discount_percent,
+            coupon_code: payload.coupon_code,
+            discounted_price: payload.discounted_price
+          } : prev);
         }
       })
       .subscribe();
@@ -844,18 +858,112 @@ export default function ProductChatDrawer({
       />
 
       {/* Internal Student Scratch Lottery Modal */}
-      <StudentLotteryTicketModal
-        isOpen={isInternalLotteryOpen}
-        onClose={() => setIsInternalLotteryOpen(false)}
-        projectTitle={project?.title || ""}
-        originalPrice={project?.price || 0}
-        onApplyDiscount={(disc, code) => {
-          setInternalDiscount(disc);
-          setInternalCoupon(code);
-          setIsInternalLotteryOpen(false);
-          toast.success(`🎉 ${disc}% Lucky Discount Applied! Promo: ${code}`);
-        }}
-      />
+      {(() => {
+        const bounds = getConvoLotteryBounds(conversation, messages);
+        const activeTicket = messages
+          ?.slice()
+          .reverse()
+          .find((m: any) => m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"));
+
+        return (
+          <StudentLotteryTicketModal
+            isOpen={isInternalLotteryOpen}
+            onClose={() => setIsInternalLotteryOpen(false)}
+            projectTitle={project?.title || ""}
+            originalPrice={project?.price || 0}
+            minDiscount={bounds.minDiscount}
+            maxDiscount={bounds.maxDiscount}
+            ticketId={activeTicket?.ticket_id}
+            onApplyDiscount={async (disc, code) => {
+              setInternalDiscount(disc);
+              setInternalCoupon(code);
+              setIsInternalLotteryOpen(false);
+              toast.success(`🎉 ${disc}% Lucky Discount Applied! Promo: ${code}`);
+
+              if (conversation?.id) {
+                const origPrice = Number(conversation.project_price || project?.price || 0);
+                const discountedPrice = origPrice > 0 ? Math.round(origPrice * (1 - disc / 100)) : 0;
+                
+                const discountMsg = {
+                  id: `msg-${Date.now()}`,
+                  sender_id: user?.id || "user",
+                  sender_role: "user",
+                  sender_name: user?.user_metadata?.name || user?.email?.split("@")[0] || "Student",
+                  message: `🎟️ Applied Lucky Student Coupon: ${code} (${disc}% OFF) — Total: ₹${discountedPrice.toLocaleString('en-IN')}`,
+                  type: "coupon_applied",
+                  discount_percent: disc,
+                  coupon_code: code,
+                  original_price: origPrice,
+                  discounted_price: discountedPrice,
+                  created_at: new Date().toISOString()
+                };
+
+                const currentMsgs = Array.isArray(messages) ? messages : [];
+                const nextMsgs = [...currentMsgs, discountMsg];
+                setMessages(nextMsgs);
+                setConversation((prev: any) => prev ? {
+                  ...prev,
+                  applied_discount: disc,
+                  coupon_code: code,
+                  discounted_price: discountedPrice,
+                  messages: nextMsgs,
+                  last_message: discountMsg.message,
+                  last_message_at: discountMsg.created_at,
+                } : prev);
+
+                // 1. Peer-to-peer room broadcast (<30ms)
+                supabase.channel(`convo-room-${conversation.id}`).send({
+                  type: 'broadcast',
+                  event: 'chat_message',
+                  payload: discountMsg
+                }).catch(() => {});
+
+                // 2. Admin global inquiries broadcast (<30ms)
+                supabase.channel('admin-global-inquiries').send({
+                  type: 'broadcast',
+                  event: 'coupon_applied',
+                  payload: {
+                    conversation_id: conversation.id,
+                    applied_discount: disc,
+                    coupon_code: code,
+                    original_price: origPrice,
+                    discounted_price: discountedPrice,
+                    last_message: discountMsg.message,
+                    last_message_at: discountMsg.created_at,
+                    message: discountMsg
+                  }
+                }).catch(() => {});
+
+                // 3. Persist to Supabase database
+                let updatePayload: any = {
+                  applied_discount: disc,
+                  coupon_code: code,
+                  discounted_price: discountedPrice,
+                  messages: nextMsgs,
+                  last_message: discountMsg.message,
+                  last_message_at: discountMsg.created_at,
+                  updated_at: new Date().toISOString()
+                };
+
+                let { error } = await supabase
+                  .from('product_conversations')
+                  .update(updatePayload)
+                  .eq('id', conversation.id);
+
+                if (error && (error.message?.includes('applied_discount') || error.message?.includes('discounted_price'))) {
+                  delete updatePayload.applied_discount;
+                  delete updatePayload.coupon_code;
+                  delete updatePayload.discounted_price;
+                  await supabase
+                    .from('product_conversations')
+                    .update(updatePayload)
+                    .eq('id', conversation.id);
+                }
+              }
+            }}
+          />
+        );
+      })()}
     </Sheet>
   );
 }

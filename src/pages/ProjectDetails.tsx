@@ -8,7 +8,7 @@ import ProjectCard from "@/components/ProjectCard";
 import ProductChatDrawer from "@/components/ProductChatDrawer";
 import CyberConfirmDialog from "@/components/CyberConfirmDialog";
 import StudentLotteryTicketModal from "@/components/StudentLotteryTicketModal";
-import { getLotteryConfig, LotteryConfig, isLotteryActiveForConvo } from "@/lib/lotteryConfig";
+import { getLotteryConfig, LotteryConfig, isLotteryActiveForConvo, getConvoDiscountInfo, getConvoLotteryBounds } from "@/lib/lotteryConfig";
 import { Project } from "@/lib/mockData";
 import { supabase } from "@/lib/supabase";
 import { isUserAdmin, checkAdminStatus } from "@/lib/authUtils";
@@ -78,10 +78,90 @@ export default function ProjectDetails() {
     return () => window.removeEventListener("dukaan_lottery_config_changed", handleConfigChange);
   }, []);
 
-  const handleApplyDiscount = (discount: number, code: string) => {
+  const handleApplyDiscount = async (discount: number, code: string) => {
     setAppliedDiscount(discount);
     setAppliedCoupon(code);
     toast.success(`🎉 ${discount}% Lucky Discount Applied! Promo: ${code}`);
+
+    if (activeConvo?.id) {
+      const origPrice = Number(activeConvo.project_price || project?.price || 0);
+      const discountedPrice = origPrice > 0 ? Math.round(origPrice * (1 - discount / 100)) : 0;
+      
+      const discountMsg = {
+        id: `msg-${Date.now()}`,
+        sender_id: currentUser?.id || "user",
+        sender_role: "user",
+        sender_name: currentUser?.user_metadata?.name || currentUser?.email?.split("@")[0] || "Student",
+        message: `🎟️ Applied Lucky Student Coupon: ${code} (${discount}% OFF) — Total: ₹${discountedPrice.toLocaleString('en-IN')}`,
+        type: "coupon_applied",
+        discount_percent: discount,
+        coupon_code: code,
+        original_price: origPrice,
+        discounted_price: discountedPrice,
+        created_at: new Date().toISOString()
+      };
+
+      const currentMsgs = Array.isArray(activeConvo.messages) ? activeConvo.messages : [];
+      const nextMsgs = [...currentMsgs, discountMsg];
+      setActiveConvo((prev: any) => prev ? {
+        ...prev,
+        applied_discount: discount,
+        coupon_code: code,
+        discounted_price: discountedPrice,
+        messages: nextMsgs,
+        last_message: discountMsg.message,
+        last_message_at: discountMsg.created_at,
+      } : prev);
+
+      // 1. Room broadcast (<30ms)
+      supabase.channel(`convo-room-${activeConvo.id}`).send({
+        type: 'broadcast',
+        event: 'chat_message',
+        payload: discountMsg
+      }).catch(() => {});
+
+      // 2. Admin global inquiries broadcast (<30ms)
+      supabase.channel('admin-global-inquiries').send({
+        type: 'broadcast',
+        event: 'coupon_applied',
+        payload: {
+          conversation_id: activeConvo.id,
+          applied_discount: discount,
+          coupon_code: code,
+          original_price: origPrice,
+          discounted_price: discountedPrice,
+          last_message: discountMsg.message,
+          last_message_at: discountMsg.created_at,
+          message: discountMsg
+        }
+      }).catch(() => {});
+
+      // 3. Persist to DB
+      let updatePayload: any = {
+        applied_discount: discount,
+        coupon_code: code,
+        discounted_price: discountedPrice,
+        messages: nextMsgs,
+        last_message: discountMsg.message,
+        last_message_at: discountMsg.created_at,
+        updated_at: new Date().toISOString()
+      };
+
+      let { error } = await supabase
+        .from('product_conversations')
+        .update(updatePayload)
+        .eq('id', activeConvo.id);
+
+      if (error && (error.message?.includes('applied_discount') || error.message?.includes('discounted_price'))) {
+        delete updatePayload.applied_discount;
+        delete updatePayload.coupon_code;
+        delete updatePayload.discounted_price;
+        await supabase
+          .from('product_conversations')
+          .update(updatePayload)
+          .eq('id', activeConvo.id);
+      }
+    }
   };
 
   const finalPrice = project
@@ -1602,13 +1682,26 @@ export default function ProjectDetails() {
       />
 
       {/* Student Scratch Lottery Ticket Modal */}
-      <StudentLotteryTicketModal
-        isOpen={isLotteryModalOpen}
-        onClose={() => setIsLotteryModalOpen(false)}
-        projectTitle={project?.title || ""}
-        originalPrice={project?.price || 0}
-        onApplyDiscount={handleApplyDiscount}
-      />
+      {(() => {
+        const bounds = getConvoLotteryBounds(activeConvo, activeConvo?.messages);
+        const activeTicket = activeConvo?.messages
+          ?.slice()
+          .reverse()
+          .find((m: any) => m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"));
+
+        return (
+          <StudentLotteryTicketModal
+            isOpen={isLotteryModalOpen}
+            onClose={() => setIsLotteryModalOpen(false)}
+            projectTitle={project?.title || ""}
+            originalPrice={project?.price || 0}
+            minDiscount={bounds.minDiscount}
+            maxDiscount={bounds.maxDiscount}
+            ticketId={activeTicket?.ticket_id}
+            onApplyDiscount={handleApplyDiscount}
+          />
+        );
+      })()}
     </Layout>
   );
 }
