@@ -545,7 +545,7 @@ export default function ProductChatDrawer({
                 )}
 
                 {/* Individual Student Lottery Pass Banner */}
-                {(isLotteryUnlocked || Boolean(conversation?.lottery_unlocked || messages?.some((m) => m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]")))) && (
+                {Boolean(isLotteryUnlocked || conversation?.lottery_unlocked) && (
                   appliedDiscount && appliedDiscount > 0 ? (
                     <div className="mt-2 bg-emerald-950/60 border border-emerald-500/50 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-[11px] font-mono text-emerald-300">
                       <span className="flex items-center gap-1.5 truncate">
@@ -657,7 +657,7 @@ export default function ProductChatDrawer({
                                     PAY NOW
                                   </Button>
                                 </div>
-                              ) : (
+                              ) : Boolean(isLotteryUnlocked || conversation?.lottery_unlocked) ? (
                                 <Button
                                   onClick={() => onOpenLottery && onOpenLottery()}
                                   className="w-full h-11 rounded-lg bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-amber-950 font-black font-mono text-xs flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all cursor-pointer active:scale-98 retro-btn border border-amber-300"
@@ -665,6 +665,10 @@ export default function ProductChatDrawer({
                                   <Ticket className="w-4 h-4" />
                                   <span>[ 🎟️ SCRATCH YOUR LUCKY TICKET ]</span>
                                 </Button>
+                              ) : (
+                                <div className="p-2.5 rounded bg-slate-900/80 border border-slate-800 text-slate-400 text-xs font-mono text-center flex items-center justify-center gap-1.5">
+                                  <span>Ticket inactive / revoked by engineer</span>
+                                </div>
                               )}
                             </div>
                           </div>

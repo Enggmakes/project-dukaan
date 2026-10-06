@@ -103,10 +103,7 @@ export default function ProjectDetails() {
   const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
 
   // Student Scratch Lottery is strictly isolated per-user/conversation (unlocked only when engineer grants it)
-  const isLotteryUnlocked = Boolean(
-    activeConvo?.lottery_unlocked || 
-    activeConvo?.messages?.some((m: any) => m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"))
-  );
+  const isLotteryUnlocked = Boolean(activeConvo?.lottery_unlocked);
 
   // Check user ownership, admin status, and build inquiry permission
   useEffect(() => {

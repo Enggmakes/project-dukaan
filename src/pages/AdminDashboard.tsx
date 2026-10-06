@@ -2459,7 +2459,7 @@ export default function AdminDashboard() {
                                         }`}>
                                           {c.status === 'ready_to_purchase' ? 'ACCESS_GRANTED' : (c.status || 'active')}
                                         </span>
-                                        {(c.lottery_unlocked || c.messages?.some((m: any) => m.type === "lottery_ticket")) && (
+                                        {Boolean(c.lottery_unlocked) && (
                                           <span className="text-[9px] font-mono font-bold text-amber-300 bg-amber-950/80 border border-amber-500/40 px-1.5 py-0.5 rounded shadow-[0_0_6px_rgba(245,158,11,0.25)]">
                                             🎟️ RAFFLE
                                           </span>
@@ -2552,43 +2552,41 @@ export default function AdminDashboard() {
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleRevokePurchaseAccess(selectedConvo)}
-                                  className="h-8 text-xs font-mono border-emerald-500/50 bg-emerald-500/10 text-emerald-400 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/40 flex items-center gap-1.5 transition-all group"
+                                  className="h-8 text-xs font-mono border-emerald-500/50 bg-emerald-500/10 text-emerald-400 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/40 flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
                                   title="Customer has permission to purchase. Click to revoke."
                                 >
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 group-hover:hidden" />
-                                  <X className="w-3.5 h-3.5 text-rose-400 hidden group-hover:inline" />
-                                  <span className="group-hover:hidden font-bold">ACCESS_GRANTED</span>
-                                  <span className="hidden group-hover:inline">REVOKE_ACCESS</span>
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                  <span className="font-bold">ACCESS_GRANTED</span>
+                                  <span className="text-[10px] text-slate-400">(Revoke)</span>
                                 </Button>
                               ) : selectedConvo.status !== 'purchased' ? (
                                 <Button
                                   size="sm"
                                   onClick={() => handleGrantPurchaseAccess(selectedConvo)}
-                                  className="h-8 text-xs font-mono font-black bg-emerald-500 hover:bg-emerald-400 text-slate-950 border border-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.35)] flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                                  className="h-8 text-xs font-mono font-black bg-emerald-500 hover:bg-emerald-400 text-slate-950 border border-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.35)] flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
                                   title="Grant customer permission to buy this project"
                                 >
                                   <Key className="w-3.5 h-3.5" />
                                   <span>GRANT_BUY_ACCESS</span>
                                 </Button>
                               ) : (
-                                <Badge className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono text-[11px] h-8 px-2.5">
+                                <Badge className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono text-[11px] h-8 px-2.5 shrink-0">
                                   ✓ PURCHASED
                                 </Badge>
                               )}
 
                               {/* One-Click Individual Student Scratch Lottery Action */}
-                              {selectedConvo.lottery_unlocked || selectedConvo.messages?.some((m: any) => m.type === "lottery_ticket") ? (
+                              {Boolean(selectedConvo.lottery_unlocked) ? (
                                 <Button
                                   size="sm"
                                   variant="outline"
                                   onClick={() => handleRevokeLotteryAccess(selectedConvo)}
-                                  className="h-8 text-xs font-mono border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/40 flex items-center gap-1.5 transition-all group shrink-0"
+                                  className="h-8 text-xs font-mono border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/40 flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
                                   title="Student raffle ticket is active. Click to revoke."
                                 >
-                                  <Ticket className="w-3.5 h-3.5 text-amber-400 group-hover:hidden" />
-                                  <X className="w-3.5 h-3.5 text-rose-400 hidden group-hover:inline" />
-                                  <span className="group-hover:hidden font-bold">🎟️ TICKET_ACTIVE</span>
-                                  <span className="hidden group-hover:inline">REVOKE_TICKET</span>
+                                  <Ticket className="w-3.5 h-3.5 text-amber-400" />
+                                  <span className="font-bold">🎟️ TICKET_ACTIVE</span>
+                                  <span className="text-[10px] text-slate-400">(Revoke)</span>
                                 </Button>
                               ) : (
                                 <Button
@@ -2982,10 +2980,7 @@ export default function AdminDashboard() {
                         {conversations
                           .filter(c => c.status !== 'archived')
                           .map((convo) => {
-                            const isGranted = Boolean(
-                              convo.lottery_unlocked || 
-                              convo.messages?.some((m: any) => m.type === "lottery_ticket")
-                            );
+                            const isGranted = Boolean(convo.lottery_unlocked);
 
                             return (
                               <div
