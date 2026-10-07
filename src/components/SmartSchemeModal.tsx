@@ -276,11 +276,13 @@ export default function SmartSchemeModal({
 
   if (!isOpen && !isPreview) return null;
 
+  const hasMedia = config.mediaType !== "none" && Boolean(config.mediaUrl);
+
   const content = (
     <AnimatePresence>
       {(isOpen || isPreview) && (
         <div 
-          className="fixed inset-0 z-[99998] flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto"
+          className="fixed inset-0 z-[99998] flex items-center justify-center p-3 sm:p-5 md:p-6 overflow-y-auto"
           style={{ pointerEvents: "auto" }}
         >
           {/* Backdrop with dark vignette blur */}
@@ -299,21 +301,23 @@ export default function SmartSchemeModal({
             initial="initial"
             animate="animate"
             exit="exit"
-            className="relative w-full max-w-lg bg-[#070b16] border border-amber-500/40 rounded-xl shadow-[0_0_50px_rgba(245,158,11,0.25)] overflow-hidden z-10 flex flex-col my-auto text-slate-100"
+            className={`relative w-full ${
+              hasMedia ? "max-w-xl md:max-w-3xl" : "max-w-lg sm:max-w-xl"
+            } bg-[#080d1a]/95 backdrop-blur-2xl border border-amber-500/35 rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85),0_0_40px_rgba(245,158,11,0.12)] overflow-hidden z-10 flex flex-col my-auto text-slate-100`}
           >
-            {/* Top Scanning Line */}
+            {/* Top scanning accent line */}
             <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent animate-pulse" />
 
             {/* Header Toolbar */}
-            <div className="flex items-center justify-between px-4 py-3 bg-[#0a0f1d] border-b border-slate-800">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 bg-[#0a1020]/90 border-b border-slate-800/80">
               <div className="flex items-center gap-2 font-mono text-xs">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
                 <span className="text-amber-400 font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                  <Radio className="w-3.5 h-3.5 animate-pulse" />
-                  {config.badge || "SYSTEM_BROADCAST"}
+                  <Radio className="w-3.5 h-3.5 animate-pulse text-amber-400" />
+                  <span>{config.badge || "SPECIAL SCHEME"}</span>
                 </span>
                 {isPreview && (
-                  <span className="text-[9px] bg-amber-500/20 border border-amber-400/40 text-amber-300 px-1.5 py-0.2 rounded font-black">
+                  <span className="text-[9px] bg-amber-500/20 border border-amber-400/40 text-amber-300 px-1.5 py-0.5 rounded font-black font-mono">
                     ADMIN PREVIEW
                   </span>
                 )}
@@ -322,154 +326,265 @@ export default function SmartSchemeModal({
               <button
                 type="button"
                 onClick={handleClose}
-                className="w-7 h-7 rounded-md bg-slate-900 border border-slate-700/80 hover:border-rose-500 hover:text-rose-400 hover:bg-rose-950/30 text-slate-400 flex items-center justify-center transition-all cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-slate-900/80 border border-slate-700/80 hover:border-amber-400/80 hover:text-amber-300 text-slate-400 flex items-center justify-center transition-all cursor-pointer"
                 title="Close"
+                aria-label="Close modal"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Media Showcase (Video or Image) */}
-            {config.mediaType !== "none" && config.mediaUrl && (
-              <div className="relative w-full aspect-video bg-black/90 overflow-hidden border-b border-slate-800 flex items-center justify-center group">
-                {config.mediaType === "video" ? (
-                  <>
-                    <video
-                      ref={videoRef}
-                      src={config.mediaUrl}
-                      autoPlay={config.videoAutoplay}
-                      loop
-                      playsInline
-                      muted={isMuted}
-                      className="w-full h-full object-cover"
-                    />
-                    
-                    {/* Floating Audio Unmute/Mute Toggle */}
-                    <button
-                      type="button"
-                      onClick={() => setIsMuted(prev => !prev)}
-                      className="absolute bottom-3 right-3 px-2.5 py-1.5 rounded-lg bg-black/75 backdrop-blur-md border border-amber-500/50 hover:border-amber-400 text-amber-300 font-mono text-[10px] flex items-center gap-1.5 shadow-lg transition-all cursor-pointer z-10"
-                    >
-                      {isMuted ? (
-                        <>
-                          <VolumeX className="w-3.5 h-3.5 text-amber-400" />
-                          <span>UNMUTE AUDIO</span>
-                        </>
-                      ) : (
-                        <>
-                          <Volume2 className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                          <span>AUDIO LIVE</span>
-                        </>
-                      )}
-                    </button>
-                  </>
-                ) : (
-                  <img
-                    src={config.mediaUrl}
-                    alt={config.title}
-                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                  />
-                )}
-                
-                {/* Cyber Scanline Grid Overlay */}
-                <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-40" />
-              </div>
-            )}
-
-            {/* Main Content Body */}
-            <div className="p-4 sm:p-5 space-y-4">
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold font-mono text-white leading-tight flex items-start gap-2">
-                  <Sparkles className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-                  <span>{config.title}</span>
-                </h3>
-                {config.description && (
-                  <p className="text-xs sm:text-[13px] text-slate-300 font-mono mt-2 leading-relaxed">
-                    {config.description}
-                  </p>
-                )}
-              </div>
-
-              {/* Coupon Highlight Box (If coupon is provided) */}
-              {config.couponCode && (
-                <div className="p-3 rounded-lg bg-amber-950/30 border border-amber-500/40 flex items-center justify-between gap-3 font-mono">
-                  <div className="min-w-0">
-                    <span className="text-[10px] text-amber-400 block uppercase tracking-wider font-semibold flex items-center gap-1">
-                      <Percent className="w-3 h-3 text-amber-400" />
-                      {config.discountPercent > 0 ? `EXCLUSIVE ${config.discountPercent}% OFF VOUCHER` : "CLAIM PROMO CODE"}
-                    </span>
-                    <span className="text-sm sm:text-base font-black text-amber-300 tracking-wider">
-                      {config.couponCode}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleCopyCode}
-                    className="shrink-0 px-3 py-1.5 rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-black text-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm"
-                  >
-                    {copied ? (
+            {/* Body Content */}
+            {hasMedia ? (
+              /* Two-Column Layout When Media (Video/Image) is Present */
+              <div className="p-4 sm:p-6 md:grid md:grid-cols-12 md:gap-6 items-center">
+                {/* Media Showcase Column */}
+                <div className="md:col-span-5 mb-4 md:mb-0">
+                  <div className="relative w-full aspect-video md:aspect-[4/3] rounded-xl overflow-hidden border border-slate-800 bg-black flex items-center justify-center group shadow-md">
+                    {config.mediaType === "video" ? (
                       <>
-                        <Check className="w-3.5 h-3.5 text-amber-950" />
-                        <span>COPIED</span>
+                        <video
+                          ref={videoRef}
+                          src={config.mediaUrl}
+                          autoPlay={config.videoAutoplay}
+                          loop
+                          playsInline
+                          muted={isMuted}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setIsMuted(prev => !prev)}
+                          className="absolute bottom-2 right-2 px-2 py-1 rounded-md bg-black/80 backdrop-blur-md border border-amber-500/50 hover:border-amber-400 text-amber-300 font-mono text-[9px] flex items-center gap-1 transition-all cursor-pointer z-10"
+                        >
+                          {isMuted ? (
+                            <>
+                              <VolumeX className="w-3 h-3 text-amber-400" />
+                              <span>UNMUTE</span>
+                            </>
+                          ) : (
+                            <>
+                              <Volume2 className="w-3 h-3 text-emerald-400 animate-pulse" />
+                              <span>AUDIO ON</span>
+                            </>
+                          )}
+                        </button>
                       </>
                     ) : (
-                      <>
-                        <Copy className="w-3.5 h-3.5 text-amber-950" />
-                        <span>COPY</span>
-                      </>
+                      <img
+                        src={config.mediaUrl}
+                        alt={config.title}
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      />
                     )}
-                  </button>
+                  </div>
                 </div>
-              )}
 
-              {/* Action Buttons (Only shown if layoutMode === 'with_buttons') */}
-              {config.layoutMode === "with_buttons" && (
-                <div className="space-y-2 pt-1 font-mono">
-                  <button
-                    type="button"
-                    onClick={handleCtaClick}
-                    className="w-full h-11 rounded-lg bg-amber-500 hover:bg-amber-400 text-amber-950 font-black text-xs sm:text-sm tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all active:translate-y-0.5 cursor-pointer"
-                  >
-                    <span>{config.ctaText || "CLAIM SCHEME NOW"}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                {/* Content & Action Column */}
+                <div className="md:col-span-7 space-y-4">
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-bold font-mono text-white leading-snug">
+                      {config.title}
+                    </h2>
+                    {config.description && (
+                      <p className="text-xs sm:text-[13px] text-slate-300 font-sans mt-2 leading-relaxed">
+                        {config.description}
+                      </p>
+                    )}
+                  </div>
 
-                  {config.secondaryCtaText && (
-                    <button
-                      type="button"
-                      onClick={handleSecondaryCtaClick}
-                      className="w-full h-9 rounded-lg bg-slate-900/60 hover:bg-slate-800 text-slate-300 border border-slate-700/60 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                    >
-                      <span>{config.secondaryCtaText}</span>
-                    </button>
+                  {/* Coupon Box */}
+                  {config.couponCode && (
+                    <div className="p-3 rounded-xl bg-amber-950/25 border border-amber-500/30 flex items-center justify-between gap-3 font-mono">
+                      <div className="min-w-0">
+                        <span className="text-[10px] text-amber-400/90 block uppercase tracking-wider font-semibold flex items-center gap-1">
+                          <Percent className="w-3 h-3 text-amber-400" />
+                          {config.discountPercent > 0 ? `${config.discountPercent}% OFF VOUCHER` : "COUPON"}
+                        </span>
+                        <span className="text-base font-black text-amber-300 tracking-wider">
+                          {config.couponCode}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleCopyCode}
+                        className="shrink-0 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-amber-950 font-black text-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="w-3.5 h-3.5" />
+                            <span>COPIED</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>COPY</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  {config.layoutMode === "with_buttons" && (
+                    <div className="space-y-2 pt-1 font-mono">
+                      <button
+                        type="button"
+                        onClick={handleCtaClick}
+                        className="w-full h-11 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-xs sm:text-sm tracking-wide shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all active:translate-y-0.5 cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <span>{config.ctaText || "CLAIM SCHEME NOW"}</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+
+                      {config.secondaryCtaText && (
+                        <button
+                          type="button"
+                          onClick={handleSecondaryCtaClick}
+                          className="w-full py-1 text-center text-xs text-slate-400 hover:text-amber-300 transition-colors cursor-pointer"
+                        >
+                          {config.secondaryCtaText}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Footer Snooze */}
+                  {!isPreview && (
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[10px] font-mono text-slate-400">
+                      <label className="flex items-center gap-2 cursor-pointer hover:text-slate-300 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={dontShowAgain}
+                          onChange={(e) => setDontShowAgain(e.target.checked)}
+                          className="rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer w-3.5 h-3.5"
+                        />
+                        <span>Don't show again today</span>
+                      </label>
+
+                      <button
+                        type="button"
+                        onClick={handleClose}
+                        className="hover:text-amber-300 underline cursor-pointer"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
                   )}
                 </div>
-              )}
+              </div>
+            ) : (
+              /* High-End Clean VIP Pass Layout (Default - No Image Clutter) */
+              <div className="p-5 sm:p-7 space-y-5">
+                {/* Hero Badge & Heading */}
+                <div className="space-y-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs font-mono font-bold tracking-wider">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <span>{config.discountPercent > 0 ? `${config.discountPercent}% DISCOUNT BENEFIT` : "OFFICIAL SCHEME"}</span>
+                  </div>
 
-              {/* Footer controls: 24h snooze toggle */}
-              {!isPreview && (
-                <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[10px] font-mono text-slate-400">
-                  <label className="flex items-center gap-2 cursor-pointer hover:text-slate-300 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={dontShowAgain}
-                      onChange={(e) => setDontShowAgain(e.target.checked)}
-                      className="rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer w-3.5 h-3.5"
-                    />
-                    <span>Don't show again today</span>
-                  </label>
+                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-snug">
+                    {config.title}
+                  </h2>
 
-                  <button
-                    type="button"
-                    onClick={handleClose}
-                    className="hover:text-amber-300 underline cursor-pointer"
-                  >
-                    Dismiss
-                  </button>
+                  {config.description && (
+                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
+                      {config.description}
+                    </p>
+                  )}
                 </div>
-              )}
-            </div>
+
+                {/* Digital VIP Voucher Card with Perforated Edge Motif */}
+                {config.couponCode && (
+                  <div className="relative rounded-xl bg-[#0c1222] border border-amber-500/35 p-3.5 sm:p-4 overflow-hidden shadow-inner font-mono">
+                    {/* Left & Right ticket perforations */}
+                    <div className="absolute -left-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[#080d19] border-r border-amber-500/35" />
+                    <div className="absolute -right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[#080d19] border-l border-amber-500/35" />
+                    
+                    <div className="flex items-center justify-between gap-3 pl-3 pr-3">
+                      <div>
+                        <div className="text-[10px] uppercase font-bold text-amber-400/90 tracking-wider flex items-center gap-1.5">
+                          <Tag className="w-3 h-3 text-amber-400" />
+                          <span>VERIFIED VOUCHER CODE</span>
+                        </div>
+                        <div className="text-lg sm:text-2xl font-black text-amber-300 tracking-widest mt-0.5">
+                          {config.couponCode}
+                        </div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">
+                          Auto-applied or copy to checkout
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleCopyCode}
+                        className="px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs font-mono flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-md shrink-0"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="w-3.5 h-3.5" />
+                            <span>COPIED</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>COPY CODE</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* CTA Action Buttons */}
+                {config.layoutMode === "with_buttons" && (
+                  <div className="space-y-2.5 pt-1 font-mono">
+                    <button
+                      type="button"
+                      onClick={handleCtaClick}
+                      className="w-full h-12 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-xs sm:text-sm tracking-wide shadow-[0_0_25px_rgba(245,158,11,0.35)] hover:shadow-[0_0_35px_rgba(245,158,11,0.5)] transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <span>{config.ctaText || "CLAIM SCHEME NOW"}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+
+                    {config.secondaryCtaText && (
+                      <button
+                        type="button"
+                        onClick={handleSecondaryCtaClick}
+                        className="w-full py-1 text-center text-xs text-slate-400 hover:text-amber-300 transition-colors cursor-pointer"
+                      >
+                        {config.secondaryCtaText}
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Footer Snooze Controls */}
+                {!isPreview && (
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-800/80 text-[11px] font-mono text-slate-400">
+                    <label className="flex items-center gap-2 cursor-pointer hover:text-slate-300 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={dontShowAgain}
+                        onChange={(e) => setDontShowAgain(e.target.checked)}
+                        className="rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer w-3.5 h-3.5"
+                      />
+                      <span>Don't show again today</span>
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={handleClose}
+                      className="hover:text-amber-300 transition-colors cursor-pointer"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </motion.div>
         </div>
       )}

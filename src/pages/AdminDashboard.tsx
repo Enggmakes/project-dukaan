@@ -179,11 +179,11 @@ export default function AdminDashboard() {
         description: "Register a free account to unlock verified Flutter, AI & IoT codebases, IEEE synopses, and live consultation with lead project engineers.",
         couponCode: "STUDENT2026",
         discountPercent: 25,
-        mediaType: "image",
-        mediaUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=900&auto=format&fit=crop&q=80",
+        mediaType: "none",
+        mediaUrl: "",
         audience: "guests_only",
         layoutMode: "with_buttons",
-        animation: "cyber_glitch",
+        animation: "smooth_fade",
         ctaText: "CREATE ACCOUNT & CLAIM 25% OFF",
         ctaLink: "/login",
         secondaryCtaText: "EXPLORE BLUEPRINTS",
@@ -215,11 +215,11 @@ export default function AdminDashboard() {
         description: "Submit your problem statement or custom hardware kit requirements. Engineering team allocates hardware components and drafts synopsis within 24 hours.",
         couponCode: "IEEE2026",
         discountPercent: 15,
-        mediaType: "image",
-        mediaUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=900&auto=format&fit=crop&q=80",
+        mediaType: "none",
+        mediaUrl: "",
         audience: "authenticated_only",
         layoutMode: "with_buttons",
-        animation: "terminal_boot",
+        animation: "smooth_fade",
         ctaText: "SUBMIT CUSTOM BUILD INQUIRY",
         ctaLink: "/custom-request",
         secondaryCtaText: "VIEW MARKETPLACE",
@@ -4047,16 +4047,16 @@ export default function AdminDashboard() {
 
                           {/* Coupon pill */}
                           {popupConfig.couponCode && (
-                            <div className="p-2 rounded bg-amber-950/40 border border-amber-500/40 flex items-center justify-between text-[11px]">
+                            <div className="p-2.5 rounded-lg bg-[#0c1222] border border-amber-500/35 flex items-center justify-between text-[11px] font-mono">
                               <div>
-                                <span className="text-[9px] text-amber-400 block uppercase">
+                                <span className="text-[9px] text-amber-400/90 block uppercase font-bold">
                                   {popupConfig.discountPercent > 0 ? `${popupConfig.discountPercent}% OFF VOUCHER` : "COUPON"}
                                 </span>
                                 <span className="font-bold text-amber-300 tracking-wider">
                                   {popupConfig.couponCode}
                                 </span>
                               </div>
-                              <span className="text-[9px] px-2 py-0.5 rounded bg-amber-500 text-amber-950 font-bold">
+                              <span className="text-[9px] px-2 py-0.5 rounded bg-amber-500 text-slate-950 font-bold">
                                 COPY
                               </span>
                             </div>
@@ -4065,11 +4065,11 @@ export default function AdminDashboard() {
                           {/* Buttons */}
                           {popupConfig.layoutMode === "with_buttons" && (
                             <div className="space-y-1.5 pt-1">
-                              <div className="w-full py-2 rounded bg-amber-500 text-amber-950 font-black text-center text-[11px] shadow-sm">
+                              <div className="w-full py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-black text-center text-[11px] shadow-sm">
                                 {popupConfig.ctaText || "CLAIM SCHEME NOW"} →
                               </div>
                               {popupConfig.secondaryCtaText && (
-                                <div className="w-full py-1.5 rounded bg-slate-900 border border-slate-800 text-slate-300 text-center text-[10px]">
+                                <div className="w-full text-center text-slate-400 text-[10px] py-0.5">
                                   {popupConfig.secondaryCtaText}
                                 </div>
                               )}

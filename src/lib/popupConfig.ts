@@ -38,11 +38,11 @@ export const DEFAULT_POPUP_CONFIG: PopupConfig = {
   description: "Register a free account to unlock verified Flutter, AI & IoT codebases, IEEE synopses, and live consultation with lead project engineers.",
   couponCode: "STUDENT2026",
   discountPercent: 25,
-  mediaType: "image",
-  mediaUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=900&auto=format&fit=crop&q=80",
+  mediaType: "none",
+  mediaUrl: "",
   videoAutoplay: true,
   videoMuted: true,
-  animation: "cyber_glitch",
+  animation: "smooth_fade",
   layoutMode: "with_buttons",
   ctaText: "CREATE ACCOUNT & CLAIM 25% OFF",
   ctaLink: "/login",
@@ -118,6 +118,12 @@ export function getPopupConfig(): PopupConfig {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
+      // Migrate legacy default matrix image away
+      if (parsed.mediaUrl && parsed.mediaUrl.includes("photo-1526374965328-7f61d4dc18c5")) {
+        parsed.mediaType = "none";
+        parsed.mediaUrl = "";
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...DEFAULT_POPUP_CONFIG, ...parsed }));
+      }
       return {
         ...DEFAULT_POPUP_CONFIG,
         ...parsed,

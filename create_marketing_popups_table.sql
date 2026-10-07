@@ -12,11 +12,11 @@ CREATE TABLE IF NOT EXISTS public.marketing_popups (
     description TEXT DEFAULT 'Register a free account to unlock verified Flutter, AI & IoT codebases, IEEE synopses, and live consultation with lead project engineers.',
     coupon_code TEXT DEFAULT 'STUDENT2026',
     discount_percent NUMERIC DEFAULT 25,
-    media_type TEXT DEFAULT 'image', -- 'none', 'image', 'video'
-    media_url TEXT DEFAULT 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=900&auto=format&fit=crop&q=80',
+    media_type TEXT DEFAULT 'none', -- 'none', 'image', 'video'
+    media_url TEXT DEFAULT '',
     video_autoplay BOOLEAN DEFAULT TRUE,
     video_muted BOOLEAN DEFAULT TRUE,
-    animation TEXT DEFAULT 'cyber_glitch', -- 'cyber_glitch', 'hologram_pulse', 'terminal_boot', 'smooth_fade'
+    animation TEXT DEFAULT 'smooth_fade', -- 'cyber_glitch', 'hologram_pulse', 'terminal_boot', 'smooth_fade'
     layout_mode TEXT DEFAULT 'with_buttons', -- 'with_buttons', 'no_buttons_pure_media'
     cta_text TEXT DEFAULT 'CREATE ACCOUNT & CLAIM 25% OFF',
     cta_link TEXT DEFAULT '/login',
@@ -73,12 +73,15 @@ VALUES (
     'Register a free account to unlock verified Flutter, AI & IoT codebases, IEEE synopses, and live consultation with lead project engineers.',
     'STUDENT2026',
     25,
-    'image',
-    'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=900&auto=format&fit=crop&q=80',
-    'cyber_glitch',
+    'none',
+    '',
+    'smooth_fade',
     'with_buttons',
     'CREATE ACCOUNT & CLAIM 25% OFF',
     '/login',
     'EXPLORE BLUEPRINTS',
     '/marketplace'
-) ON CONFLICT (id) DO NOTHING;
+) ON CONFLICT (id) DO UPDATE SET
+    media_type = EXCLUDED.media_type,
+    media_url = EXCLUDED.media_url,
+    animation = EXCLUDED.animation;
