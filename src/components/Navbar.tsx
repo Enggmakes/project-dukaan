@@ -13,7 +13,9 @@ import {
   ArrowUpRight,
   MoreHorizontal,
   X,
-  Heart
+  Heart,
+  ArrowLeft,
+  Menu
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -88,6 +90,7 @@ export default function Navbar() {
 
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const isProjectDetail = pathname.startsWith("/project/");
 
   const handleLogout = async () => {
     cachedUser = null;
@@ -323,18 +326,36 @@ export default function Navbar() {
       {/* ========================================================================= */}
       {/* 2. MOBILE TOP HEADER (Dark Retro Workstation Brand Bar)                   */}
       {/* ========================================================================= */}
-      <header className="sticky top-0 z-40 flex md:hidden items-center justify-between px-4 py-2.5 bg-[#070a12]/95 backdrop-blur-md border-b border-slate-800 shadow-md">
-        <Link to="/" className="flex items-center gap-2 select-none">
-          <div className="relative">
-            <img src="/logo-white.png" alt="ProjectDukaan" className="w-7 h-7 object-contain" />
-            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] animate-pulse" />
-          </div>
-          <span className="font-extrabold text-white tracking-tight text-base font-mono">
-            Project<span className="text-amber-400">Dukaan</span>
-          </span>
-        </Link>
+      <header className="sticky top-0 z-40 flex md:hidden items-center justify-between px-3.5 py-2.5 bg-[#070a12]/95 backdrop-blur-md border-b border-slate-800 shadow-md">
+        <div className="flex items-center gap-2 min-w-0">
+          {isProjectDetail && (
+            <button
+              onClick={() => {
+                if (window.history.state && window.history.state.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate("/marketplace");
+                }
+              }}
+              className="p-1 -ml-1 text-slate-300 hover:text-amber-400 active:scale-95 transition-all cursor-pointer rounded flex items-center justify-center shrink-0"
+              title="Back to Catalog"
+              aria-label="Back to Catalog"
+            >
+              <ArrowLeft className="w-5 h-5 text-amber-400" />
+            </button>
+          )}
+          <Link to="/" className="flex items-center gap-2 select-none min-w-0">
+            <div className="relative shrink-0">
+              <img src="/logo-white.png" alt="ProjectDukaan" className="w-7 h-7 object-contain" />
+              <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] animate-pulse" />
+            </div>
+            <span className="font-extrabold text-white tracking-tight text-base font-mono truncate">
+              Project<span className="text-amber-400">Dukaan</span>
+            </span>
+          </Link>
+        </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Link to="/wishlist" className="relative p-1.5 text-slate-400 hover:text-amber-400" title="Wishlist">
             <Heart className="w-4 h-4" />
             {wishlistCount > 0 && (
@@ -350,12 +371,23 @@ export default function Navbar() {
             </Link>
           ) : (
             <Link 
-              to="/login"
-              className="retro-btn bg-amber-500 hover:bg-amber-400 active:translate-y-0.5 text-amber-950 font-mono font-black text-xs px-3 py-1.5 rounded border border-amber-300 shadow-[0_2px_0_#92400e] flex items-center gap-1.5"
+              to="/login" 
+              className="retro-btn bg-amber-500 hover:bg-amber-400 active:translate-y-0.5 text-amber-950 font-mono font-black text-xs px-2.5 py-1.5 rounded border border-amber-300 shadow-[0_2px_0_#92400e] flex items-center gap-1"
             >
               <User className="w-3.5 h-3.5 text-amber-950" />
               <span>SIGN IN</span>
             </Link>
+          )}
+
+          {isProjectDetail && (
+            <button 
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-1.5 text-slate-400 hover:text-slate-200 active:scale-95 transition-all cursor-pointer rounded"
+              title="Open Navigation Menu"
+              aria-label="Open Navigation Menu"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
           )}
         </div>
       </header>
@@ -363,111 +395,113 @@ export default function Navbar() {
       {/* ========================================================================= */}
       {/* 3. MOBILE BOTTOM FLOATING DOCK (Loved by user)                             */}
       {/* ========================================================================= */}
-      <div className="fixed bottom-3.5 inset-x-0 z-50 flex md:hidden justify-center pointer-events-none px-4">
-        <nav className="pointer-events-auto w-full max-w-[400px] bg-slate-950/95 text-white border border-slate-800/80 rounded-2xl px-3 py-2 shadow-2xl flex items-center justify-between backdrop-blur-md">
-          
-          {/* Tab 1: Home */}
-          <NavLink 
-            to="/" 
-            end
-            className={({ isActive }) => cn(
-              "flex flex-col items-center justify-center flex-1 py-1 transition-all rounded-xl relative cursor-pointer",
-              isActive ? "text-white font-bold" : "text-slate-400 hover:text-slate-200"
-            )}
-          >
-            {({ isActive }) => (
-              <>
-                <Home className="w-4 h-4 mb-0.5" />
-                <span className="text-[10px] font-medium tracking-tight">Home</span>
-                {isActive && (
-                  <motion.div 
-                    layoutId="mobile-bottom-dot" 
-                    className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-0.5" 
-                  />
-                )}
-              </>
-            )}
-          </NavLink>
+      {!isProjectDetail && (
+        <div className="fixed bottom-3.5 inset-x-0 z-50 flex md:hidden justify-center pointer-events-none px-4">
+          <nav className="pointer-events-auto w-full max-w-[400px] bg-slate-950/95 text-white border border-slate-800/80 rounded-2xl px-3 py-2 shadow-2xl flex items-center justify-between backdrop-blur-md">
+            
+            {/* Tab 1: Home */}
+            <NavLink 
+              to="/" 
+              end
+              className={({ isActive }) => cn(
+                "flex flex-col items-center justify-center flex-1 py-1 transition-all rounded-xl relative cursor-pointer",
+                isActive ? "text-white font-bold" : "text-slate-400 hover:text-slate-200"
+              )}
+            >
+              {({ isActive }) => (
+                <>
+                  <Home className="w-4 h-4 mb-0.5" />
+                  <span className="text-[10px] font-medium tracking-tight">Home</span>
+                  {isActive && (
+                    <motion.div 
+                      layoutId="mobile-bottom-dot" 
+                      className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-0.5" 
+                    />
+                  )}
+                </>
+              )}
+            </NavLink>
 
-          {/* Tab 2: Marketplace */}
-          <NavLink 
-            to="/marketplace" 
-            className={({ isActive }) => cn(
-              "flex flex-col items-center justify-center flex-1 py-1 transition-all rounded-xl relative cursor-pointer",
-              isActive ? "text-white font-bold" : "text-slate-400 hover:text-slate-200"
-            )}
-          >
-            {({ isActive }) => (
-              <>
-                <ShoppingBag className="w-4 h-4 mb-0.5" />
-                <span className="text-[10px] font-medium tracking-tight">Shop</span>
-                {isActive && (
-                  <motion.div 
-                    layoutId="mobile-bottom-dot" 
-                    className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-0.5" 
-                  />
-                )}
-              </>
-            )}
-          </NavLink>
+            {/* Tab 2: Marketplace */}
+            <NavLink 
+              to="/marketplace" 
+              className={({ isActive }) => cn(
+                "flex flex-col items-center justify-center flex-1 py-1 transition-all rounded-xl relative cursor-pointer",
+                isActive ? "text-white font-bold" : "text-slate-400 hover:text-slate-200"
+              )}
+            >
+              {({ isActive }) => (
+                <>
+                  <ShoppingBag className="w-4 h-4 mb-0.5" />
+                  <span className="text-[10px] font-medium tracking-tight">Shop</span>
+                  {isActive && (
+                    <motion.div 
+                      layoutId="mobile-bottom-dot" 
+                      className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-0.5" 
+                    />
+                  )}
+                </>
+              )}
+            </NavLink>
 
-          {/* Tab 3: Elevated Center Custom Build Capsule */}
-          <NavLink 
-            to="/custom-request" 
-            className="flex flex-col items-center justify-center flex-1 relative -mt-6 group cursor-pointer"
-          >
-            {({ isActive }) => (
-              <>
-                <div className={cn(
-                  "w-11 h-11 rounded-xl grid place-items-center transition-all shadow-md border-2 border-slate-950",
-                  isActive 
-                    ? "bg-white text-blue-600 shadow-blue-500/25 scale-105" 
-                    : "bg-blue-600 text-white shadow-blue-600/25 hover:scale-105 active:scale-95"
-                )}>
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <span className={cn(
-                  "text-[9px] font-bold mt-0.5 tracking-tight",
-                  isActive ? "text-blue-400" : "text-slate-300"
-                )}>
-                  Custom
-                </span>
-              </>
-            )}
-          </NavLink>
+            {/* Tab 3: Elevated Center Custom Build Capsule */}
+            <NavLink 
+              to="/custom-request" 
+              className="flex flex-col items-center justify-center flex-1 relative -mt-6 group cursor-pointer"
+            >
+              {({ isActive }) => (
+                <>
+                  <div className={cn(
+                    "w-11 h-11 rounded-xl grid place-items-center transition-all shadow-md border-2 border-slate-950",
+                    isActive 
+                      ? "bg-white text-blue-600 shadow-blue-500/25 scale-105" 
+                      : "bg-blue-600 text-white shadow-blue-600/25 hover:scale-105 active:scale-95"
+                  )}>
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <span className={cn(
+                    "text-[9px] font-bold mt-0.5 tracking-tight",
+                    isActive ? "text-blue-400" : "text-slate-300"
+                  )}>
+                    Custom
+                  </span>
+                </>
+              )}
+            </NavLink>
 
-          {/* Tab 4: Contact / Help */}
-          <NavLink 
-            to="/contact" 
-            className={({ isActive }) => cn(
-              "flex flex-col items-center justify-center flex-1 py-1 transition-all rounded-xl relative cursor-pointer",
-              isActive ? "text-white font-bold" : "text-slate-400 hover:text-slate-200"
-            )}
-          >
-            {({ isActive }) => (
-              <>
-                <MessageSquare className="w-4 h-4 mb-0.5" />
-                <span className="text-[10px] font-medium tracking-tight">Help</span>
-                {isActive && (
-                  <motion.div 
-                    layoutId="mobile-bottom-dot" 
-                    className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-0.5" 
-                  />
-                )}
-              </>
-            )}
-          </NavLink>
+            {/* Tab 4: Contact / Help */}
+            <NavLink 
+              to="/contact" 
+              className={({ isActive }) => cn(
+                "flex flex-col items-center justify-center flex-1 py-1 transition-all rounded-xl relative cursor-pointer",
+                isActive ? "text-white font-bold" : "text-slate-400 hover:text-slate-200"
+              )}
+            >
+              {({ isActive }) => (
+                <>
+                  <MessageSquare className="w-4 h-4 mb-0.5" />
+                  <span className="text-[10px] font-medium tracking-tight">Help</span>
+                  {isActive && (
+                    <motion.div 
+                      layoutId="mobile-bottom-dot" 
+                      className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-0.5" 
+                    />
+                  )}
+                </>
+              )}
+            </NavLink>
 
-          {/* Tab 5: More Drawer Toggle */}
-          <button 
-            onClick={() => setMobileMenuOpen(true)}
-            className="flex flex-col items-center justify-center flex-1 py-1 transition-all text-slate-400 hover:text-slate-200 cursor-pointer"
-          >
-            <MoreHorizontal className="w-4 h-4 mb-0.5" />
-            <span className="text-[10px] font-medium tracking-tight">More</span>
-          </button>
-        </nav>
-      </div>
+            {/* Tab 5: More Drawer Toggle */}
+            <button 
+              onClick={() => setMobileMenuOpen(true)}
+              className="flex flex-col items-center justify-center flex-1 py-1 transition-all text-slate-400 hover:text-slate-200 cursor-pointer"
+            >
+              <MoreHorizontal className="w-4 h-4 mb-0.5" />
+              <span className="text-[10px] font-medium tracking-tight">More</span>
+            </button>
+          </nav>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* 4. MOBILE SLIDE-UP SHEET FOR SECONDARY LINKS & AUTH                       */}

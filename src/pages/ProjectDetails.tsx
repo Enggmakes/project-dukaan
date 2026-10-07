@@ -1234,20 +1234,22 @@ export default function ProjectDetails() {
       </div>
 
       {/* Mobile Sticky Thumb-Zone Action Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#070a12]/95 backdrop-blur-md border-t border-slate-800 p-3 px-4 shadow-[0_-4px_24px_rgba(0,0,0,0.8)] flex items-center justify-between gap-3">
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-[#070a12]/95 backdrop-blur-md border-t border-slate-800 p-3 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_24px_rgba(0,0,0,0.8)] flex items-center justify-between gap-3 touch-manipulation">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] text-slate-400 font-mono uppercase truncate">
+          <div className="text-[11px] text-slate-300 font-mono font-medium uppercase truncate">
             {project.title}
           </div>
-          <div className="flex items-center gap-1.5 font-mono">
+          <div className="flex items-center gap-1.5 font-mono mt-0.5">
             {appliedDiscount > 0 ? (
               <>
                 <span className="line-through text-slate-500 text-xs">₹{project.price.toLocaleString()}</span>
-                <span className="text-emerald-400 font-bold text-base">₹{finalPrice.toLocaleString()}</span>
-                <span className="text-[10px] text-emerald-400 font-bold">({appliedDiscount}% OFF)</span>
+                <span className="text-emerald-400 font-black text-base sm:text-lg">₹{finalPrice.toLocaleString()}</span>
+                <span className="text-[10px] text-emerald-400 font-bold bg-emerald-950/60 border border-emerald-500/30 px-1.5 py-0.2 rounded">
+                  {appliedDiscount}% OFF
+                </span>
               </>
             ) : (
-              <span className="text-amber-400 font-black text-base">₹{project.price.toLocaleString()}</span>
+              <span className="text-amber-400 font-black text-base sm:text-lg">₹{project.price.toLocaleString()}</span>
             )}
           </div>
         </div>
@@ -1257,8 +1259,9 @@ export default function ProjectDetails() {
             <button
               type="button"
               onClick={() => setIsLotteryModalOpen(true)}
-              className="p-2.5 rounded-lg bg-amber-500/20 border border-amber-500/50 text-amber-300 text-xs font-mono flex items-center justify-center cursor-pointer hover:bg-amber-500/30 transition-colors"
+              className="p-2.5 rounded-lg bg-amber-500/20 border border-amber-500/50 text-amber-300 text-xs font-mono flex items-center justify-center cursor-pointer hover:bg-amber-500/30 active:scale-95 transition-all"
               title="Scratch Lucky Ticket"
+              aria-label="Scratch Lucky Ticket"
             >
               <Ticket className="w-4 h-4 text-amber-400" />
             </button>
@@ -1267,7 +1270,7 @@ export default function ProjectDetails() {
           {isOwned ? (
             <Button
               onClick={handleDownload}
-              className="rounded bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-mono font-black text-xs h-10 px-4 flex items-center gap-1.5 shadow-md active:translate-y-0.5"
+              className="rounded bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-mono font-black text-xs h-10 px-4 flex items-center gap-1.5 shadow-md active:translate-y-0.5 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>DOWNLOAD</span>
@@ -1275,7 +1278,7 @@ export default function ProjectDetails() {
           ) : convoStatus === "ready_to_purchase" ? (
             <Button
               onClick={handlePurchaseClick}
-              className="rounded bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-mono font-black text-xs h-10 px-4 flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.3)] active:translate-y-0.5"
+              className="rounded bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-mono font-black text-xs h-10 px-4 flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.3)] active:translate-y-0.5 cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5" />
               <span>BUY NOW</span>
@@ -1283,7 +1286,7 @@ export default function ProjectDetails() {
           ) : convoStatus === "active" ? (
             <Button
               onClick={() => setIsChatDrawerOpen(true)}
-              className="rounded bg-cyan-500 hover:bg-cyan-400 text-cyan-950 font-mono font-black text-xs h-10 px-4 flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.3)] active:translate-y-0.5"
+              className="rounded bg-cyan-500 hover:bg-cyan-400 text-cyan-950 font-mono font-black text-xs h-10 px-4 flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.3)] active:translate-y-0.5 cursor-pointer"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>LIVE CHAT</span>
@@ -1292,7 +1295,7 @@ export default function ProjectDetails() {
             <Button
               onClick={handleRequestBuildClick}
               disabled={isRequestingBuild}
-              className="rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-mono font-black text-xs h-10 px-4 flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.25)] active:translate-y-0.5"
+              className="rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-mono font-black text-xs h-10 px-4 flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.25)] active:translate-y-0.5 cursor-pointer"
             >
               <Bot className="w-3.5 h-3.5" />
               <span>{isRequestingBuild ? "REQUESTING..." : "REQUEST BUILD"}</span>
