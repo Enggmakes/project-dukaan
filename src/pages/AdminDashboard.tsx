@@ -7,7 +7,7 @@ import {
   Send, Sparkles, CheckCircle2, Clock, User, Filter, Archive, ArrowLeft, FolderGit2, 
   HardDrive, Video, FileText, FileCode, PackageCheck, Copy, Menu, X, SlidersHorizontal, 
   Terminal, Shield, ArrowUpRight, BarChart3, Inbox, FileSpreadsheet, Check, Key, Ticket, Zap, Gift,
-  Radio, Megaphone, Volume2, VolumeX, Eye
+  Radio, Megaphone, Volume2, VolumeX, Eye, GraduationCap, Rocket
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import CyberConfirmDialog from "@/components/CyberConfirmDialog";
@@ -161,7 +161,7 @@ export default function AdminDashboard() {
     try {
       const ok = await broadcastPopupLive(popupConfig);
       if (ok) {
-        toast.success("⚡ Live broadcast dispatched! All online visitors will see this popup immediately.", { id: toastId });
+        toast.success("Live broadcast dispatched! All online visitors will see this popup immediately.", { id: toastId });
       } else {
         toast.error("Failed to dispatch live broadcast.", { id: toastId });
       }
@@ -3629,8 +3629,9 @@ export default function AdminDashboard() {
                         onClick={() => applyPresetTemplate("welcome")}
                         className="p-2.5 rounded-lg bg-[#0d1322] border border-amber-500/30 hover:border-amber-400 text-left font-mono transition-all group cursor-pointer"
                       >
-                        <div className="text-xs font-bold text-amber-300 flex items-center justify-between">
-                          <span>🎓 Student 25% Off</span>
+                        <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                          <GraduationCap className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Student 25% Off</span>
                         </div>
                         <span className="text-[10px] text-slate-400 mt-1 block">Guests / Not Signed Up</span>
                       </button>
@@ -3640,8 +3641,9 @@ export default function AdminDashboard() {
                         onClick={() => applyPresetTemplate("video_autoplay")}
                         className="p-2.5 rounded-lg bg-[#0d1322] border border-cyan-500/30 hover:border-cyan-400 text-left font-mono transition-all group cursor-pointer"
                       >
-                        <div className="text-xs font-bold text-cyan-300 flex items-center justify-between">
-                          <span>🎥 Video Lab Showcase</span>
+                        <div className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                          <Video className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>Video Lab Showcase</span>
                         </div>
                         <span className="text-[10px] text-slate-400 mt-1 block">Autoplay · No Buttons</span>
                       </button>
@@ -3651,8 +3653,9 @@ export default function AdminDashboard() {
                         onClick={() => applyPresetTemplate("custom_2026")}
                         className="p-2.5 rounded-lg bg-[#0d1322] border border-emerald-500/30 hover:border-emerald-400 text-left font-mono transition-all group cursor-pointer"
                       >
-                        <div className="text-xs font-bold text-emerald-300 flex items-center justify-between">
-                          <span>🚀 Batch 2026 Drop</span>
+                        <div className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                          <Rocket className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>Batch 2026 Drop</span>
                         </div>
                         <span className="text-[10px] text-slate-400 mt-1 block">Signed-In Members</span>
                       </button>
@@ -3662,8 +3665,9 @@ export default function AdminDashboard() {
                         onClick={() => applyPresetTemplate("alert")}
                         className="p-2.5 rounded-lg bg-[#0d1322] border border-rose-500/30 hover:border-rose-400 text-left font-mono transition-all group cursor-pointer"
                       >
-                        <div className="text-xs font-bold text-rose-300 flex items-center justify-between">
-                          <span>⚡ System Alert</span>
+                        <div className="text-xs font-bold text-rose-300 flex items-center gap-1.5">
+                          <Zap className="w-3.5 h-3.5 text-rose-400" />
+                          <span>System Alert</span>
                         </div>
                         <span className="text-[10px] text-slate-400 mt-1 block">Urgent Announcement</span>
                       </button>
@@ -3963,7 +3967,7 @@ export default function AdminDashboard() {
                           className="bg-cyan-500 hover:bg-cyan-400 text-cyan-950 font-mono font-black text-xs h-11 px-6 shadow-[0_0_20px_rgba(6,182,212,0.35)] cursor-pointer border-0 disabled:opacity-50"
                         >
                           <Radio className="w-4 h-4 mr-1.5 animate-pulse" />
-                          {isBroadcastingPopup ? "BROADCASTING..." : "⚡ PUSH_LIVE_TO_ALL_USERS_NOW"}
+                          {isBroadcastingPopup ? "BROADCASTING..." : "PUSH_LIVE_TO_ALL_USERS_NOW"}
                         </Button>
 
                         <Button
@@ -4001,8 +4005,8 @@ export default function AdminDashboard() {
                             <Radio className="w-3 h-3 animate-pulse" />
                             <span>{popupConfig.badge || "SYSTEM_BROADCAST"}</span>
                           </div>
-                          <div className="w-4 h-4 rounded bg-slate-800 flex items-center justify-center text-slate-400 text-[9px]">
-                            ✕
+                          <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center text-slate-400">
+                            <X className="w-3 h-3 text-slate-400" />
                           </div>
                         </div>
 

@@ -30,7 +30,7 @@ export interface PopupConfig {
 }
 
 export const DEFAULT_POPUP_CONFIG: PopupConfig = {
-  id: "scheme-welcome-v1",
+  id: "default-scheme",
   enabled: true,
   audience: "guests_only",
   badge: "STUDENT CAPSTONE INCENTIVE",
@@ -56,6 +56,62 @@ export const DEFAULT_POPUP_CONFIG: PopupConfig = {
 const STORAGE_KEY = "dukaan_smart_popup_config";
 const SNOOZE_KEY = "dukaan_popup_snooze_until";
 
+export function dbToConfig(row: any): PopupConfig {
+  if (!row) return DEFAULT_POPUP_CONFIG;
+  return {
+    id: row.id || DEFAULT_POPUP_CONFIG.id,
+    enabled: typeof row.enabled === "boolean" ? row.enabled : DEFAULT_POPUP_CONFIG.enabled,
+    audience: (row.audience as PopupAudience) || DEFAULT_POPUP_CONFIG.audience,
+    badge: row.badge || DEFAULT_POPUP_CONFIG.badge,
+    title: row.title || DEFAULT_POPUP_CONFIG.title,
+    description: row.description || DEFAULT_POPUP_CONFIG.description,
+    couponCode: row.coupon_code ?? row.couponCode ?? DEFAULT_POPUP_CONFIG.couponCode,
+    discountPercent: Number(row.discount_percent ?? row.discountPercent ?? DEFAULT_POPUP_CONFIG.discountPercent),
+    mediaType: (row.media_type as PopupMediaType) || (row.mediaType as PopupMediaType) || DEFAULT_POPUP_CONFIG.mediaType,
+    mediaUrl: row.media_url ?? row.mediaUrl ?? DEFAULT_POPUP_CONFIG.mediaUrl,
+    videoAutoplay: typeof row.video_autoplay === "boolean" ? row.video_autoplay : (typeof row.videoAutoplay === "boolean" ? row.videoAutoplay : true),
+    videoMuted: typeof row.video_muted === "boolean" ? row.video_muted : (typeof row.videoMuted === "boolean" ? row.videoMuted : true),
+    animation: (row.animation as PopupAnimation) || DEFAULT_POPUP_CONFIG.animation,
+    layoutMode: (row.layout_mode as PopupLayoutMode) || (row.layoutMode as PopupLayoutMode) || DEFAULT_POPUP_CONFIG.layoutMode,
+    ctaText: row.cta_text ?? row.ctaText ?? DEFAULT_POPUP_CONFIG.ctaText,
+    ctaLink: row.cta_link ?? row.ctaLink ?? DEFAULT_POPUP_CONFIG.ctaLink,
+    secondaryCtaText: row.secondary_cta_text ?? row.secondaryCtaText ?? DEFAULT_POPUP_CONFIG.secondaryCtaText,
+    secondaryCtaLink: row.secondary_cta_link ?? row.secondaryCtaLink ?? DEFAULT_POPUP_CONFIG.secondaryCtaLink,
+    autoDismissSeconds: Number(row.auto_dismiss_seconds ?? row.autoDismissSeconds ?? 0),
+    showDelaySeconds: Number(row.show_delay_seconds ?? row.showDelaySeconds ?? 4),
+    updatedAt: row.updated_at || row.updatedAt || new Date().toISOString(),
+  };
+}
+
+export function configToDb(cfg: PopupConfig): any {
+  return {
+    id: cfg.id || "default-scheme",
+    enabled: cfg.enabled,
+    audience: cfg.audience,
+    badge: cfg.badge,
+    title: cfg.title,
+    description: cfg.description,
+    coupon_code: cfg.couponCode,
+    discount_percent: cfg.discountPercent,
+    media_type: cfg.mediaType,
+    media_url: cfg.mediaUrl,
+    video_autoplay: cfg.videoAutoplay,
+    video_muted: cfg.videoMuted,
+    animation: cfg.animation,
+    layout_mode: cfg.layoutMode,
+    cta_text: cfg.ctaText,
+    cta_link: cfg.ctaLink,
+    secondary_cta_text: cfg.secondaryCtaText,
+    secondary_cta_link: cfg.secondaryCtaLink,
+    auto_dismiss_seconds: cfg.autoDismissSeconds,
+    show_delay_seconds: cfg.showDelaySeconds,
+    updated_at: new Date().toISOString()
+  };
+}
+
+/**
+ * Reads local cached config synchronously.
+ */
 export function getPopupConfig(): PopupConfig {
   if (typeof window === "undefined") return DEFAULT_POPUP_CONFIG;
   try {
@@ -74,26 +130,76 @@ export function getPopupConfig(): PopupConfig {
   return DEFAULT_POPUP_CONFIG;
 }
 
-export function savePopupConfig(config: PopupConfig): void {
-  if (typeof window === "undefined") return;
+/**
+ * Fetches the active popup directly from the Supabase PostgreSQL database table.
+ */
+export async function fetchPopupFromDb(): Promise<PopupConfig | null> {
   try {
-    const updated = {
-      ...config,
-      updatedAt: new Date().toISOString()
-    };
+    const { data, error } = await supabase
+      .from("marketing_popups")
+      .select("*")
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.warn("Could not query marketing_popups table from DB:", error.message);
+      return null;
+    }
+
+    if (data) {
+      const config = dbToConfig(data);
+      // Cache to local storage
+      if (typeof window !== "undefined") {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+      }
+      return config;
+    }
+  } catch (err) {
+    console.warn("Database fetch exception for marketing_popups:", err);
+  }
+  return null;
+}
+
+/**
+ * Saves popup configuration to both localStorage and the Supabase PostgreSQL database table.
+ */
+export async function savePopupConfig(config: PopupConfig): Promise<boolean> {
+  const updated: PopupConfig = {
+    ...config,
+    updatedAt: new Date().toISOString()
+  };
+
+  if (typeof window !== "undefined") {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent("dukaan_popup_config_changed", { detail: updated }));
-  } catch (e) {
-    console.warn("Failed to save popup config:", e);
+  }
+
+  // Persist directly to Supabase PostgreSQL table
+  try {
+    const dbPayload = configToDb(updated);
+    const { error } = await supabase
+      .from("marketing_popups")
+      .upsert(dbPayload, { onConflict: "id" });
+
+    if (error) {
+      console.warn("Database upsert warning for marketing_popups:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("Database upsert error for marketing_popups:", err);
+    return false;
   }
 }
 
 /**
- * Broadcasts the popup configuration live to all currently connected visitors via Supabase Realtime WebSocket.
- * Connected visitors receive this message instantly without needing to reload.
+ * Broadcasts the popup configuration live to all currently connected visitors via Supabase Realtime WebSocket
+ * AND saves it permanently to the Supabase database.
  */
 export async function broadcastPopupLive(config: PopupConfig): Promise<boolean> {
-  savePopupConfig(config);
+  // 1. Save to DB & LocalStorage
+  await savePopupConfig(config);
+
   try {
     const payload = {
       ...config,
@@ -101,20 +207,13 @@ export async function broadcastPopupLive(config: PopupConfig): Promise<boolean> 
       broadcastTimestamp: Date.now()
     };
 
-    // 1. WebSocket broadcast channel (<50ms delivery)
+    // 2. High-speed WebSocket broadcast channel (<50ms delivery)
     const channel = supabase.channel("admin-global-broadcast");
     await channel.send({
       type: "broadcast",
       event: "popup_broadcast",
       payload
     });
-
-    // 2. Also try updating app_settings in Supabase if table exists
-    supabase
-      .from("app_settings")
-      .upsert({ key: "smart_popup_config", value: payload, updated_at: new Date().toISOString() })
-      .then()
-      .catch(() => {});
 
     return true;
   } catch (err) {

@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 import { 
   PopupConfig, 
   getPopupConfig, 
+  fetchPopupFromDb,
+  dbToConfig,
   isPopupSnoozed, 
   snoozePopup 
 } from "@/lib/popupConfig";
@@ -17,12 +19,13 @@ import {
   Volume2, 
   VolumeX, 
   ArrowRight, 
-  ShieldCheck, 
-  Terminal, 
-  Gift, 
-  Flame, 
-  Radio, 
-  Play
+  Radio,
+  Tag,
+  Percent,
+  Terminal,
+  ShieldCheck,
+  Zap,
+  GraduationCap
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -69,7 +72,7 @@ export default function SmartSchemeModal({
     return () => subscription.unsubscribe();
   }, []);
 
-  // Normal visitor schedule & real-time broadcast listener
+  // Normal visitor schedule, Database sync, and real-time broadcast listener
   useEffect(() => {
     if (isPreview) return;
 
@@ -84,18 +87,24 @@ export default function SmartSchemeModal({
       return true;
     };
 
-    // Initial delayed popup trigger on landing
-    const currentConfig = getPopupConfig();
-    if (matchesAudience(currentConfig, user) && !isPopupSnoozed()) {
-      const delayMs = (currentConfig.showDelaySeconds || 4) * 1000;
-      timer = setTimeout(() => {
-        setConfig(getPopupConfig());
-        setIsMuted(currentConfig.videoMuted);
-        setIsOpen(true);
-      }, delayMs);
-    }
+    // 1. Fetch live configuration from Supabase PostgreSQL Database
+    const initializeFromDb = async () => {
+      const dbConfig = await fetchPopupFromDb();
+      const activeConfig = dbConfig || getPopupConfig();
+      setConfig(activeConfig);
+      setIsMuted(activeConfig.videoMuted);
 
-    // Config changed locally
+      if (matchesAudience(activeConfig, user) && !isPopupSnoozed()) {
+        const delayMs = (activeConfig.showDelaySeconds || 4) * 1000;
+        timer = setTimeout(() => {
+          setIsOpen(true);
+        }, delayMs);
+      }
+    };
+
+    initializeFromDb();
+
+    // 2. Config changed locally
     const handleConfigChange = (e: any) => {
       if (e.detail) {
         setConfig(e.detail);
@@ -104,7 +113,26 @@ export default function SmartSchemeModal({
     };
     window.addEventListener("dukaan_popup_config_changed", handleConfigChange);
 
-    // ⚡ REAL-TIME WebSocket broadcast listener (Admin pushed a live popup!)
+    // 3. PostgreSQL Database Realtime listener on marketing_popups table
+    const dbChangesChannel = supabase
+      .channel("marketing_popups_db_sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "marketing_popups" },
+        (payload: any) => {
+          if (payload.new) {
+            const updatedConfig = dbToConfig(payload.new);
+            setConfig(updatedConfig);
+            setIsMuted(updatedConfig.videoMuted);
+            if (matchesAudience(updatedConfig, user)) {
+              setIsOpen(true);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    // 4. Ultra-low latency WebSocket broadcast listener (Admin pressed live broadcast)
     const broadcastChannel = supabase
       .channel("admin-global-broadcast")
       .on(
@@ -115,17 +143,16 @@ export default function SmartSchemeModal({
             const liveConfig: PopupConfig = payload.payload;
             setConfig(liveConfig);
             setIsMuted(liveConfig.videoMuted);
-            // Verify audience for this specific user
             if (matchesAudience(liveConfig, user)) {
               setIsOpen(true);
               try {
-                // Play subtle cyber alert sound if permitted
+                // High-tech audio alert
                 const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = "sine";
-                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
                 gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
                 osc.connect(gain);
@@ -142,6 +169,7 @@ export default function SmartSchemeModal({
     return () => {
       if (timer) clearTimeout(timer);
       window.removeEventListener("dukaan_popup_config_changed", handleConfigChange);
+      supabase.removeChannel(dbChangesChannel);
       supabase.removeChannel(broadcastChannel);
     };
   }, [isPreview, user]);
@@ -366,7 +394,8 @@ export default function SmartSchemeModal({
               {config.couponCode && (
                 <div className="p-3 rounded-lg bg-amber-950/30 border border-amber-500/40 flex items-center justify-between gap-3 font-mono">
                   <div className="min-w-0">
-                    <span className="text-[10px] text-amber-400 block uppercase tracking-wider font-semibold">
+                    <span className="text-[10px] text-amber-400 block uppercase tracking-wider font-semibold flex items-center gap-1">
+                      <Percent className="w-3 h-3 text-amber-400" />
                       {config.discountPercent > 0 ? `EXCLUSIVE ${config.discountPercent}% OFF VOUCHER` : "CLAIM PROMO CODE"}
                     </span>
                     <span className="text-sm sm:text-base font-black text-amber-300 tracking-wider">
