@@ -133,6 +133,13 @@ export default function AdminDashboard() {
   const [grantDialogMax, setGrantDialogMax] = useState<number>(30);
   const [isGrantingTicket, setIsGrantingTicket] = useState(false);
 
+  // Individual Custom Price Override Dialog State
+  const [isCustomPriceDialogOpen, setIsCustomPriceDialogOpen] = useState(false);
+  const [customPriceConvo, setCustomPriceConvo] = useState<any | null>(null);
+  const [customPriceInput, setCustomPriceInput] = useState<string>("");
+  const [customPriceNote, setCustomPriceNote] = useState<string>("");
+  const [isApplyingCustomPrice, setIsApplyingCustomPrice] = useState(false);
+
   useEffect(() => {
     const handleConfigChange = (e: any) => {
       const cfg = e.detail || getLotteryConfig();
@@ -802,7 +809,7 @@ export default function AdminDashboard() {
         sender_id: adminUser?.id || "admin",
         sender_role: "admin",
         sender_name: "Lead Systems Engineer",
-        message: `🎉 [PURCHASE ACCESS GRANTED] Build calibration & repository assets for "${convo.project_title}" are approved! You can now click "[BUY NOW] & PROCEED TO PAYMENT" on the project page or in this chat to complete your purchase and unlock your deliverables.`,
+        message: `[PURCHASE ACCESS GRANTED] Build calibration & repository assets for "${convo.project_title}" are approved! You can now click "[BUY NOW] & PROCEED TO PAYMENT" on the project page or in this chat to complete your purchase and unlock your deliverables.`,
         created_at: new Date().toISOString()
       };
 
@@ -1013,7 +1020,7 @@ export default function AdminDashboard() {
         sender_id: adminUser?.id || "admin",
         sender_role: "admin",
         sender_name: "Lead Systems Engineer",
-        message: "⚠️ Student raffle ticket has been deactivated / revoked by engineer.",
+        message: "[SYSTEM NOTICE] Student raffle ticket has been deactivated / revoked by engineer.",
         type: "lottery_revoked",
         created_at: new Date().toISOString()
       };
@@ -1030,7 +1037,7 @@ export default function AdminDashboard() {
             coupon_code: null,
             discounted_price: 0,
             messages: updatedMessages,
-            last_message: "⚠️ Student raffle ticket revoked by engineer",
+            last_message: "Student raffle ticket revoked by engineer",
             last_message_at: revokedMsg.created_at,
           };
         }
@@ -1049,7 +1056,7 @@ export default function AdminDashboard() {
                 coupon_code: null,
                 discounted_price: 0,
                 messages: updatedMessages,
-                last_message: "⚠️ Student raffle ticket revoked by engineer",
+                last_message: "Student raffle ticket revoked by engineer",
                 last_message_at: revokedMsg.created_at,
               }
             : c
@@ -1073,7 +1080,7 @@ export default function AdminDashboard() {
           applied_discount: 0,
           coupon_code: null,
           discounted_price: 0,
-          last_message: "⚠️ Student raffle ticket revoked by engineer",
+          last_message: "Student raffle ticket revoked by engineer",
           last_message_at: revokedMsg.created_at,
           messages: updatedMessages
         }
@@ -1085,7 +1092,7 @@ export default function AdminDashboard() {
         coupon_code: null,
         discounted_price: 0,
         messages: updatedMessages,
-        last_message: "⚠️ Student raffle ticket revoked by engineer",
+        last_message: "Student raffle ticket revoked by engineer",
         last_message_at: revokedMsg.created_at,
         updated_at: new Date().toISOString()
       };
@@ -1113,6 +1120,249 @@ export default function AdminDashboard() {
       fetchConversations();
     } catch (err: any) {
       toast.error("Failed to revoke lottery ticket");
+    }
+  };
+
+  const openCustomPriceDialog = (convo: any) => {
+    setCustomPriceConvo(convo);
+    const initialPrice = convo.custom_price && Number(convo.custom_price) > 0
+      ? Number(convo.custom_price)
+      : (convo.project_price && Number(convo.project_price) > 0 ? Number(convo.project_price) : 0);
+    setCustomPriceInput(initialPrice ? initialPrice.toString() : "");
+    setCustomPriceNote("");
+    setIsCustomPriceDialogOpen(true);
+  };
+
+  const handleApplyCustomPrice = async () => {
+    const convo = customPriceConvo;
+    if (!convo) return;
+    const newPrice = Math.max(0, Math.round(Number(customPriceInput) || 0));
+    if (newPrice <= 0) {
+      toast.error("Please enter a valid price greater than zero");
+      return;
+    }
+
+    setIsApplyingCustomPrice(true);
+    try {
+      const origCatalogPrice = Number(convo.project_price || 0);
+      const note = customPriceNote.trim();
+      const currentAppliedDiscount = Number(convo.applied_discount || 0);
+      const discountType: DiscountType = convo.lottery_discount_type || "percentage";
+      
+      const newDiscountedPrice = currentAppliedDiscount > 0
+        ? (discountType === "fixed" ? Math.max(0, newPrice - currentAppliedDiscount) : Math.round(newPrice * (1 - currentAppliedDiscount / 100)))
+        : newPrice;
+
+      const priceMsg = {
+        id: `msg-${Date.now()}`,
+        sender_id: adminUser?.id || "admin",
+        sender_role: "admin",
+        sender_name: "Lead Systems Engineer",
+        message: `[OFFICIAL PRICE QUOTE UPDATED] Project quote for "${convo.project_title}" has been set to ₹${newPrice.toLocaleString('en-IN')}${note ? ` (Note: ${note})` : ''}. Checkout allocation and student vouchers will now calculate from this updated base price.`,
+        type: "price_override",
+        custom_price: newPrice,
+        previous_price: origCatalogPrice,
+        discounted_price: newDiscountedPrice,
+        note: note,
+        created_at: new Date().toISOString()
+      };
+
+      const currentMessages = Array.isArray(convo.messages) ? convo.messages : [];
+      const updatedMessages = [...currentMessages, priceMsg];
+
+      // Optimistic update in Admin UI
+      setSelectedConvo((prev: any) => {
+        if (prev?.id === convo.id) {
+          return {
+            ...prev,
+            custom_price: newPrice,
+            discounted_price: newDiscountedPrice,
+            messages: updatedMessages,
+            last_message: `Price quote updated to ₹${newPrice.toLocaleString('en-IN')}`,
+            last_message_at: priceMsg.created_at,
+          };
+        }
+        return prev;
+      });
+      if (selectedConvo?.id === convo.id) {
+        setAdminChatMessages(updatedMessages);
+      }
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === convo.id
+            ? {
+                ...c,
+                custom_price: newPrice,
+                discounted_price: newDiscountedPrice,
+                messages: updatedMessages,
+                last_message: `Price quote updated to ₹${newPrice.toLocaleString('en-IN')}`,
+                last_message_at: priceMsg.created_at,
+              }
+            : c
+        )
+      );
+
+      // 1. Instant peer-to-peer broadcast (< 30ms)
+      supabase.channel(`convo-room-${convo.id}`).send({
+        type: 'broadcast',
+        event: 'price_override',
+        payload: {
+          conversation_id: convo.id,
+          custom_price: newPrice,
+          discounted_price: newDiscountedPrice,
+          note: note,
+          message: priceMsg
+        }
+      }).catch(() => {});
+
+      supabase.channel(`convo-room-${convo.id}`).send({
+        type: 'broadcast',
+        event: 'chat_message',
+        payload: priceMsg
+      }).catch(() => {});
+
+      // 2. Broadcast to admin global inquiries
+      supabase.channel('admin-global-inquiries').send({
+        type: 'broadcast',
+        event: 'inquiry_updated',
+        payload: {
+          id: convo.id,
+          custom_price: newPrice,
+          discounted_price: newDiscountedPrice,
+          last_message: `Price quote updated to ₹${newPrice.toLocaleString('en-IN')}`,
+          last_message_at: priceMsg.created_at,
+          messages: updatedMessages
+        }
+      }).catch(() => {});
+
+      // 3. Persist to DB
+      let updatePayload: any = {
+        custom_price: newPrice,
+        project_price: newPrice,
+        discounted_price: newDiscountedPrice,
+        messages: updatedMessages,
+        last_message: `Price quote updated to ₹${newPrice.toLocaleString('en-IN')}`,
+        last_message_at: priceMsg.created_at,
+        updated_at: new Date().toISOString()
+      };
+
+      let { error } = await supabase
+        .from('product_conversations')
+        .update(updatePayload)
+        .eq('id', convo.id);
+
+      if (error && error.message?.includes('custom_price')) {
+        delete updatePayload.custom_price;
+        const res = await supabase
+          .from('product_conversations')
+          .update(updatePayload)
+          .eq('id', convo.id);
+        error = res.error;
+      }
+
+      if (error) throw error;
+
+      toast.success(`Custom price of ₹${newPrice.toLocaleString('en-IN')} applied to ${convo.user_name || convo.user_email}!`);
+      setIsCustomPriceDialogOpen(false);
+      setCustomPriceConvo(null);
+      fetchConversations();
+    } catch (err: any) {
+      console.error("Failed to apply custom price:", err);
+      toast.error("Failed to update custom price in database");
+    } finally {
+      setIsApplyingCustomPrice(false);
+    }
+  };
+
+  const handleResetCustomPrice = async (convo: any) => {
+    if (!convo) return;
+    try {
+      const resetMsg = {
+        id: `msg-${Date.now()}`,
+        sender_id: adminUser?.id || "admin",
+        sender_role: "admin",
+        sender_name: "Lead Systems Engineer",
+        message: `[OFFICIAL PRICE RESET] Custom price override removed. Project quote has reverted to standard catalog price.`,
+        type: "price_override",
+        custom_price: null,
+        created_at: new Date().toISOString()
+      };
+
+      const currentMessages = Array.isArray(convo.messages) ? convo.messages : [];
+      const updatedMessages = [...currentMessages, resetMsg];
+
+      setSelectedConvo((prev: any) => {
+        if (prev?.id === convo.id) {
+          return {
+            ...prev,
+            custom_price: null,
+            messages: updatedMessages,
+            last_message: "Price quote reset to catalog price",
+            last_message_at: resetMsg.created_at,
+          };
+        }
+        return prev;
+      });
+      if (selectedConvo?.id === convo.id) {
+        setAdminChatMessages(updatedMessages);
+      }
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === convo.id
+            ? {
+                ...c,
+                custom_price: null,
+                messages: updatedMessages,
+                last_message: "Price quote reset to catalog price",
+                last_message_at: resetMsg.created_at,
+              }
+            : c
+        )
+      );
+
+      supabase.channel(`convo-room-${convo.id}`).send({
+        type: 'broadcast',
+        event: 'price_override',
+        payload: {
+          conversation_id: convo.id,
+          custom_price: null,
+          message: resetMsg
+        }
+      }).catch(() => {});
+
+      supabase.channel(`convo-room-${convo.id}`).send({
+        type: 'broadcast',
+        event: 'chat_message',
+        payload: resetMsg
+      }).catch(() => {});
+
+      let updatePayload: any = {
+        custom_price: null,
+        messages: updatedMessages,
+        last_message: "Price quote reset to catalog price",
+        last_message_at: resetMsg.created_at,
+        updated_at: new Date().toISOString()
+      };
+
+      let { error } = await supabase
+        .from('product_conversations')
+        .update(updatePayload)
+        .eq('id', convo.id);
+
+      if (error && error.message?.includes('custom_price')) {
+        delete updatePayload.custom_price;
+        await supabase
+          .from('product_conversations')
+          .update(updatePayload)
+          .eq('id', convo.id);
+      }
+
+      toast.info("Price quote reset to standard catalog price");
+      setIsCustomPriceDialogOpen(false);
+      setCustomPriceConvo(null);
+      fetchConversations();
+    } catch {
+      toast.error("Failed to reset price quote");
     }
   };
 
@@ -3063,32 +3313,39 @@ export default function AdminDashboard() {
                                     </span>
                                     {(() => {
                                       const discInfo = getConvoDiscountInfo(selectedConvo);
+                                      const customQuote = selectedConvo.custom_price && Number(selectedConvo.custom_price) > 0 ? Number(selectedConvo.custom_price) : null;
                                       const origPrice = Number(selectedConvo.project_price || 0);
-                                      if (origPrice <= 0) return null;
-
-                                      if (discInfo && discInfo.discountPercent > 0) {
-                                        return (
-                                          <span className="flex items-center gap-1.5 font-mono shrink-0">
-                                            <span className="line-through text-slate-500 text-[11px]">
-                                              ₹{origPrice.toLocaleString('en-IN')}
-                                            </span>
-                                            <span 
-                                              className="font-bold text-xs sm:text-sm text-emerald-400 bg-emerald-950/80 border border-emerald-500/50 px-2 py-0.5 rounded shadow-[0_0_12px_rgba(16,185,129,0.3)] flex items-center gap-1"
-                                              title={`Coupon ${discInfo.couponCode} applied: ${discInfo.discountPercent}% OFF`}
-                                            >
-                                              ₹{Number(discInfo.discountedPrice).toLocaleString('en-IN')}
-                                              <span className="text-[9px] bg-emerald-500 text-slate-950 font-black px-1 rounded">
-                                                {discInfo.discountPercent}% OFF
-                                              </span>
-                                            </span>
-                                          </span>
-                                        );
-                                      }
+                                      if (origPrice <= 0 && !customQuote) return null;
 
                                       return (
-                                        <span className="font-mono font-semibold text-emerald-400 shrink-0">
-                                          ₹{origPrice.toLocaleString('en-IN')}
-                                        </span>
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                          {customQuote && (
+                                            <span className="font-bold text-[10px] text-cyan-300 bg-cyan-950/80 border border-cyan-500/50 px-1.5 py-0.2 rounded shadow-[0_0_8px_rgba(6,182,212,0.25)] flex items-center gap-1">
+                                              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 inline-block animate-pulse" />
+                                              CUSTOM QUOTE: ₹{customQuote.toLocaleString('en-IN')}
+                                            </span>
+                                          )}
+                                          {discInfo && discInfo.discountPercent > 0 ? (
+                                            <span className="flex items-center gap-1.5 font-mono shrink-0">
+                                              <span className="line-through text-slate-500 text-[11px]">
+                                                ₹{(customQuote || origPrice).toLocaleString('en-IN')}
+                                              </span>
+                                              <span 
+                                                className="font-bold text-xs sm:text-sm text-emerald-400 bg-emerald-950/80 border border-emerald-500/50 px-2 py-0.5 rounded shadow-[0_0_12px_rgba(16,185,129,0.3)] flex items-center gap-1"
+                                                title={`Coupon ${discInfo.couponCode} applied: ${discInfo.discountPercent}% OFF`}
+                                              >
+                                                ₹{Number(discInfo.discountedPrice).toLocaleString('en-IN')}
+                                                <span className="text-[9px] bg-emerald-500 text-slate-950 font-black px-1 rounded">
+                                                  {discInfo.discountPercent}% OFF
+                                                </span>
+                                              </span>
+                                            </span>
+                                          ) : !customQuote ? (
+                                            <span className="font-mono font-semibold text-emerald-400 shrink-0">
+                                              ₹{origPrice.toLocaleString('en-IN')}
+                                            </span>
+                                          ) : null}
+                                        </div>
                                       );
                                     })()}
                                   </div>
@@ -3105,10 +3362,10 @@ export default function AdminDashboard() {
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent className="bg-[#0d121f] border-slate-800 text-slate-200 z-50">
-                                    <SelectItem value="active">🟢 In Review</SelectItem>
-                                    <SelectItem value="ready_to_purchase">⚡ Access Ready</SelectItem>
-                                    <SelectItem value="purchased">✓ Purchased</SelectItem>
-                                    <SelectItem value="archived">📁 Archived</SelectItem>
+                                    <SelectItem value="active">In Review</SelectItem>
+                                    <SelectItem value="ready_to_purchase">Access Ready</SelectItem>
+                                    <SelectItem value="purchased">Purchased</SelectItem>
+                                    <SelectItem value="archived">Archived</SelectItem>
                                   </SelectContent>
                                 </Select>
 
@@ -3206,6 +3463,26 @@ export default function AdminDashboard() {
                                   <span>GRANT_LOTTERY</span>
                                 </Button>
                               )}
+
+                              {/* Admin Custom Price Override Action Button */}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openCustomPriceDialog(selectedConvo)}
+                                className={`h-7.5 px-3 text-xs font-mono font-bold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
+                                  selectedConvo.custom_price && Number(selectedConvo.custom_price) > 0
+                                    ? "border-cyan-500/60 bg-cyan-950/40 text-cyan-300 hover:bg-cyan-900/50 shadow-[0_0_10px_rgba(6,182,212,0.25)]"
+                                    : "border-slate-800 bg-slate-900/70 text-slate-300 hover:border-cyan-500/50 hover:text-cyan-300"
+                                }`}
+                                title="Set or customize the base quote for this inquiry"
+                              >
+                                <IndianRupee className="w-3.5 h-3.5 text-cyan-400" />
+                                <span>
+                                  {selectedConvo.custom_price && Number(selectedConvo.custom_price) > 0
+                                    ? `QUOTE: ₹${Number(selectedConvo.custom_price).toLocaleString('en-IN')}`
+                                    : "CUSTOM_PRICE"}
+                                </span>
+                              </Button>
 
                               {/* Open Project Link */}
                               {selectedConvo.project_id && (
@@ -3667,19 +3944,29 @@ export default function AdminDashboard() {
                                     Project: <strong className="text-slate-300">{convo.project_title}</strong>
                                     {(() => {
                                       const discInfo = getConvoDiscountInfo(convo);
+                                      const customQuote = convo.custom_price && Number(convo.custom_price) > 0 ? Number(convo.custom_price) : null;
                                       const orig = Number(convo.project_price || 0);
-                                      if (orig <= 0) return null;
-                                      if (discInfo && discInfo.discountValue > 0) {
-                                        return (
-                                          <span className="ml-1 font-mono inline-flex items-center gap-1">
-                                            · <span className="line-through text-slate-500 text-[10px]">₹{orig.toLocaleString('en-IN')}</span>
-                                            <span className="text-emerald-400 font-bold bg-emerald-950/70 border border-emerald-500/40 px-1.5 py-0.2 rounded text-[10px]">
-                                              ₹{discInfo.discountedPrice.toLocaleString('en-IN')} ({discInfo.discountType === "fixed" ? `₹${discInfo.discountValue.toLocaleString()}` : `${discInfo.discountValue}%`} OFF)
+                                      if (orig <= 0 && !customQuote) return null;
+
+                                      return (
+                                        <span className="ml-1 font-mono inline-flex items-center gap-1 flex-wrap">
+                                          {customQuote && (
+                                            <span className="text-[10px] text-cyan-300 font-bold bg-cyan-950/80 border border-cyan-500/50 px-1 rounded">
+                                              QUOTE: ₹{customQuote.toLocaleString('en-IN')}
                                             </span>
-                                          </span>
-                                        );
-                                      }
-                                      return ` · ₹${orig.toLocaleString('en-IN')}`;
+                                          )}
+                                          {discInfo && discInfo.discountValue > 0 ? (
+                                            <>
+                                              <span className="line-through text-slate-500 text-[10px]">₹{(customQuote || orig).toLocaleString('en-IN')}</span>
+                                              <span className="text-emerald-400 font-bold bg-emerald-950/70 border border-emerald-500/40 px-1.5 py-0.2 rounded text-[10px]">
+                                                ₹{discInfo.discountedPrice.toLocaleString('en-IN')} ({discInfo.discountType === "fixed" ? `₹${discInfo.discountValue.toLocaleString()}` : `${discInfo.discountValue}%`} OFF)
+                                              </span>
+                                            </>
+                                          ) : !customQuote ? (
+                                            <span>· ₹{orig.toLocaleString('en-IN')}</span>
+                                          ) : null}
+                                        </span>
+                                      );
                                     })()}
                                   </div>
                                 </div>
@@ -4147,7 +4434,12 @@ export default function AdminDashboard() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Price:</span>
-                  <span className="text-emerald-400 font-bold">₹{Number(grantDialogConvo.project_price || 0).toLocaleString('en-IN')}</span>
+                  <span className="text-emerald-400 font-bold">
+                    ₹{Number(grantDialogConvo.custom_price || grantDialogConvo.project_price || 0).toLocaleString('en-IN')}
+                    {grantDialogConvo.custom_price && (
+                      <span className="text-[10px] text-cyan-400 font-normal ml-1">(Custom Quote)</span>
+                    )}
+                  </span>
                 </div>
               </div>
 
@@ -4289,7 +4581,7 @@ export default function AdminDashboard() {
                 <p className="text-[11px] text-slate-400">
                   Estimated student price: ~₹
                   {(() => {
-                    const orig = Number(grantDialogConvo.project_price || 0);
+                    const orig = Number(grantDialogConvo.custom_price || grantDialogConvo.project_price || 0);
                     const avg = Math.round((grantDialogMin + grantDialogMax) / 2);
                     if (grantDialogType === "fixed") {
                       return Math.max(0, orig - avg).toLocaleString('en-IN');
@@ -4319,6 +4611,168 @@ export default function AdminDashboard() {
               <Ticket className="w-4 h-4" />
               <span>{isGrantingTicket ? "DISPATCHING..." : "GRANT TICKET NOW"}</span>
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Individual Custom Price Override Modal */}
+      <Dialog open={isCustomPriceDialogOpen} onOpenChange={(open) => !open && setIsCustomPriceDialogOpen(false)}>
+        <DialogContent className="bg-[#0c101d] border border-cyan-500/40 text-slate-100 sm:max-w-md shadow-[0_0_50px_rgba(6,182,212,0.15)] rounded-2xl p-6 font-mono">
+          <DialogHeader className="space-y-1">
+            <div className="flex items-center gap-2 text-cyan-400">
+              <IndianRupee className="w-5 h-5" />
+              <DialogTitle className="text-base font-bold text-white tracking-wide">
+                SET INDIVIDUAL PRICE QUOTE
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-slate-400">
+              Set a custom base price quote for this student build inquiry. All lottery discounts and checkout buttons will sync in real-time to this updated quote.
+            </DialogDescription>
+          </DialogHeader>
+
+          {customPriceConvo && (
+            <div className="space-y-4 py-2">
+              {/* Target Student & Project summary */}
+              <div className="p-3 rounded-lg bg-[#070b14] border border-slate-800 space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Student:</span>
+                  <span className="text-white font-bold">{customPriceConvo.user_name || customPriceConvo.user_email}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Project:</span>
+                  <span className="text-amber-300 font-bold truncate max-w-[200px]">{customPriceConvo.project_title}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Catalog Price:</span>
+                  <span className="text-slate-300 font-mono">₹{Number(customPriceConvo.project_price || 0).toLocaleString('en-IN')}</span>
+                </div>
+                {customPriceConvo.custom_price && (
+                  <div className="flex justify-between text-cyan-300 font-bold">
+                    <span>Active Custom Quote:</span>
+                    <span>₹{Number(customPriceConvo.custom_price).toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Price Input Field */}
+              <div>
+                <label className="text-slate-400 block mb-1.5 font-bold uppercase tracking-wider text-[10px]">
+                  New Price Quote (INR ₹):
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400 font-bold text-sm">₹</span>
+                  <Input
+                    type="number"
+                    min="1"
+                    placeholder="e.g. 16500"
+                    value={customPriceInput}
+                    onChange={(e) => setCustomPriceInput(e.target.value)}
+                    className="pl-8 bg-[#070b14] border-cyan-500/40 text-cyan-300 font-mono text-base font-bold focus:border-cyan-400"
+                  />
+                </div>
+              </div>
+
+              {/* Quick Adjustment Presets */}
+              <div>
+                <label className="text-slate-400 block mb-1.5 font-bold uppercase tracking-wider text-[10px]">
+                  Quick Presets & Deductions:
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { label: "-₹1,000", delta: -1000 },
+                    { label: "-₹2,000", delta: -2000 },
+                    { label: "-₹3,000", delta: -3000 },
+                    { label: "-₹5,000", delta: -5000 },
+                    { label: "10% OFF", pct: 0.10 },
+                    { label: "20% OFF", pct: 0.20 },
+                  ].map((p, idx) => (
+                    <Button
+                      key={idx}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const base = Number(customPriceConvo.project_price || 0);
+                        if (p.delta) {
+                          setCustomPriceInput(String(Math.max(100, base + p.delta)));
+                        } else if (p.pct) {
+                          setCustomPriceInput(String(Math.max(100, Math.round(base * (1 - p.pct)))));
+                        }
+                      }}
+                      className="h-7 text-[10px] font-mono border-slate-800 bg-[#070b14] text-slate-300 hover:text-cyan-300 hover:border-cyan-500/50"
+                    >
+                      {p.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Engineer Note / Rationale */}
+              <div>
+                <label className="text-slate-400 block mb-1.5 font-bold uppercase tracking-wider text-[10px]">
+                  Internal Note / Concession Reason (Optional):
+                </label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Custom sensor bundle / IEEE student concession"
+                  value={customPriceNote}
+                  onChange={(e) => setCustomPriceNote(e.target.value)}
+                  className="bg-[#070b14] border-slate-800 text-slate-300 font-mono text-xs focus:border-cyan-400"
+                />
+              </div>
+
+              {/* Real-Time Preview Callout */}
+              <div className="p-2.5 rounded bg-cyan-950/30 border border-cyan-500/30 text-[11px] text-cyan-300 space-y-1 font-mono">
+                <div className="flex justify-between items-center">
+                  <span>Updated Base Price:</span>
+                  <span className="font-bold text-sm text-cyan-200">
+                    ₹{Number(customPriceInput || 0).toLocaleString('en-IN')}
+                  </span>
+                </div>
+                {customPriceConvo.applied_discount && Number(customPriceConvo.applied_discount) > 0 ? (
+                  <div className="flex justify-between items-center text-[10px] text-emerald-400">
+                    <span>Applied Student Lottery Discount:</span>
+                    <span>
+                      {customPriceConvo.lottery_discount_type === "fixed"
+                        ? `-₹${Number(customPriceConvo.applied_discount).toLocaleString('en-IN')}`
+                        : `${customPriceConvo.applied_discount}% OFF`}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between pt-3 border-t border-slate-800">
+            {customPriceConvo?.custom_price && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => handleResetCustomPrice(customPriceConvo)}
+                className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/30 text-xs h-9 cursor-pointer"
+              >
+                RESET TO CATALOG
+              </Button>
+            )}
+            <div className="flex gap-2 sm:justify-end ml-auto">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsCustomPriceDialogOpen(false)}
+                className="text-slate-400 hover:text-white border border-slate-800 text-xs h-9 cursor-pointer"
+              >
+                CANCEL
+              </Button>
+              <Button
+                type="button"
+                disabled={isApplyingCustomPrice || !customPriceInput || Number(customPriceInput) <= 0}
+                onClick={handleApplyCustomPrice}
+                className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs h-9 px-4 border border-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)] gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <IndianRupee className="w-4 h-4" />
+                <span>{isApplyingCustomPrice ? "UPDATING..." : "APPLY QUOTE"}</span>
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

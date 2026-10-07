@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { X, CheckCircle2, Coins, Copy, Check } from "lucide-react";
+import { X, CheckCircle2, Coins, Copy, Check, RotateCcw, Lock, ShieldCheck, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getLotteryConfig, DiscountType } from "@/lib/lotteryConfig";
 import { toast } from "sonner";
@@ -9,11 +9,14 @@ interface StudentLotteryTicketModalProps {
   onClose: () => void;
   projectTitle: string;
   originalPrice: number;
-  onApplyDiscount: (discountValue: number, couponCode: string, discountType?: DiscountType) => void;
+  onApplyDiscount: (discountValue: number, couponCode: string, discountType?: DiscountType, attemptNumber?: number) => void;
   discountType?: DiscountType;
   minDiscount?: number;
   maxDiscount?: number;
   ticketId?: string;
+  convoId?: string;
+  convoMessages?: any[];
+  maxAttempts?: number;
 }
 
 export default function StudentLotteryTicketModal({
@@ -26,6 +29,9 @@ export default function StudentLotteryTicketModal({
   minDiscount,
   maxDiscount,
   ticketId: ticketIdProp,
+  convoId,
+  convoMessages,
+  maxAttempts = 3,
 }: StudentLotteryTicketModalProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -36,8 +42,14 @@ export default function StudentLotteryTicketModal({
   const [couponCode, setCouponCode] = useState<string>("STUDENT-25");
   const [ticketId, setTicketId] = useState<string>("№ 008530 · SERIES 1984");
   const [isCopied, setIsCopied] = useState(false);
+  const [attemptsUsed, setAttemptsUsed] = useState<number>(0);
+  const [isPermanentlyLocked, setIsPermanentlyLocked] = useState<boolean>(false);
   const isDrawingRef = useRef(false);
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
+
+  const getStorageKey = useCallback(() => {
+    return convoId ? `dukaan_lottery_v2_${convoId}` : `dukaan_lottery_v2_${projectTitle.replace(/\s+/g, '_')}`;
+  }, [convoId, projectTitle]);
 
   const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -79,7 +91,7 @@ export default function StudentLotteryTicketModal({
       ctx.fillRect(px, py, 1.5, 1.5);
     }
 
-    // Vintage guilloché engraving security border on the foil
+    // Vintage guilloche engraving security border on the foil
     ctx.strokeStyle = "rgba(90, 55, 10, 0.4)";
     ctx.lineWidth = 1.5;
     ctx.strokeRect(6, 6, width - 12, height - 12);
@@ -112,39 +124,104 @@ export default function StudentLotteryTicketModal({
     ctx.fillText("SCRATCH TO REVEAL ACADEMIC GRANT", width / 2, height / 2 + 23);
   }, []);
 
+  const generateTicketValues = useCallback(() => {
+    const config = getLotteryConfig();
+    const resolvedType: DiscountType = discountTypeProp || config.discountType || "percentage";
+
+    const defaultMin = resolvedType === "fixed" ? 500 : 20;
+    const defaultMax = resolvedType === "fixed" ? 1500 : 30;
+
+    const boundMin = typeof minDiscount === "number" && minDiscount > 0 
+      ? minDiscount 
+      : (config.discountType === resolvedType ? config.minDiscount : defaultMin);
+    const boundMax = typeof maxDiscount === "number" && maxDiscount > 0 
+      ? maxDiscount 
+      : (config.discountType === resolvedType ? config.maxDiscount : defaultMax);
+    const min = Math.min(boundMin, boundMax);
+    const max = Math.max(boundMin, boundMax);
+
+    let randomDisc: number;
+    if (resolvedType === "fixed") {
+      const steps = Math.max(1, Math.floor((max - min) / 50));
+      randomDisc = min + Math.floor(Math.random() * (steps + 1)) * 50;
+    } else {
+      randomDisc = Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    const code = resolvedType === "fixed" ? `FLAT-${randomDisc}` : `STUDENT-${randomDisc}`;
+    const randomSerial = ticketIdProp || `№ 00${Math.floor(1000 + Math.random() * 9000)} · SERIES 1984`;
+
+    return {
+      discount: randomDisc,
+      code,
+      serial: randomSerial,
+      resolvedType,
+    };
+  }, [discountTypeProp, minDiscount, maxDiscount, ticketIdProp]);
+
   // Initialize or reset ticket when opened
   useEffect(() => {
     if (isOpen) {
-      const config = getLotteryConfig();
-      const resolvedType: DiscountType = discountTypeProp || config.discountType || "percentage";
-      setEffectiveDiscountType(resolvedType);
+      // 1. Inspect existing history for previous attempts and locked status
+      let existingCount = 0;
+      let wasLocked = false;
+      let savedCode = "";
+      let savedDiscount = 0;
 
-      const defaultMin = resolvedType === "fixed" ? 500 : 20;
-      const defaultMax = resolvedType === "fixed" ? 1500 : 30;
-
-      const boundMin = typeof minDiscount === "number" && minDiscount > 0 
-        ? minDiscount 
-        : (config.discountType === resolvedType ? config.minDiscount : defaultMin);
-      const boundMax = typeof maxDiscount === "number" && maxDiscount > 0 
-        ? maxDiscount 
-        : (config.discountType === resolvedType ? config.maxDiscount : defaultMax);
-      const min = Math.min(boundMin, boundMax);
-      const max = Math.max(boundMin, boundMax);
-
-      let randomDisc: number;
-      if (resolvedType === "fixed") {
-        const steps = Math.max(1, Math.floor((max - min) / 50));
-        randomDisc = min + Math.floor(Math.random() * (steps + 1)) * 50;
-      } else {
-        randomDisc = Math.floor(Math.random() * (max - min + 1)) + min;
+      if (Array.isArray(convoMessages) && convoMessages.length > 0) {
+        const couponMsgs = convoMessages.filter((m: any) => 
+          m.type === "coupon_applied" || 
+          (typeof m.message === "string" && (
+            m.message.includes("Applied Student Coupon") || 
+            m.message.includes("Applied Lucky Student Coupon")
+          ))
+        );
+        existingCount = couponMsgs.length;
+        if (couponMsgs.length > 0) {
+          const last = couponMsgs[couponMsgs.length - 1];
+          if (last.coupon_code) savedCode = last.coupon_code;
+          if (last.discount_value) savedDiscount = Number(last.discount_value);
+        }
       }
 
-      const code = resolvedType === "fixed" ? `FLAT-${randomDisc}` : `STUDENT-${randomDisc}`;
-      const randomSerial = ticketIdProp || `№ 00${Math.floor(1000 + Math.random() * 9000)} · SERIES 1984`;
+      // Check session storage
+      try {
+        const key = getStorageKey();
+        const storedJson = sessionStorage.getItem(key);
+        if (storedJson) {
+          const parsed = JSON.parse(storedJson);
+          if (parsed && typeof parsed.count === "number") {
+            existingCount = Math.max(existingCount, parsed.count);
+          }
+          if (parsed?.locked) {
+            wasLocked = true;
+            if (parsed.code) savedCode = parsed.code;
+            if (parsed.discount) savedDiscount = parsed.discount;
+          }
+        }
+      } catch {
+        // Fallback
+      }
 
-      setDiscountValue(randomDisc);
-      setCouponCode(code);
-      setTicketId(randomSerial);
+      if (existingCount >= maxAttempts || wasLocked) {
+        setIsPermanentlyLocked(true);
+        setAttemptsUsed(maxAttempts);
+        if (savedDiscount > 0) setDiscountValue(savedDiscount);
+        if (savedCode) setCouponCode(savedCode);
+        setIsScratched(true);
+        setScratchPercent(100);
+        return;
+      }
+
+      setIsPermanentlyLocked(false);
+      setAttemptsUsed(existingCount);
+
+      // Generate initial fresh scratch-card values
+      const ticketData = generateTicketValues();
+      setEffectiveDiscountType(ticketData.resolvedType);
+      setDiscountValue(ticketData.discount);
+      setCouponCode(ticketData.code);
+      setTicketId(ticketData.serial);
       setIsScratched(false);
       setScratchPercent(0);
       setIsCopied(false);
@@ -152,7 +229,7 @@ export default function StudentLotteryTicketModal({
       // Setup canvas on next tick
       setTimeout(initCanvas, 60);
     }
-  }, [isOpen, minDiscount, maxDiscount, discountTypeProp, ticketIdProp, initCanvas]);
+  }, [isOpen, convoMessages, getStorageKey, maxAttempts, generateTicketValues, initCanvas]);
 
   const calculateScratchPercent = useCallback(() => {
     const canvas = canvasRef.current;
@@ -241,6 +318,67 @@ export default function StudentLotteryTicketModal({
     setTimeout(() => setIsCopied(false), 2000);
   };
 
+  // Current attempt calculation (1-indexed for display)
+  const currentAttemptNumber = Math.min(maxAttempts, attemptsUsed + 1);
+  const remainingReRolls = Math.max(0, maxAttempts - currentAttemptNumber);
+
+  // Re-roll to get a new scratch ticket within limit
+  const handleReroll = () => {
+    if (currentAttemptNumber >= maxAttempts) {
+      toast.error("Maximum 3 scratch attempts reached. Please lock in your discount.");
+      return;
+    }
+
+    const nextUsed = attemptsUsed + 1;
+    setAttemptsUsed(nextUsed);
+
+    try {
+      const key = getStorageKey();
+      sessionStorage.setItem(key, JSON.stringify({
+        count: nextUsed,
+        locked: false,
+        code: couponCode,
+        discount: discountValue,
+      }));
+    } catch {
+      // storage unavailable
+    }
+
+    // Generate new values
+    const ticketData = generateTicketValues();
+    setEffectiveDiscountType(ticketData.resolvedType);
+    setDiscountValue(ticketData.discount);
+    setCouponCode(ticketData.code);
+    setTicketId(ticketData.serial);
+    setIsScratched(false);
+    setScratchPercent(0);
+    setIsCopied(false);
+
+    setTimeout(initCanvas, 50);
+    toast.info(`Scratch card re-rolled (Attempt ${nextUsed + 1} of ${maxAttempts})!`);
+  };
+
+  // Lock in the revealed discount permanently
+  const handleLockInDiscount = () => {
+    const finalAttempt = Math.min(maxAttempts, attemptsUsed + 1);
+    try {
+      const key = getStorageKey();
+      sessionStorage.setItem(key, JSON.stringify({
+        count: maxAttempts,
+        locked: true,
+        code: couponCode,
+        discount: discountValue,
+      }));
+    } catch {
+      // storage unavailable
+    }
+
+    setIsPermanentlyLocked(true);
+    setAttemptsUsed(maxAttempts);
+    onApplyDiscount(discountValue, couponCode, effectiveDiscountType, finalAttempt);
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   const savingsAmount = effectiveDiscountType === "fixed"
@@ -293,6 +431,47 @@ export default function StudentLotteryTicketModal({
             <p className="text-[11px] font-mono text-slate-300 mt-1 max-w-sm mx-auto truncate">
               Voucher valid for: <span className="text-amber-300 font-bold">{projectTitle}</span>
             </p>
+
+            {/* Gamified 3-Attempt Counter Pill */}
+            <div className="mt-2.5 mx-auto max-w-xs flex items-center justify-between bg-black/60 border border-amber-500/40 rounded-lg px-3 py-1 font-mono text-[10px]">
+              <span className="text-slate-300 uppercase tracking-wider font-bold flex items-center gap-1">
+                {isPermanentlyLocked ? (
+                  <>
+                    <Lock className="w-3 h-3 text-rose-400" />
+                    <span className="text-rose-400">STATUS: LOCKED (3 OF 3 USED)</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-3 h-3 text-amber-400" />
+                    <span>ATTEMPT:</span>
+                    <span className="text-amber-300 font-bold">{currentAttemptNumber} OF {maxAttempts}</span>
+                    <span className="text-slate-400">({remainingReRolls} left)</span>
+                  </>
+                )}
+              </span>
+
+              {/* Pip Meter Display */}
+              <div className="flex items-center gap-1 ml-2">
+                {Array.from({ length: maxAttempts }).map((_, idx) => {
+                  const stepNum = idx + 1;
+                  const isCurrent = stepNum === currentAttemptNumber && !isPermanentlyLocked;
+                  const isUsed = isPermanentlyLocked || stepNum < currentAttemptNumber;
+                  return (
+                    <span
+                      key={stepNum}
+                      className={`h-2 rounded-sm transition-all ${
+                        isCurrent
+                          ? "w-4 bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)] border border-amber-200"
+                          : isUsed
+                          ? "w-2.5 bg-amber-800/90 border border-amber-700/60"
+                          : "w-2.5 bg-slate-800 border border-slate-700"
+                      }`}
+                      title={`Scratch attempt ${stepNum} of ${maxAttempts}`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* ================================================================= */}
@@ -327,9 +506,13 @@ export default function StudentLotteryTicketModal({
               <div className="py-6 px-4 sm:px-6 text-center flex flex-col items-center justify-center select-text relative z-0">
                 
                 {/* Vintage Rubber Stamp: VERIFIED WINNER */}
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-emerald-950/70 border border-emerald-500/60 text-emerald-300 text-[11px] font-['Special_Elite',monospace] font-bold tracking-widest uppercase mb-1 shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-pulse">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>OFFICIAL STUDENT WINNER</span>
+                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded border text-[11px] font-['Special_Elite',monospace] font-bold tracking-widest uppercase mb-1 shadow-sm ${
+                  isPermanentlyLocked
+                    ? "bg-rose-950/70 border-rose-500/60 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.3)]"
+                    : "bg-emerald-950/70 border-emerald-500/60 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-pulse"
+                }`}>
+                  {isPermanentlyLocked ? <Lock className="w-3.5 h-3.5 text-rose-400" /> : <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
+                  <span>{isPermanentlyLocked ? "PERMANENT RATE LOCKED" : "OFFICIAL STUDENT WINNER"}</span>
                 </div>
 
                 {/* Stately Gilded Prize Percentage */}
@@ -371,7 +554,7 @@ export default function StudentLotteryTicketModal({
               </div>
 
               {/* Real Metallic Antique Gold Latex Scratch Canvas Overlay */}
-              {!isScratched && (
+              {!isScratched && !isPermanentlyLocked && (
                 <canvas
                   ref={canvasRef}
                   onPointerDown={handlePointerDown}
@@ -388,38 +571,78 @@ export default function StudentLotteryTicketModal({
             </div>
 
             {/* Foil Clearance Progress Gauge */}
-            <div className="mt-4 flex items-center justify-between text-[11px] font-mono text-slate-400">
-              <span className="flex items-center gap-1 font-['Special_Elite',monospace]">
-                <Coins className="w-3.5 h-3.5 text-amber-400" />
-                <span>SCRATCH_COMPLETION:</span>
-              </span>
-              <span className="text-amber-400 font-bold font-mono">
-                {isScratched ? "100% (REVEALED)" : `${scratchPercent}%`}
-              </span>
-            </div>
-
-            <div className="w-full bg-[#050811] h-2 rounded-full overflow-hidden mt-1.5 border border-amber-500/30 p-0.5">
-              <div
-                className="bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-400 h-full rounded-full transition-all duration-150 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
-                style={{ width: `${isScratched ? 100 : scratchPercent}%` }}
-              />
-            </div>
-
-            {/* Redeem or Auto-Scratch Action Buttons */}
-            <div className="mt-5 flex flex-col gap-2.5">
-              {isScratched ? (
-                <Button
-                  onClick={() => {
-                    onApplyDiscount(discountValue, couponCode, effectiveDiscountType);
-                    onClose();
-                  }}
-                  className="w-full rounded-xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 hover:from-emerald-400 hover:to-emerald-300 text-slate-950 font-black font-mono text-xs sm:text-sm h-12 shadow-[0_0_25px_rgba(16,185,129,0.4)] border border-emerald-300 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 retro-btn"
-                >
-                  <CheckCircle2 className="w-4 h-4 text-slate-950 stroke-[2.5]" />
-                  <span>
-                    [ REDEEM TICKET · APPLY {effectiveDiscountType === "fixed" ? `₹${discountValue.toLocaleString()}` : `${discountValue}%`} DISCOUNT ]
+            {!isPermanentlyLocked && (
+              <>
+                <div className="mt-4 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                  <span className="flex items-center gap-1 font-['Special_Elite',monospace]">
+                    <Coins className="w-3.5 h-3.5 text-amber-400" />
+                    <span>SCRATCH_COMPLETION:</span>
                   </span>
-                </Button>
+                  <span className="text-amber-400 font-bold font-mono">
+                    {isScratched ? "100% (REVEALED)" : `${scratchPercent}%`}
+                  </span>
+                </div>
+
+                <div className="w-full bg-[#050811] h-2 rounded-full overflow-hidden mt-1.5 border border-amber-500/30 p-0.5">
+                  <div
+                    className="bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-400 h-full rounded-full transition-all duration-150 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
+                    style={{ width: `${isScratched ? 100 : scratchPercent}%` }}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Redeem or Re-Roll Action Buttons */}
+            <div className="mt-5 flex flex-col gap-2.5">
+              {isPermanentlyLocked ? (
+                <div className="space-y-2 text-center">
+                  <div className="p-2.5 rounded-lg bg-rose-950/40 border border-rose-500/30 text-rose-300 text-xs font-mono flex items-center justify-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                    <span>All 3 lottery attempts have been used for this inquiry. Discount is locked in.</span>
+                  </div>
+                  <Button
+                    onClick={onClose}
+                    className="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-mono text-xs h-11 transition-all cursor-pointer"
+                  >
+                    <span>[ CLOSE & PROCEED WITH LOCKED DISCOUNT ]</span>
+                  </Button>
+                </div>
+              ) : isScratched ? (
+                <div className="space-y-2">
+                  {/* Primary: Lock In Button */}
+                  <Button
+                    onClick={handleLockInDiscount}
+                    className="w-full rounded-xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 hover:from-emerald-400 hover:to-emerald-300 text-slate-950 font-black font-mono text-xs sm:text-sm h-12 shadow-[0_0_25px_rgba(16,185,129,0.4)] border border-emerald-300 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 retro-btn"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+                    <span>
+                      {currentAttemptNumber >= maxAttempts
+                        ? `[ FINAL ATTEMPT REACHED · LOCK IN ${effectiveDiscountType === "fixed" ? `₹${discountValue.toLocaleString()}` : `${discountValue}%`} DISCOUNT ]`
+                        : `[ LOCK IN DISCOUNT · APPLY ${effectiveDiscountType === "fixed" ? `₹${discountValue.toLocaleString()}` : `${discountValue}%`} ]`}
+                    </span>
+                  </Button>
+
+                  {/* Secondary: Re-roll button if attempts remaining */}
+                  {currentAttemptNumber < maxAttempts ? (
+                    <Button
+                      type="button"
+                      onClick={handleReroll}
+                      variant="outline"
+                      className="w-full rounded-xl bg-[#0a101f] hover:bg-[#101930] text-amber-300 hover:text-amber-200 border border-amber-500/40 hover:border-amber-400 font-mono text-xs h-10 flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-all"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                      <span>
+                        [ RE-ROLL TICKET ({remainingReRolls} {remainingReRolls === 1 ? "TRY" : "TRIES"} REMAINING) ]
+                      </span>
+                    </Button>
+                  ) : (
+                    <div className="text-center py-1">
+                      <span className="text-[10px] font-mono text-amber-400/80 uppercase tracking-wider">
+                        FINAL SCRATCH COMPLETED · RATE AUTO-LOCKED FOR THIS INQUIRY
+                      </span>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <Button
                   type="button"
@@ -439,7 +662,7 @@ export default function StudentLotteryTicketModal({
             {/* Vintage Ticket Seal & Terms Footer */}
             <div className="mt-3.5 text-center">
               <p className="text-[9px] text-slate-500 font-['Special_Elite',monospace] tracking-wider uppercase">
-                100% Guaranteed Academic Grant · Single Use Per Verification Cycle · Dukaan Capstone Labs
+                100% Guaranteed Academic Grant · Max 3 Scratch Attempts Per Inquiry · Dukaan Capstone Labs
               </p>
             </div>
 

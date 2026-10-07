@@ -400,6 +400,14 @@ export default function ProductChatDrawer({
           setConversation((prev: any) => prev ? { ...prev, lottery_unlocked: false } : prev);
           setInternalDiscount(0);
           setInternalCoupon("");
+        } else if (payload.type === "price_override") {
+          setConversation((prev: any) => prev ? { 
+            ...prev, 
+            custom_price: payload.custom_price,
+            project_price: payload.custom_price,
+            discounted_price: payload.discounted_price 
+          } : prev);
+          toast.info(`Lead Engineer updated project quote to INR ${Number(payload.custom_price).toLocaleString('en-IN')}`);
         } else if (payload.type === "coupon_applied") {
           setInternalDiscount(payload.discount_percent);
           setInternalCoupon(payload.coupon_code);
@@ -410,6 +418,16 @@ export default function ProductChatDrawer({
             discounted_price: payload.discounted_price
           } : prev);
         }
+      })
+      .on("broadcast", { event: "price_override" }, ({ payload }) => {
+        if (!isSubscribed || !payload) return;
+        setConversation((prev: any) => prev ? { 
+          ...prev, 
+          custom_price: payload.custom_price,
+          project_price: payload.custom_price,
+          discounted_price: payload.discounted_price 
+        } : prev);
+        toast.info(`Lead Engineer updated project quote to INR ${Number(payload.custom_price).toLocaleString('en-IN')}`);
       })
       .subscribe();
 
@@ -727,6 +745,24 @@ export default function ProductChatDrawer({
             {/* Access & Allocation Status Banner */}
             {conversation && (
               <div className="px-3.5 pt-3 pb-1 bg-[#070a12] shrink-0 border-b border-slate-800/60">
+                {conversation.custom_price && Number(conversation.custom_price) > 0 && (
+                  <div className="mb-2 p-2 rounded-lg bg-cyan-950/60 border border-cyan-500/40 flex items-center justify-between text-xs font-mono">
+                    <span className="text-cyan-300 flex items-center gap-1.5 font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                      ENGINEER CUSTOM QUOTE:
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {project?.price && Number(conversation.custom_price) !== project.price && (
+                        <span className="line-through text-slate-500 text-[10px]">
+                          ₹{project.price.toLocaleString()}
+                        </span>
+                      )}
+                      <span className="text-cyan-200 font-black">
+                        ₹{Number(conversation.custom_price).toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                  </div>
+                )}
                 {conversation.status === "ready_to_purchase" ? (
                   <div className="bg-gradient-to-r from-emerald-950/90 via-[#0a1d15] to-emerald-950/90 border border-emerald-500/50 rounded-xl p-3 flex items-center justify-between gap-3 shadow-[0_0_20px_rgba(16,185,129,0.25)] animate-in zoom-in-95 duration-200">
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -1008,40 +1044,49 @@ export default function ProductChatDrawer({
           ?.slice()
           .reverse()
           .find((m: any) => m.type === "lottery_ticket" || m.message?.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"));
+        const basePrice = (conversation?.custom_price && Number(conversation.custom_price) > 0)
+          ? Number(conversation.custom_price)
+          : (conversation?.project_price && Number(conversation.project_price) > 0 && conversation.project_price !== project?.price
+              ? Number(conversation.project_price)
+              : (project?.price || 0));
 
         return (
           <StudentLotteryTicketModal
             isOpen={isInternalLotteryOpen}
             onClose={() => setIsInternalLotteryOpen(false)}
             projectTitle={project?.title || ""}
-            originalPrice={project?.price || 0}
+            originalPrice={basePrice}
             discountType={bounds.discountType}
             minDiscount={bounds.minDiscount}
             maxDiscount={bounds.maxDiscount}
             ticketId={activeTicket?.ticket_id}
-            onApplyDiscount={async (disc, code, dType = "percentage") => {
+            convoId={conversation?.id}
+            convoMessages={messages}
+            onApplyDiscount={async (disc, code, dType = "percentage", attemptNumber) => {
               setInternalDiscount(disc);
               setInternalCoupon(code);
               setIsInternalLotteryOpen(false);
               toast.success(dType === "fixed" ? `₹${disc.toLocaleString()} Lucky Discount Applied! Promo: ${code}` : `${disc}% Lucky Discount Applied! Promo: ${code}`);
 
               if (conversation?.id) {
-                const origPrice = Number(conversation.project_price || project?.price || 0);
+                const origPrice = basePrice;
                 const discountedPrice = origPrice > 0 
                   ? (dType === "fixed" ? Math.max(0, origPrice - disc) : Math.round(origPrice * (1 - disc / 100))) 
                   : 0;
                 
+                const attemptText = attemptNumber ? ` (Attempt ${attemptNumber} of 3)` : "";
                 const discountMsg = {
                   id: `msg-${Date.now()}`,
                   sender_id: user?.id || "user",
                   sender_role: "user",
                   sender_name: user?.user_metadata?.name || user?.email?.split("@")[0] || "Student",
-                  message: `Applied Lucky Student Coupon: ${code} (${dType === "fixed" ? `₹${disc.toLocaleString()}` : `${disc}%`} OFF) — Total: ₹${discountedPrice.toLocaleString('en-IN')}`,
+                  message: `Applied Lucky Student Coupon: ${code} (${dType === "fixed" ? `₹${disc.toLocaleString()}` : `${disc}%`} OFF${attemptText}) — Total: ₹${discountedPrice.toLocaleString('en-IN')}`,
                   type: "coupon_applied",
                   discount_type: dType,
                   discount_value: disc,
                   discount_percent: dType === "fixed" ? Math.round((disc / (origPrice || 1)) * 100) : disc,
                   coupon_code: code,
+                  attempt_number: attemptNumber,
                   original_price: origPrice,
                   discounted_price: discountedPrice,
                   created_at: new Date().toISOString()

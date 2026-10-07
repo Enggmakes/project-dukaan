@@ -92,29 +92,43 @@ export default function ProjectDetails() {
     return () => window.removeEventListener("dukaan_lottery_config_changed", handleConfigChange);
   }, []);
 
-  const handleApplyDiscount = async (discount: number, code: string, discountType: DiscountType = "percentage") => {
+  const basePrice = (activeConvo?.custom_price && Number(activeConvo.custom_price) > 0)
+    ? Number(activeConvo.custom_price)
+    : (activeConvo?.project_price && Number(activeConvo.project_price) > 0 && activeConvo.project_price !== project?.price
+        ? Number(activeConvo.project_price)
+        : (project?.price || 0));
+
+  const finalPrice = basePrice > 0
+    ? (appliedDiscount > 0 
+        ? (appliedDiscountType === "fixed" ? Math.max(0, basePrice - appliedDiscount) : Math.round(basePrice * (1 - appliedDiscount / 100))) 
+        : basePrice)
+    : 0;
+
+  const handleApplyDiscount = async (discount: number, code: string, discountType: DiscountType = "percentage", attemptNumber?: number) => {
     setAppliedDiscount(discount);
     setAppliedCoupon(code);
     setAppliedDiscountType(discountType);
     toast.success(discountType === "fixed" ? `₹${discount.toLocaleString()} Discount Applied! Promo: ${code}` : `${discount}% Discount Applied! Promo: ${code}`);
 
     if (activeConvo?.id) {
-      const origPrice = Number(activeConvo.project_price || project?.price || 0);
+      const origPrice = basePrice;
       const discountedPrice = origPrice > 0 
         ? (discountType === "fixed" ? Math.max(0, origPrice - discount) : Math.round(origPrice * (1 - discount / 100))) 
         : 0;
       
+      const attemptLabel = attemptNumber ? ` (Attempt ${attemptNumber} of 3)` : "";
       const discountMsg = {
         id: `msg-${Date.now()}`,
         sender_id: currentUser?.id || "user",
         sender_role: "user",
         sender_name: currentUser?.user_metadata?.name || currentUser?.email?.split("@")[0] || "Student",
-        message: `Applied Student Coupon: ${code} (${discountType === "fixed" ? `₹${discount.toLocaleString()}` : `${discount}%`} OFF) — Total: ₹${discountedPrice.toLocaleString('en-IN')}`,
+        message: `Applied Student Coupon: ${code} (${discountType === "fixed" ? `₹${discount.toLocaleString()}` : `${discount}%`} OFF${attemptLabel}) — Total: ₹${discountedPrice.toLocaleString('en-IN')}`,
         type: "coupon_applied",
         discount_type: discountType,
         discount_value: discount,
         discount_percent: discountType === "fixed" ? Math.round((discount / (origPrice || 1)) * 100) : discount,
         coupon_code: code,
+        attempt_number: attemptNumber,
         original_price: origPrice,
         discounted_price: discountedPrice,
         created_at: new Date().toISOString()
@@ -182,12 +196,6 @@ export default function ProjectDetails() {
       }
     }
   };
-
-  const finalPrice = project
-    ? (appliedDiscount > 0 
-        ? (appliedDiscountType === "fixed" ? Math.max(0, project.price - appliedDiscount) : Math.round(project.price * (1 - appliedDiscount / 100))) 
-        : project.price)
-    : 0;
 
   // Student Scratch Lottery is strictly isolated per-user/conversation (unlocked only when engineer explicitly grants it in this active chat)
   const isLotteryUnlocked = Boolean(
@@ -382,6 +390,13 @@ export default function ProjectDetails() {
               });
             }
 
+            // Detect real-time price override from engineer
+            const prevPrice = activeConvo?.custom_price || activeConvo?.project_price;
+            const nextPrice = payload.new.custom_price || payload.new.project_price;
+            if (nextPrice && Number(nextPrice) > 0 && Number(nextPrice) !== Number(prevPrice)) {
+              toast.info(`Lead Engineer updated project quote to INR ${Number(nextPrice).toLocaleString('en-IN')}`);
+            }
+
             if (newStatus === "withdrawn" || newStatus === "cancelled" || payload.new.admin_deleted) {
               setActiveConvo(null);
               setConvoStatus("none");
@@ -390,7 +405,7 @@ export default function ProjectDetails() {
             } else if (newStatus === "ready_to_purchase") {
               setActiveConvo(payload.new);
               setConvoStatus("ready_to_purchase");
-              toast.success("🎉 Access Granted! Lead engineer approved this build. You can now Buy Now & Pay!", {
+              toast.success("ACCESS GRANTED: Lead engineer approved this build. You can now Buy Now & Pay!", {
                 duration: 7000
               });
             } else if (newStatus === "purchased") {
@@ -406,8 +421,24 @@ export default function ProjectDetails() {
       )
       .subscribe();
 
+    // Instant peer-to-peer room channel for sub-30ms quote updates
+    const roomChannel = supabase.channel(`convo-room-${activeConvo.id}`);
+    roomChannel
+      .on("broadcast", { event: "price_override" }, ({ payload }) => {
+        if (!payload) return;
+        setActiveConvo((prev: any) => prev ? {
+          ...prev,
+          custom_price: payload.custom_price,
+          project_price: payload.custom_price,
+          discounted_price: payload.discounted_price,
+        } : prev);
+        toast.info(`Lead Engineer updated project quote to INR ${Number(payload.custom_price).toLocaleString('en-IN')}`);
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(roomChannel);
     };
   }, [activeConvo?.id]);
 
@@ -1164,6 +1195,20 @@ export default function ProjectDetails() {
                   <span className="text-cyan-400">ONLINE</span>
                 </div>
 
+                {activeConvo?.custom_price && Number(activeConvo.custom_price) > 0 && (
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/50 text-cyan-300 uppercase tracking-wider flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 inline-block animate-pulse" />
+                      ENGINEER CUSTOM QUOTE
+                    </span>
+                    {Number(activeConvo.custom_price) !== project.price && (
+                      <span className="text-[11px] font-mono text-slate-500 line-through">
+                        Catalog: ₹{project.price.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex items-baseline gap-2">
                   <span className="font-mono text-xs text-amber-500 font-bold">INR</span>
                   <div className="text-3xl sm:text-4xl font-mono font-black text-amber-400 drop-shadow-[0_0_14px_rgba(255,176,0,0.35)]">
@@ -1171,7 +1216,7 @@ export default function ProjectDetails() {
                   </div>
                   {appliedDiscount > 0 && (
                     <span className="line-through text-slate-500 font-mono text-sm ml-1.5">
-                      ₹{project.price.toLocaleString()}
+                      ₹{basePrice.toLocaleString()}
                     </span>
                   )}
                 </div>
@@ -1438,14 +1483,14 @@ export default function ProjectDetails() {
           <div className="flex items-center gap-1.5 font-mono mt-0.5">
             {appliedDiscount > 0 ? (
               <>
-                <span className="line-through text-slate-500 text-xs">₹{project.price.toLocaleString()}</span>
+                <span className="line-through text-slate-500 text-xs">₹{basePrice.toLocaleString()}</span>
                 <span className="text-emerald-400 font-black text-base sm:text-lg">₹{finalPrice.toLocaleString()}</span>
                 <span className="text-[10px] text-emerald-400 font-bold bg-emerald-950/60 border border-emerald-500/30 px-1.5 py-0.2 rounded">
                   {appliedDiscountType === "fixed" ? `₹${appliedDiscount.toLocaleString()}` : `${appliedDiscount}%`} OFF
                 </span>
               </>
             ) : (
-              <span className="text-amber-400 font-black text-base sm:text-lg">₹{project.price.toLocaleString()}</span>
+              <span className="text-amber-400 font-black text-base sm:text-lg">₹{finalPrice.toLocaleString()}</span>
             )}
           </div>
         </div>
@@ -1538,14 +1583,14 @@ export default function ProjectDetails() {
                     PKG: <strong className="text-slate-200">{project.title}</strong> · PRICE:{" "}
                     {appliedDiscount > 0 ? (
                       <>
-                        <span className="line-through text-slate-500 mr-1.5">₹{project.price.toLocaleString()}</span>
+                        <span className="line-through text-slate-500 mr-1.5">₹{basePrice.toLocaleString()}</span>
                         <strong className="text-emerald-400">₹{finalPrice.toLocaleString()}</strong>
                         <span className="ml-1 text-[10px] text-emerald-400 font-bold">
                           ({appliedDiscountType === "fixed" ? `₹${appliedDiscount.toLocaleString()}` : `${appliedDiscount}%`} OFF)
                         </span>
                       </>
                     ) : (
-                      <strong className="text-amber-400">₹{project.price.toLocaleString()}</strong>
+                      <strong className="text-amber-400">₹{finalPrice.toLocaleString()}</strong>
                     )}
                   </p>
                   {isLotteryUnlocked && appliedDiscount === 0 && (
@@ -1898,7 +1943,7 @@ export default function ProjectDetails() {
                           AUTHORIZING_CARD...
                         </>
                       ) : (
-                        <>[PAY] ₹{project.price.toLocaleString()} TEST_CARD</>
+                        <>[PAY] ₹{finalPrice.toLocaleString()} TEST_CARD</>
                       )}
                     </button>
                   </TabsContent>
@@ -1933,7 +1978,7 @@ export default function ProjectDetails() {
                           PROCESSING_UPI...
                         </>
                       ) : (
-                        <>[PAY] ₹{project.price.toLocaleString()} UPI_SANDBOX</>
+                        <>[PAY] ₹{finalPrice.toLocaleString()} UPI_SANDBOX</>
                       )}
                     </button>
                   </TabsContent>
@@ -1991,11 +2036,13 @@ export default function ProjectDetails() {
             isOpen={isLotteryModalOpen}
             onClose={() => setIsLotteryModalOpen(false)}
             projectTitle={project?.title || ""}
-            originalPrice={project?.price || 0}
+            originalPrice={basePrice}
             discountType={bounds.discountType}
             minDiscount={bounds.minDiscount}
             maxDiscount={bounds.maxDiscount}
             ticketId={activeTicket?.ticket_id}
+            convoId={activeConvo?.id}
+            convoMessages={activeConvo?.messages}
             onApplyDiscount={handleApplyDiscount}
           />
         );
