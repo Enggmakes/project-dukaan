@@ -59,10 +59,13 @@ export default function SmartSchemeModal({
     }
   }, [previewConfig, isPreview]);
 
-  // Auth session check
+  const userRef = useRef<any>(null);
+
+  // Sync user state and ref
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const currentUser = session?.user ?? null;
+      userRef.current = currentUser;
       setUser(currentUser);
       if (currentUser && config.audience === "guests_only") {
         setIsOpen(false);
@@ -71,6 +74,7 @@ export default function SmartSchemeModal({
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const currentUser = session?.user ?? null;
+      userRef.current = currentUser;
       setUser(currentUser);
       if (currentUser && config.audience === "guests_only") {
         setIsOpen(false);
@@ -86,52 +90,48 @@ export default function SmartSchemeModal({
 
     let timer: NodeJS.Timeout | null = null;
 
-    // Check if audience matches current user state
-    const matchesAudience = (cfg: PopupConfig, currentUser: any) => {
+    // Check if audience matches user
+    const checkAudience = (cfg: PopupConfig, currUser: any) => {
       if (!cfg.enabled) return false;
       if (cfg.audience === "all_visitors") return true;
-      if (cfg.audience === "guests_only") return !currentUser;
-      if (cfg.audience === "authenticated_only") return Boolean(currentUser);
+      if (cfg.audience === "guests_only") return !currUser;
+      if (cfg.audience === "authenticated_only") return Boolean(currUser);
       return true;
     };
 
-    // 1. Fetch live configuration and verify current auth session
-    const initializeFromDb = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
+    // 1. Immediately schedule using cached config for instant 1.5s promptness (eliminates 10-20s lag)
+    const initialConfig = getPopupConfig();
+    if (initialConfig.enabled && !isPopupSnoozed()) {
+      const delayMs = Math.min(Math.max((initialConfig.showDelaySeconds || 1.5), 0.5), 3) * 1000;
+      timer = setTimeout(() => {
+        const curr = userRef.current;
+        if (initialConfig.audience === "guests_only" && curr) {
+          setIsOpen(false);
+          return;
+        }
+        if (checkAudience(initialConfig, curr) && !isPopupSnoozed()) {
+          setIsOpen(true);
+        }
+      }, delayMs);
+    }
 
-      const dbConfig = await fetchPopupFromDb();
-      const activeConfig = dbConfig || getPopupConfig();
-      setConfig(activeConfig);
-      setIsMuted(activeConfig.videoMuted);
-
-      // If guests_only scheme and user is already logged in, NEVER trigger
-      if (activeConfig.audience === "guests_only" && currentUser) {
-        setIsOpen(false);
-        return;
+    // 2. Concurrently fetch live configuration from Supabase PostgreSQL in background
+    fetchPopupFromDb().then((dbConfig) => {
+      if (dbConfig) {
+        setConfig(dbConfig);
+        setIsMuted(dbConfig.videoMuted);
+        const curr = userRef.current;
+        if (dbConfig.audience === "guests_only" && curr) {
+          if (timer) clearTimeout(timer);
+          setIsOpen(false);
+        } else if (!dbConfig.enabled) {
+          if (timer) clearTimeout(timer);
+          setIsOpen(false);
+        }
       }
+    });
 
-      if (matchesAudience(activeConfig, currentUser) && !isPopupSnoozed()) {
-        const delayMs = (activeConfig.showDelaySeconds || 4) * 1000;
-        timer = setTimeout(async () => {
-          // Double check session at moment of popup triggering
-          const { data: { session: currentSession } } = await supabase.auth.getSession();
-          const curr = currentSession?.user ?? null;
-          if (activeConfig.audience === "guests_only" && curr) {
-            setIsOpen(false);
-            return;
-          }
-          if (matchesAudience(activeConfig, curr)) {
-            setIsOpen(true);
-          }
-        }, delayMs);
-      }
-    };
-
-    initializeFromDb();
-
-    // 2. Config changed locally
+    // 3. Config changed locally
     const handleConfigChange = (e: any) => {
       if (e.detail) {
         setConfig(e.detail);

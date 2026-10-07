@@ -1955,6 +1955,8 @@ export default function ProjectDetails() {
         isOpen={isChatDrawerOpen}
         onClose={() => setIsChatDrawerOpen(false)}
         project={project}
+        initialConversation={activeConvo}
+        currentUser={currentUser}
         onOpenCheckout={handlePurchaseClick}
         onCancelRequest={handleCancelRequest}
         isLotteryUnlocked={isLotteryUnlocked}

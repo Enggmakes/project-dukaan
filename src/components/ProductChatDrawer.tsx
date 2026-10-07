@@ -43,6 +43,8 @@ interface ProductChatDrawerProps {
   onOpenLottery?: () => void;
   appliedDiscount?: number;
   appliedCoupon?: string;
+  initialConversation?: any;
+  currentUser?: any;
 }
 
 export default function ProductChatDrawer({ 
@@ -54,11 +56,17 @@ export default function ProductChatDrawer({
   isLotteryUnlocked,
   onOpenLottery,
   appliedDiscount,
-  appliedCoupon
+  appliedCoupon,
+  initialConversation,
+  currentUser
 }: ProductChatDrawerProps) {
-  const [user, setUser] = useState<any>(null);
-  const [conversation, setConversation] = useState<any>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [user, setUser] = useState<any>(currentUser || null);
+  const [conversation, setConversation] = useState<any>(initialConversation || null);
+  const [messages, setMessages] = useState<any[]>(
+    Array.isArray(initialConversation?.messages) && initialConversation.messages.length > 0 
+      ? initialConversation.messages 
+      : []
+  );
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -202,6 +210,11 @@ export default function ProductChatDrawer({
 
   // Check auth session
   useEffect(() => {
+    if (currentUser) {
+      setUser(currentUser);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
@@ -211,34 +224,74 @@ export default function ProductChatDrawer({
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [currentUser]);
+
+  // Sync initial conversation from props instantly
+  useEffect(() => {
+    if (initialConversation) {
+      setConversation(initialConversation);
+      if (Array.isArray(initialConversation.messages) && initialConversation.messages.length > 0) {
+        setMessages(initialConversation.messages);
+      }
+      setIsLoading(false);
+    }
+  }, [initialConversation?.id, initialConversation?.messages?.length, initialConversation?.status]);
 
   // Fetch or prepare conversation when drawer opens
   useEffect(() => {
-    if (!isOpen || !project || !user) return;
+    if (!isOpen || !project) return;
 
     let isMounted = true;
-    setIsLoading(true);
+
+    // If initial conversation already provided or loaded, do not lock UI in loading state
+    if (initialConversation) {
+      setConversation(initialConversation);
+      if (Array.isArray(initialConversation.messages) && initialConversation.messages.length > 0) {
+        setMessages(initialConversation.messages);
+      }
+      setIsLoading(false);
+    } else if (!conversation) {
+      setIsLoading(true);
+    }
 
     const initConversation = async () => {
       try {
-        // Look for existing conversation for this user and project (sorted by newest message)
-        const { data: existingList, error } = await supabase
+        let activeUser = user || currentUser;
+        if (!activeUser) {
+          const { data: { session } } = await supabase.auth.getSession();
+          activeUser = session?.user ?? null;
+          if (activeUser && isMounted) setUser(activeUser);
+        }
+
+        if (!activeUser) {
+          if (isMounted) setIsLoading(false);
+          return;
+        }
+
+        // Look for existing conversation for this user and project with 3.5s timeout safety
+        const fetchPromise = supabase
           .from("product_conversations")
           .select("*")
-          .eq("user_id", user.id)
+          .eq("user_id", activeUser.id)
           .eq("project_id", project.id)
           .order("last_message_at", { ascending: false });
 
-        if (error) {
-          console.warn("Error fetching conversation:", error);
+        const timeoutPromise = new Promise<{ data: any; error: any }>((resolve) =>
+          setTimeout(() => resolve({ data: null, error: new Error("Fetch timeout") }), 3500)
+        );
+
+        const { data: existingList, error } = await Promise.race([fetchPromise, timeoutPromise]);
+
+        if (error && error.message !== "Fetch timeout") {
+          console.warn("Notice fetching conversation:", error);
         }
 
-        let activeConvo: any = null;
+        let activeConvo: any = initialConversation || conversation || null;
+
         if (existingList && existingList.length > 0) {
           const sessionWithdrawn = (() => {
             try {
-              return sessionStorage.getItem(`dukaan_withdrawn_${user.id}_${project.id}`);
+              return sessionStorage.getItem(`dukaan_withdrawn_${activeUser.id}_${project.id}`);
             } catch (_) {
               return null;
             }
@@ -253,41 +306,24 @@ export default function ProductChatDrawer({
             });
           }
 
-          // Filter out withdrawn or cancelled ones
+          // Filter out withdrawn or cancelled inquiries
           const validConvos = candidateList.filter((c: any) => {
             const s = (c.status || "").trim().toLowerCase();
             return s !== "withdrawn" && s !== "cancelled" && s !== "archived" && !c.admin_deleted;
           });
 
           if (validConvos.length > 0) {
-            // Pick conversation with real messages, or the newest one
             activeConvo = validConvos.find((c: any) => Array.isArray(c.messages) && c.messages.length > 0) || validConvos[0];
-
-            // Clean up any duplicate orphaned records in background
-            const duplicates = existingList.filter((c: any) => c.id !== activeConvo.id).map((c: any) => c.id);
-            if (duplicates.length > 0) {
-              supabase.from("product_conversations").delete().in("id", duplicates).then();
-            }
           }
         }
 
-        // Purge expired conversation after 5 days if applicable
-        if (activeConvo) {
-          const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).getTime();
-          if (new Date(activeConvo.last_message_at).getTime() < fiveDaysAgo) {
-            await supabase.from("product_conversations").delete().eq("id", activeConvo.id);
-            activeConvo = null;
-          }
-        }
-
-        // If no active conversation exists, DO NOT insert an empty phantom row into Supabase!
-        // Maintain a local conversation object until the user actually sends their first message.
+        // Maintain local conversation until user sends their first message
         if (!activeConvo) {
           activeConvo = {
             id: `local-${Date.now()}`,
-            user_id: user.id,
-            user_email: user.email,
-            user_name: user.user_metadata?.full_name || user.email.split("@")[0],
+            user_id: activeUser.id,
+            user_email: activeUser.email,
+            user_name: activeUser.user_metadata?.full_name || activeUser.email?.split("@")[0] || "Client",
             project_id: project.id,
             project_title: project.title,
             project_thumb: project.thumb || "/placeholder.svg",
@@ -319,7 +355,7 @@ export default function ProductChatDrawer({
           }
         }
       } catch (err) {
-        console.error("Failed to initialize conversation:", err);
+        console.warn("Conversation init exception:", err);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -329,8 +365,9 @@ export default function ProductChatDrawer({
 
     return () => {
       isMounted = false;
+      setIsLoading(false);
     };
-  }, [isOpen, project?.id, user?.id]);
+  }, [isOpen, project?.id, user?.id, initialConversation?.id]);
 
   // Keep a ref to the active conversation to avoid stale closures in listeners and queues
   const conversationRef = useRef(conversation);

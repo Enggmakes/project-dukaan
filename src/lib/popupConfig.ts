@@ -49,7 +49,7 @@ export const DEFAULT_POPUP_CONFIG: PopupConfig = {
   secondaryCtaText: "CONTINUE BROWSING",
   secondaryCtaLink: "/marketplace",
   autoDismissSeconds: 0,
-  showDelaySeconds: 4,
+  showDelaySeconds: 1.5,
   updatedAt: new Date().toISOString(),
 };
 
@@ -78,7 +78,7 @@ export function dbToConfig(row: any): PopupConfig {
     secondaryCtaText: row.secondary_cta_text ?? row.secondaryCtaText ?? DEFAULT_POPUP_CONFIG.secondaryCtaText,
     secondaryCtaLink: row.secondary_cta_link ?? row.secondaryCtaLink ?? DEFAULT_POPUP_CONFIG.secondaryCtaLink,
     autoDismissSeconds: Number(row.auto_dismiss_seconds ?? row.autoDismissSeconds ?? 0),
-    showDelaySeconds: Number(row.show_delay_seconds ?? row.showDelaySeconds ?? 4),
+    showDelaySeconds: Math.min(Math.max(Number(row.show_delay_seconds ?? row.showDelaySeconds ?? 1.5), 0), 4),
     updatedAt: row.updated_at || row.updatedAt || new Date().toISOString(),
   };
 }
