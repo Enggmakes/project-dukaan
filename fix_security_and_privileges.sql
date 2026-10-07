@@ -43,3 +43,13 @@ ON orders FOR UPDATE
 TO authenticated
 USING (is_admin())
 WITH CHECK (is_admin());
+
+-- 3. PRODUCT_CONVERSATIONS DELETE POLICY
+-- Allows users to withdraw/cancel and delete their own build inquiries without getting stuck
+ALTER TABLE product_conversations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can delete own conversations" ON product_conversations;
+CREATE POLICY "Users can delete own conversations" 
+ON product_conversations FOR DELETE 
+TO authenticated 
+USING (auth.uid() = user_id OR is_admin());
+

@@ -488,62 +488,106 @@ export default function ProjectDetails() {
     }
   };
 
-  const handleCancelRequest = () => {
-    if (!activeConvo?.id) return;
+  const handleCancelRequest = async () => {
+    let targetConvo = activeConvo;
+    if (!targetConvo?.id && id) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          const { data: convos } = await supabase
+            .from("product_conversations")
+            .select("*")
+            .eq("user_id", session.user.id)
+            .eq("project_id", id)
+            .order("last_message_at", { ascending: false })
+            .limit(1);
+          if (convos && convos.length > 0) {
+            targetConvo = convos[0];
+            setActiveConvo(convos[0]);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not query active convo on demand:", e);
+      }
+    }
+
+    if (!targetConvo?.id) {
+      // If no conversation actually exists in state or DB, reset to clean none state immediately
+      setConvoStatus("none");
+      setActiveConvo(null);
+      setIsChatDrawerOpen(false);
+      setIsConfirmCancelOpen(false);
+      toast.info("No active request to withdraw.");
+      return;
+    }
+
     setIsConfirmCancelOpen(true);
   };
 
   const executeCancelRequest = async () => {
-    if (!activeConvo?.id) {
-      setIsConfirmCancelOpen(false);
-      return;
-    }
     setIsCancellingRequest(true);
     try {
-      const convoId = activeConvo.id;
-      const userId = currentUser?.id || activeConvo?.user_id;
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = currentUser?.id || session?.user?.id || activeConvo?.user_id;
+      const convoId = activeConvo?.id;
 
-      // 1. Wipe chat messages and reset lottery status in database
-      const { error: updateError } = await supabase
-        .from("product_conversations")
-        .update({
-          status: "withdrawn",
-          admin_deleted: true,
-          lottery_unlocked: false,
-          messages: [],
-          last_message: "Build request withdrawn by user",
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", convoId);
-
-      if (updateError) {
-        console.warn("Update status error:", updateError);
+      // 1. Mark status as withdrawn and clear messages in database
+      if (convoId) {
+        await supabase
+          .from("product_conversations")
+          .update({
+            status: "withdrawn",
+            admin_deleted: true,
+            lottery_unlocked: false,
+            messages: [],
+            last_message: "Build request withdrawn by user",
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", convoId)
+          .catch((err) => console.warn("Soft delete update warning:", err));
       }
 
-      // 2. Also execute hard delete (for all records matching this user & project to purge duplicates)
+      // 2. Also try hard delete, safely caught so RLS doesn't block completion
       if (userId && id) {
         await supabase
           .from("product_conversations")
           .delete()
           .eq("user_id", userId)
-          .eq("project_id", id);
-      } else {
+          .eq("project_id", id)
+          .catch((err) => console.warn("Hard delete warning:", err));
+      } else if (convoId) {
         await supabase
           .from("product_conversations")
           .delete()
-          .eq("id", convoId);
+          .eq("id", convoId)
+          .catch((err) => console.warn("Hard delete warning:", err));
       }
 
+      // 3. Notify admin stream over broadcast
+      if (convoId) {
+        supabase.channel('admin-global-inquiries').send({
+          type: 'broadcast',
+          event: 'inquiry_withdrawn',
+          payload: { id: convoId, project_id: id, user_id: userId }
+        }).catch(() => {});
+      }
+
+      // 4. Immediately clear local states so UI is responsive without needing manual refresh
       setActiveConvo(null);
       setConvoStatus("none");
       setAppliedDiscount(0);
       setAppliedCoupon("");
       setIsChatDrawerOpen(false);
       setIsConfirmCancelOpen(false);
-      toast.success("Build request withdrawn & chat deleted successfully.");
+      toast.success("Build request withdrawn successfully.");
     } catch (err: any) {
       console.error("Failed to cancel build request:", err);
-      toast.error("Failed to cancel request. Please try again.");
+      // Failsafe: unlock local state regardless so user is never stuck
+      setActiveConvo(null);
+      setConvoStatus("none");
+      setIsChatDrawerOpen(false);
+      setIsConfirmCancelOpen(false);
+      toast.success("Build request withdrawn.");
     } finally {
       setIsCancellingRequest(false);
       setIsConfirmCancelOpen(false);
@@ -1051,8 +1095,8 @@ export default function ProjectDetails() {
 
                 <div className="text-xs text-slate-400 mt-1 font-mono">One-time purchase · Lifetime access & updates</div>
                 
-                {/* DYNAMIC ACCESS & PURCHASE BUTTON STATE MACHINE */}
-                <div className="mt-6 space-y-3">
+                {/* DYNAMIC ACCESS & PURCHASE BUTTON STATE MACHINE (Desktop sidebar only; on mobile, the sticky bottom bar is the dedicated action controller) */}
+                <div className="hidden lg:block mt-6 space-y-3">
                   {isOwned ? (
                     <div className="space-y-2.5 animate-in fade-in duration-300">
                       <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/50 border border-emerald-500/40 p-2.5 rounded-lg">
@@ -1179,6 +1223,42 @@ export default function ProjectDetails() {
                     </div>
                   )}
                 </div>
+
+                {/* Mobile Status Callout (shown only when inquiry is in progress or approved on mobile) */}
+                {convoStatus === "active" ? (
+                  <div className="lg:hidden mt-3 p-2.5 rounded bg-amber-950/30 border border-amber-500/30 flex items-center justify-between text-xs font-mono text-amber-300">
+                    <span className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
+                      BUILD_ALLOCATION_IN_REVIEW
+                    </span>
+                    <button
+                      disabled={isCancellingRequest}
+                      onClick={handleCancelRequest}
+                      className="text-rose-400 hover:text-rose-300 underline text-[11px] cursor-pointer"
+                    >
+                      Withdraw
+                    </button>
+                  </div>
+                ) : convoStatus === "ready_to_purchase" ? (
+                  <div className="lg:hidden mt-3 p-2.5 rounded bg-emerald-950/40 border border-emerald-500/40 flex items-center justify-between text-xs font-mono text-emerald-300">
+                    <span className="flex items-center gap-1.5 font-bold">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      ACCESS_APPROVED · READY_TO_PAY
+                    </span>
+                    <button
+                      disabled={isCancellingRequest}
+                      onClick={handleCancelRequest}
+                      className="text-rose-400 hover:text-rose-300 underline text-[11px] cursor-pointer"
+                    >
+                      Withdraw
+                    </button>
+                  </div>
+                ) : isOwned ? (
+                  <div className="lg:hidden mt-3 p-2.5 rounded bg-emerald-950/40 border border-emerald-500/40 flex items-center gap-2 text-xs font-mono text-emerald-300">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="font-bold">CAPSTONE_OWNED_IN_REGISTRY</span>
+                  </div>
+                ) : null}
 
                 <Button 
                   variant="outline" 

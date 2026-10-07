@@ -544,11 +544,23 @@ export default function ProductChatDrawer({
                 <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">
                   SYS:\ENGINEER_COMM_LINK
                 </span>
-                {project?.price && (
-                  <span className="ml-auto bg-amber-950/60 text-amber-400 font-black text-xs border border-amber-800 px-2 py-0.5 rounded">
-                    ₹{project.price.toLocaleString()}
-                  </span>
-                )}
+                <div className="ml-auto flex items-center gap-2">
+                  {onCancelRequest && conversation?.status !== "purchased" && (
+                    <button
+                      type="button"
+                      onClick={onCancelRequest}
+                      className="text-[10px] text-rose-400 hover:text-rose-300 hover:underline font-mono cursor-pointer"
+                      title="Withdraw build request"
+                    >
+                      [Withdraw]
+                    </button>
+                  )}
+                  {project?.price && (
+                    <span className="bg-amber-950/60 text-amber-400 font-black text-xs border border-amber-800 px-2 py-0.5 rounded">
+                      ₹{project.price.toLocaleString()}
+                    </span>
+                  )}
+                </div>
               </div>
               <SheetTitle className="text-sm font-bold text-white truncate text-left font-mono">
                 {project?.title || "Project Inquiry"}
@@ -592,7 +604,7 @@ export default function ProductChatDrawer({
                       <div className="min-w-0">
                         <div className="text-xs font-mono font-bold text-white flex items-center gap-1.5 flex-wrap">
                           <span>ACCESS_UNLOCKED</span>
-                          <Badge className="bg-emerald-500 text-slate-950 text-[9px] font-black py-0 h-4 px-1.5 border-0">
+                          <Badge className="bg-emerald-500 text-emerald-950 text-[9px] font-black py-0 h-4 px-1.5 border-0">
                             READY TO BUY
                           </Badge>
                         </div>
@@ -606,7 +618,7 @@ export default function ProductChatDrawer({
                         onClose();
                         if (onOpenCheckout) onOpenCheckout();
                       }}
-                      className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono font-black text-xs h-9 px-4 rounded-lg shadow-md shrink-0 border-0 cursor-pointer active:scale-95 transition-all"
+                      className="bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-mono font-black text-xs h-9 px-4 rounded-lg shadow-md shrink-0 border-0 cursor-pointer active:scale-95 transition-all"
                     >
                       PAY NOW
                     </Button>
@@ -645,7 +657,7 @@ export default function ProductChatDrawer({
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                         <span className="truncate">STUDENT GRANT: {effectiveDiscount}% OFF ({effectiveCoupon})</span>
                       </span>
-                      <Badge className="bg-emerald-500 text-slate-950 font-black text-[9px] h-4 py-0 shrink-0">SAVED</Badge>
+                      <Badge className="bg-emerald-500 text-emerald-950 font-black text-[9px] h-4 py-0 shrink-0">SAVED</Badge>
                     </div>
                   ) : (
                     <div className="mt-2 bg-gradient-to-r from-amber-950/80 via-[#181206] to-amber-950/80 border border-amber-500/60 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-[11px] font-mono text-amber-300">
@@ -747,7 +759,7 @@ export default function ProductChatDrawer({
                                       onClose();
                                       if (onOpenCheckout) onOpenCheckout();
                                     }}
-                                    className="h-7 text-[10px] font-mono font-black bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-2.5 rounded cursor-pointer"
+                                    className="h-7 text-[10px] font-mono font-black bg-emerald-500 hover:bg-emerald-400 text-emerald-950 px-2.5 rounded cursor-pointer"
                                   >
                                     PAY NOW
                                   </Button>
