@@ -239,7 +239,17 @@ export default function ProjectDetails() {
       }
 
       // Check active conversation / build request
-      if (id) {
+      if (id && session?.user?.id) {
+        // Read session-level withdrawn indicator for immediate refresh durability
+        const sessionWithdrawn = (() => {
+          try {
+            return sessionStorage.getItem(`dukaan_withdrawn_${session.user.id}_${id}`) ||
+                   (project?.id ? sessionStorage.getItem(`dukaan_withdrawn_${session.user.id}_${project.id}`) : null);
+          } catch (_) {
+            return null;
+          }
+        })();
+
         const { data: convos } = await supabase
           .from("product_conversations")
           .select("*")
@@ -249,15 +259,30 @@ export default function ProjectDetails() {
 
         if (!isMounted) return;
 
-        const convo = convos && convos.length > 0 
-          ? convos.find((c: any) => c.status !== "withdrawn" && c.status !== "cancelled" && !c.admin_deleted) 
+        let filteredConvos = convos || [];
+
+        // If marked withdrawn in current session, ignore any stale rows unless a fresh one was created after withdrawal
+        if (sessionWithdrawn && filteredConvos.length > 0) {
+          const withdrawnTime = parseInt(sessionWithdrawn, 10);
+          filteredConvos = filteredConvos.filter((c: any) => {
+            const updatedAt = new Date(c.updated_at || c.created_at || 0).getTime();
+            return updatedAt > withdrawnTime && (c.status || "").toLowerCase() === "active";
+          });
+        }
+
+        const convo = filteredConvos.length > 0 
+          ? filteredConvos.find((c: any) => {
+              const s = (c.status || "").trim().toLowerCase();
+              return s !== "withdrawn" && s !== "cancelled" && s !== "archived" && !c.admin_deleted && (s === "active" || s === "ready_to_purchase" || s === "purchased");
+            }) 
           : null;
 
         if (convo) {
           setActiveConvo(convo);
-          if (convo.status === "ready_to_purchase") {
+          const s = (convo.status || "").trim().toLowerCase();
+          if (s === "ready_to_purchase") {
             setConvoStatus("ready_to_purchase");
-          } else if (convo.status === "purchased") {
+          } else if (s === "purchased") {
             if (hasActivePurchase) {
               setConvoStatus("purchased");
               setIsOwned(true);
@@ -265,8 +290,11 @@ export default function ProjectDetails() {
               setIsOwned(false);
               setConvoStatus("ready_to_purchase");
             }
-          } else {
+          } else if (s === "active") {
             setConvoStatus("active");
+          } else {
+            setConvoStatus("none");
+            setActiveConvo(null);
           }
         } else {
           if (!hasActivePurchase) {
@@ -386,6 +414,12 @@ export default function ProjectDetails() {
     if (!project) return;
     setIsRequestingBuild(true);
 
+    // Clear session withdrawn flags when user explicitly initiates a new request
+    try {
+      sessionStorage.removeItem(`dukaan_withdrawn_${session.user.id}_${project.id}`);
+      if (id) sessionStorage.removeItem(`dukaan_withdrawn_${session.user.id}_${id}`);
+    } catch (_) {}
+
     try {
       // Check if conversation already exists (sorted by newest)
       const { data: convos } = await supabase
@@ -396,8 +430,9 @@ export default function ProjectDetails() {
         .order("last_message_at", { ascending: false });
 
       const existing = convos && convos.length > 0 ? convos[0] : null;
+      const existingStatus = (existing?.status || "").trim().toLowerCase();
 
-      if (existing && existing.status !== "withdrawn" && existing.status !== "cancelled") {
+      if (existing && existingStatus !== "withdrawn" && existingStatus !== "cancelled" && existingStatus !== "archived" && !existing.admin_deleted) {
         setActiveConvo(existing);
         setConvoStatus(existing.status || "active");
         setIsChatDrawerOpen(true);
@@ -413,20 +448,35 @@ export default function ProjectDetails() {
 
         if (existing) {
           // Reactivate previously withdrawn conversation with clean lottery state
-          const { data: reactivated, error } = await supabase
+          let reactivatePayload: any = {
+            status: "active",
+            admin_deleted: false,
+            lottery_unlocked: false,
+            last_message: initialMsg.message,
+            last_message_at: initialMsg.created_at,
+            messages: [initialMsg],
+            updated_at: initialMsg.created_at
+          };
+
+          let { data: reactivated, error } = await supabase
             .from("product_conversations")
-            .update({
-              status: "active",
-              admin_deleted: false,
-              lottery_unlocked: false,
-              last_message: initialMsg.message,
-              last_message_at: initialMsg.created_at,
-              messages: [initialMsg],
-              updated_at: initialMsg.created_at
-            })
+            .update(reactivatePayload)
             .eq("id", existing.id)
             .select()
             .maybeSingle();
+
+          if (error && (error.message?.includes("lottery_unlocked") || error.message?.includes("admin_deleted"))) {
+            delete reactivatePayload.lottery_unlocked;
+            delete reactivatePayload.admin_deleted;
+            const res = await supabase
+              .from("product_conversations")
+              .update(reactivatePayload)
+              .eq("id", existing.id)
+              .select()
+              .maybeSingle();
+            reactivated = res.data;
+            error = res.error;
+          }
 
           if (error) throw error;
           if (reactivated) {
@@ -444,24 +494,37 @@ export default function ProjectDetails() {
           setIsChatDrawerOpen(true);
           toast.success("Build request submitted! Engineering team notified.");
         } else {
-          const { data: created, error } = await supabase
+          let insertPayload: any = {
+            user_id: session.user.id,
+            user_email: session.user.email,
+            user_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0],
+            project_id: project.id,
+            project_title: project.title,
+            project_thumb: project.thumb || "/placeholder.svg",
+            project_price: project.price || 0,
+            status: "active",
+            lottery_unlocked: false,
+            last_message: initialMsg.message,
+            last_message_at: initialMsg.created_at,
+            messages: [initialMsg]
+          };
+
+          let { data: created, error } = await supabase
             .from("product_conversations")
-            .insert({
-              user_id: session.user.id,
-              user_email: session.user.email,
-              user_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0],
-              project_id: project.id,
-              project_title: project.title,
-              project_thumb: project.thumb || "/placeholder.svg",
-              project_price: project.price || 0,
-              status: "active",
-              lottery_unlocked: false,
-              last_message: initialMsg.message,
-              last_message_at: initialMsg.created_at,
-              messages: [initialMsg]
-            })
+            .insert(insertPayload)
             .select()
             .maybeSingle();
+
+          if (error && error.message?.includes("lottery_unlocked")) {
+            delete insertPayload.lottery_unlocked;
+            const res = await supabase
+              .from("product_conversations")
+              .insert(insertPayload)
+              .select()
+              .maybeSingle();
+            created = res.data;
+            error = res.error;
+          }
 
           if (error) throw error;
           if (created) {
@@ -493,15 +556,16 @@ export default function ProjectDetails() {
     setIsChatDrawerOpen(false);
 
     let targetConvo = activeConvo;
-    if (!targetConvo?.id && id) {
+    if (!targetConvo?.id && (id || project?.id)) {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user?.id) {
+          const targetPid = id || project?.id;
           const { data: convos } = await supabase
             .from("product_conversations")
             .select("*")
             .eq("user_id", session.user.id)
-            .eq("project_id", id)
+            .eq("project_id", targetPid)
             .order("last_message_at", { ascending: false })
             .limit(1);
           if (convos && convos.length > 0) {
@@ -514,16 +578,6 @@ export default function ProjectDetails() {
       }
     }
 
-    if (!targetConvo?.id) {
-      // If no conversation actually exists in state or DB, reset to clean none state immediately
-      setConvoStatus("none");
-      setActiveConvo(null);
-      setIsChatDrawerOpen(false);
-      setIsConfirmCancelOpen(false);
-      toast.info("No active request to withdraw.");
-      return;
-    }
-
     setIsConfirmCancelOpen(true);
   };
 
@@ -532,50 +586,101 @@ export default function ProjectDetails() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = currentUser?.id || session?.user?.id || activeConvo?.user_id;
-      const convoId = activeConvo?.id;
+      const targetConvoId = activeConvo?.id;
+      const targetProjectId = id || project?.id;
 
-      // 1. Mark status as withdrawn and clear messages in database
-      if (convoId) {
-        await supabase
-          .from("product_conversations")
-          .update({
-            status: "withdrawn",
-            admin_deleted: true,
-            lottery_unlocked: false,
-            messages: [],
-            last_message: "Build request withdrawn by user",
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", convoId)
-          .catch((err) => console.warn("Soft delete update warning:", err));
+      // Mark locally in sessionStorage for instant refresh durability across network & replica lag
+      if (userId && targetProjectId) {
+        try {
+          sessionStorage.setItem(`dukaan_withdrawn_${userId}_${targetProjectId}`, Date.now().toString());
+          if (id) sessionStorage.setItem(`dukaan_withdrawn_${userId}_${id}`, Date.now().toString());
+          if (project?.id) sessionStorage.setItem(`dukaan_withdrawn_${userId}_${project.id}`, Date.now().toString());
+        } catch (_) {}
       }
 
-      // 2. Also try hard delete, safely caught so RLS doesn't block completion
-      if (userId && id) {
+      // Robust progressive updater for product_conversations that handles any schema variation
+      const robustUpdateWithdrawn = async (filterFn: (query: any) => any) => {
+        // Attempt 1: Full rich payload
+        const fullPayload: any = {
+          status: "withdrawn",
+          admin_deleted: true,
+          lottery_unlocked: false,
+          messages: [],
+          last_message: "Build request withdrawn by user",
+          updated_at: new Date().toISOString()
+        };
+
+        let { error } = await filterFn(supabase.from("product_conversations").update(fullPayload));
+
+        if (error) {
+          console.warn("Attempt 1 withdraw failed, retrying without optional columns:", error.message);
+          // Attempt 2: Without lottery_unlocked
+          delete fullPayload.lottery_unlocked;
+          const res2 = await filterFn(supabase.from("product_conversations").update(fullPayload));
+          error = res2.error;
+        }
+
+        if (error) {
+          console.warn("Attempt 2 withdraw failed, retrying without admin_deleted:", error.message);
+          // Attempt 3: Without admin_deleted
+          delete fullPayload.admin_deleted;
+          const res3 = await filterFn(supabase.from("product_conversations").update(fullPayload));
+          error = res3.error;
+        }
+
+        if (error) {
+          console.warn("Attempt 3 withdraw failed, retrying with core columns only:", error.message);
+          // Attempt 4: Core columns guaranteed in all Postgres tables
+          const corePayload = {
+            status: "withdrawn",
+            updated_at: new Date().toISOString()
+          };
+          const res4 = await filterFn(supabase.from("product_conversations").update(corePayload));
+          error = res4.error;
+        }
+
+        return error;
+      };
+
+      // 1. Update all conversations for this user & project pair
+      if (userId && targetProjectId) {
+        await robustUpdateWithdrawn((q) => q.eq("user_id", userId).eq("project_id", targetProjectId));
+      }
+
+      // 2. Also update by specific conversation id if known
+      if (targetConvoId && !targetConvoId.startsWith("local-")) {
+        await robustUpdateWithdrawn((q) => q.eq("id", targetConvoId));
+      }
+
+      // 3. Attempt hard delete on all matching records (works when DELETE RLS policy is present)
+      if (userId && targetProjectId) {
         await supabase
           .from("product_conversations")
           .delete()
           .eq("user_id", userId)
-          .eq("project_id", id)
-          .catch((err) => console.warn("Hard delete warning:", err));
-      } else if (convoId) {
+          .eq("project_id", targetProjectId)
+          .then()
+          .catch(() => {});
+      }
+      if (targetConvoId && !targetConvoId.startsWith("local-")) {
         await supabase
           .from("product_conversations")
           .delete()
-          .eq("id", convoId)
-          .catch((err) => console.warn("Hard delete warning:", err));
+          .eq("id", targetConvoId)
+          .then()
+          .catch(() => {});
       }
 
-      // 3. Notify admin stream over broadcast
-      if (convoId) {
+      // 4. Broadcast withdrawal event to admin channel
+      try {
         supabase.channel('admin-global-inquiries').send({
           type: 'broadcast',
           event: 'inquiry_withdrawn',
-          payload: { id: convoId, project_id: id, user_id: userId }
+          payload: { id: targetConvoId, project_id: targetProjectId, user_id: userId }
         }).catch(() => {});
-      }
+      } catch (_) {}
 
-      // 4. Immediately clear local states so UI is responsive without needing manual refresh
+      // 5. Immediately clear local states so UI is responsive without needing manual refresh
       setActiveConvo(null);
       setConvoStatus("none");
       setAppliedDiscount(0);

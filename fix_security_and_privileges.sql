@@ -44,12 +44,29 @@ TO authenticated
 USING (is_admin())
 WITH CHECK (is_admin());
 
--- 3. PRODUCT_CONVERSATIONS DELETE POLICY
+-- 3. PRODUCT_CONVERSATIONS DELETE & UPDATE POLICIES + SCHEMA GUARANTEES
+-- Ensures all optional columns exist so update queries never fail with code 42703
+ALTER TABLE public.product_conversations ADD COLUMN IF NOT EXISTS admin_deleted BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.product_conversations ADD COLUMN IF NOT EXISTS lottery_unlocked BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.product_conversations ADD COLUMN IF NOT EXISTS applied_discount NUMERIC DEFAULT 0;
+ALTER TABLE public.product_conversations ADD COLUMN IF NOT EXISTS coupon_code TEXT;
+ALTER TABLE public.product_conversations ADD COLUMN IF NOT EXISTS discounted_price NUMERIC DEFAULT 0;
+ALTER TABLE public.product_conversations ADD COLUMN IF NOT EXISTS lottery_min_discount INTEGER DEFAULT 20;
+ALTER TABLE public.product_conversations ADD COLUMN IF NOT EXISTS lottery_max_discount INTEGER DEFAULT 30;
+
 -- Allows users to withdraw/cancel and delete their own build inquiries without getting stuck
-ALTER TABLE product_conversations ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Users can delete own conversations" ON product_conversations;
+ALTER TABLE public.product_conversations ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can delete own conversations" ON public.product_conversations;
 CREATE POLICY "Users can delete own conversations" 
-ON product_conversations FOR DELETE 
+ON public.product_conversations FOR DELETE 
 TO authenticated 
 USING (auth.uid() = user_id OR is_admin());
+
+DROP POLICY IF EXISTS "Users and admin can update conversations" ON public.product_conversations;
+CREATE POLICY "Users and admin can update conversations" 
+ON public.product_conversations FOR UPDATE 
+TO authenticated 
+USING (auth.uid() = user_id OR is_admin());
+
 

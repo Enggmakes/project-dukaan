@@ -87,35 +87,98 @@ export default function ProductChatDrawer({
     if (!conversation?.id) return;
     setIsCancelling(true);
     try {
-      // 1. Wipe chat messages, reset lottery state, and update status in database
-      await supabase
-        .from("product_conversations")
-        .update({
+      const targetConvoId = conversation.id;
+      const userId = user?.id || conversation.user_id;
+      const projId = project?.id || conversation.project_id;
+
+      // Mark locally in sessionStorage for immediate durability
+      if (userId && projId) {
+        try {
+          sessionStorage.setItem(`dukaan_withdrawn_${userId}_${projId}`, Date.now().toString());
+        } catch (_) {}
+      }
+
+      // Robust progressive updater for product_conversations that handles any schema variation
+      const robustUpdateWithdrawn = async (filterFn: (query: any) => any) => {
+        // Attempt 1: Full rich payload
+        const fullPayload: any = {
           status: "withdrawn",
           admin_deleted: true,
           lottery_unlocked: false,
           messages: [],
           last_message: "Build request withdrawn by user",
           updated_at: new Date().toISOString()
-        })
-        .eq("id", conversation.id)
-        .catch((err) => console.warn("Drawer cancel update warning:", err));
+        };
 
-      // 2. Hard delete any conversations for this user & project
-      if (user?.id && project?.id) {
-        await supabase
-          .from("product_conversations")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("project_id", project.id)
-          .catch((err) => console.warn("Drawer cancel hard delete warning:", err));
-      } else {
-        await supabase
-          .from("product_conversations")
-          .delete()
-          .eq("id", conversation.id)
-          .catch((err) => console.warn("Drawer cancel hard delete warning:", err));
+        let { error } = await filterFn(supabase.from("product_conversations").update(fullPayload));
+
+        if (error) {
+          console.warn("Drawer attempt 1 withdraw failed, retrying without optional columns:", error.message);
+          // Attempt 2: Without lottery_unlocked
+          delete fullPayload.lottery_unlocked;
+          const res2 = await filterFn(supabase.from("product_conversations").update(fullPayload));
+          error = res2.error;
+        }
+
+        if (error) {
+          console.warn("Drawer attempt 2 withdraw failed, retrying without admin_deleted:", error.message);
+          // Attempt 3: Without admin_deleted
+          delete fullPayload.admin_deleted;
+          const res3 = await filterFn(supabase.from("product_conversations").update(fullPayload));
+          error = res3.error;
+        }
+
+        if (error) {
+          console.warn("Drawer attempt 3 withdraw failed, retrying with core columns only:", error.message);
+          // Attempt 4: Core columns guaranteed in all Postgres tables
+          const corePayload = {
+            status: "withdrawn",
+            updated_at: new Date().toISOString()
+          };
+          const res4 = await filterFn(supabase.from("product_conversations").update(corePayload));
+          error = res4.error;
+        }
+
+        return error;
+      };
+
+      // 1. Update all conversations for this user & project pair
+      if (userId && projId) {
+        await robustUpdateWithdrawn((q) => q.eq("user_id", userId).eq("project_id", projId));
       }
+
+      // 2. Also update by specific conversation id if known
+      if (targetConvoId && !targetConvoId.startsWith("local-")) {
+        await robustUpdateWithdrawn((q) => q.eq("id", targetConvoId));
+      }
+
+      // 3. Attempt hard delete on all matching records (works when DELETE RLS policy is present)
+      if (userId && projId) {
+        await supabase
+          .from("product_conversations")
+          .delete()
+          .eq("user_id", userId)
+          .eq("project_id", projId)
+          .then()
+          .catch(() => {});
+      }
+      if (targetConvoId && !targetConvoId.startsWith("local-")) {
+        await supabase
+          .from("product_conversations")
+          .delete()
+          .eq("id", targetConvoId)
+          .then()
+          .catch(() => {});
+      }
+
+      // 4. Broadcast withdrawal event to admin channel
+      try {
+        supabase.channel('admin-global-inquiries').send({
+          type: 'broadcast',
+          event: 'inquiry_withdrawn',
+          payload: { id: targetConvoId, project_id: projId, user_id: userId }
+        }).catch(() => {});
+      } catch (_) {}
 
       setInternalDiscount(0);
       setInternalCoupon("");
@@ -173,10 +236,28 @@ export default function ProductChatDrawer({
 
         let activeConvo: any = null;
         if (existingList && existingList.length > 0) {
+          const sessionWithdrawn = (() => {
+            try {
+              return sessionStorage.getItem(`dukaan_withdrawn_${user.id}_${project.id}`);
+            } catch (_) {
+              return null;
+            }
+          })();
+
+          let candidateList = existingList;
+          if (sessionWithdrawn) {
+            const withdrawnTime = parseInt(sessionWithdrawn, 10);
+            candidateList = candidateList.filter((c: any) => {
+              const updatedAt = new Date(c.updated_at || c.created_at || 0).getTime();
+              return updatedAt > withdrawnTime && (c.status || "").toLowerCase() === "active";
+            });
+          }
+
           // Filter out withdrawn or cancelled ones
-          const validConvos = existingList.filter(
-            (c: any) => c.status !== "withdrawn" && c.status !== "cancelled" && !c.admin_deleted
-          );
+          const validConvos = candidateList.filter((c: any) => {
+            const s = (c.status || "").trim().toLowerCase();
+            return s !== "withdrawn" && s !== "cancelled" && s !== "archived" && !c.admin_deleted;
+          });
 
           if (validConvos.length > 0) {
             // Pick conversation with real messages, or the newest one
