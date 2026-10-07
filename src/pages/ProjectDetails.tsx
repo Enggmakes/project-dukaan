@@ -1,5 +1,5 @@
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot, Heart, Headphones, Terminal, Layers, Cpu, Code2, Wrench, MessageSquare, FolderGit2, Key, Clock, Sparkles, XCircle, Ticket, Zap } from "lucide-react";
+import { ArrowLeft, Check, Star, Download, ShieldCheck, Play, FileText, Database, Video, MapPin, Phone, Mail, Loader2, Package, Truck, CheckCircle2, ShoppingBag, X, Laptop, Bot, Heart, Headphones, Terminal, Layers, Cpu, Code2, Wrench, MessageSquare, FolderGit2, Key, Clock, Sparkles, XCircle, Ticket, Zap, Percent } from "lucide-react";
 import { useState, useEffect } from "react";
 import { load } from '@cashfreepayments/cashfree-js';
 import { Helmet } from 'react-helmet-async';
@@ -8,7 +8,7 @@ import ProjectCard from "@/components/ProjectCard";
 import ProductChatDrawer from "@/components/ProductChatDrawer";
 import CyberConfirmDialog from "@/components/CyberConfirmDialog";
 import StudentLotteryTicketModal from "@/components/StudentLotteryTicketModal";
-import { getLotteryConfig, LotteryConfig, isLotteryActiveForConvo, getConvoDiscountInfo, getConvoLotteryBounds } from "@/lib/lotteryConfig";
+import { getLotteryConfig, LotteryConfig, isLotteryActiveForConvo, getConvoDiscountInfo, getConvoLotteryBounds, DiscountType, validateCouponCode } from "@/lib/lotteryConfig";
 import { Project } from "@/lib/mockData";
 import { supabase } from "@/lib/supabase";
 import { isUserAdmin, checkAdminStatus } from "@/lib/authUtils";
@@ -77,10 +77,13 @@ export default function ProjectDetails() {
   const [isCancellingRequest, setIsCancellingRequest] = useState(false);
   const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
 
-  // Student Scratch Lottery Ticket States
+  // Student Scratch Lottery Ticket States & Type-in Coupon States
   const [isLotteryModalOpen, setIsLotteryModalOpen] = useState(false);
   const [appliedDiscount, setAppliedDiscount] = useState<number>(0);
   const [appliedCoupon, setAppliedCoupon] = useState<string>("");
+  const [appliedDiscountType, setAppliedDiscountType] = useState<DiscountType>("percentage");
+  const [couponInput, setCouponInput] = useState<string>("");
+  const [isTypingCoupon, setIsTypingCoupon] = useState<boolean>(false);
   const [lotteryConfig, setLotteryConfig] = useState<LotteryConfig>(() => getLotteryConfig());
 
   useEffect(() => {
@@ -91,23 +94,28 @@ export default function ProjectDetails() {
     return () => window.removeEventListener("dukaan_lottery_config_changed", handleConfigChange);
   }, []);
 
-  const handleApplyDiscount = async (discount: number, code: string) => {
+  const handleApplyDiscount = async (discount: number, code: string, discountType: DiscountType = "percentage") => {
     setAppliedDiscount(discount);
     setAppliedCoupon(code);
-    toast.success(`🎉 ${discount}% Lucky Discount Applied! Promo: ${code}`);
+    setAppliedDiscountType(discountType);
+    toast.success(discountType === "fixed" ? `₹${discount.toLocaleString()} Discount Applied! Promo: ${code}` : `${discount}% Discount Applied! Promo: ${code}`);
 
     if (activeConvo?.id) {
       const origPrice = Number(activeConvo.project_price || project?.price || 0);
-      const discountedPrice = origPrice > 0 ? Math.round(origPrice * (1 - discount / 100)) : 0;
+      const discountedPrice = origPrice > 0 
+        ? (discountType === "fixed" ? Math.max(0, origPrice - discount) : Math.round(origPrice * (1 - discount / 100))) 
+        : 0;
       
       const discountMsg = {
         id: `msg-${Date.now()}`,
         sender_id: currentUser?.id || "user",
         sender_role: "user",
         sender_name: currentUser?.user_metadata?.name || currentUser?.email?.split("@")[0] || "Student",
-        message: `🎟️ Applied Lucky Student Coupon: ${code} (${discount}% OFF) — Total: ₹${discountedPrice.toLocaleString('en-IN')}`,
+        message: `Applied Student Coupon: ${code} (${discountType === "fixed" ? `₹${discount.toLocaleString()}` : `${discount}%`} OFF) — Total: ₹${discountedPrice.toLocaleString('en-IN')}`,
         type: "coupon_applied",
-        discount_percent: discount,
+        discount_type: discountType,
+        discount_value: discount,
+        discount_percent: discountType === "fixed" ? Math.round((discount / (origPrice || 1)) * 100) : discount,
         coupon_code: code,
         original_price: origPrice,
         discounted_price: discountedPrice,
@@ -177,8 +185,26 @@ export default function ProjectDetails() {
     }
   };
 
+  const handleTypeInCouponSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!couponInput.trim()) {
+      toast.error("Please enter a coupon code.");
+      return;
+    }
+    const result = validateCouponCode(couponInput, project?.price || 0);
+    if (result.valid) {
+      handleApplyDiscount(result.discountValue, result.code, result.discountType);
+      setCouponInput("");
+      setIsTypingCoupon(false);
+    } else {
+      toast.error(result.message || "Invalid or unrecognized promo code.");
+    }
+  };
+
   const finalPrice = project
-    ? (appliedDiscount > 0 ? Math.round(project.price * (1 - appliedDiscount / 100)) : project.price)
+    ? (appliedDiscount > 0 
+        ? (appliedDiscountType === "fixed" ? Math.max(0, project.price - appliedDiscount) : Math.round(project.price * (1 - appliedDiscount / 100))) 
+        : project.price)
     : 0;
 
   // Student Scratch Lottery is strictly isolated per-user/conversation (unlocked only when engineer explicitly grants it in this active chat)
@@ -1172,7 +1198,7 @@ export default function ProjectDetails() {
                   <div className="flex items-center justify-between gap-2 mt-2 p-2 rounded bg-emerald-950/40 border border-emerald-500/40 text-[11px] font-mono">
                     <span className="text-emerald-400 font-bold flex items-center gap-1.5">
                       <Zap className="w-3.5 h-3.5 fill-emerald-400" />
-                      {appliedDiscount}% LUCKY DISCOUNT APPLIED ({appliedCoupon})
+                      {appliedDiscountType === "fixed" ? `₹${appliedDiscount.toLocaleString()}` : `${appliedDiscount}%`} DISCOUNT APPLIED ({appliedCoupon})
                     </span>
                     <button
                       onClick={() => {
@@ -1185,21 +1211,70 @@ export default function ProjectDetails() {
                       Remove
                     </button>
                   </div>
-                ) : isLotteryUnlocked ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsLotteryModalOpen(true)}
-                    className="w-full mt-3 p-2.5 rounded-xl bg-gradient-to-r from-amber-950/80 via-[#181206] to-amber-950/80 border-2 border-amber-500/70 hover:border-amber-400 text-amber-300 font-mono text-xs font-bold flex items-center justify-between shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] transition-all cursor-pointer group retro-btn"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Ticket className="w-4 h-4 text-amber-400 group-hover:rotate-12 transition-transform animate-pulse" />
-                      <span className="font-['Cinzel',serif] tracking-wider font-bold">ENGINEER GRANTED RAFFLE TICKET</span>
-                    </span>
-                    <span className="text-[10px] bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 font-black px-2.5 py-1 rounded shadow-md tracking-wider">
-                      SCRATCH →
-                    </span>
-                  </button>
-                ) : null}
+                ) : (
+                  <div className="space-y-2 mt-3">
+                    {/* Scratch card button if engineer unlocked */}
+                    {isLotteryUnlocked && (
+                      <button
+                        type="button"
+                        onClick={() => setIsLotteryModalOpen(true)}
+                        className="w-full p-2.5 rounded-xl bg-gradient-to-r from-amber-950/80 via-[#181206] to-amber-950/80 border-2 border-amber-500/70 hover:border-amber-400 text-amber-300 font-mono text-xs font-bold flex items-center justify-between shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] transition-all cursor-pointer group"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Ticket className="w-4 h-4 text-amber-400 group-hover:rotate-12 transition-transform animate-pulse" />
+                          <span className="font-['Cinzel',serif] tracking-wider font-bold">ENGINEER GRANTED RAFFLE TICKET</span>
+                        </span>
+                        <span className="text-[10px] bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 font-black px-2.5 py-1 rounded shadow-md tracking-wider">
+                          SCRATCH →
+                        </span>
+                      </button>
+                    )}
+
+                    {/* Type in coupon code option */}
+                    {isTypingCoupon ? (
+                      <form onSubmit={handleTypeInCouponSubmit} className="flex items-center gap-1.5 pt-1 font-mono">
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            value={couponInput}
+                            onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                            placeholder="TYPE CODE (e.g. STUDENT2026)"
+                            className="w-full h-9 px-3 rounded-lg bg-[#0c1322] border border-amber-500/40 text-amber-300 text-xs font-mono font-bold tracking-wider uppercase placeholder:text-slate-500 focus:outline-hidden focus:border-amber-400"
+                            autoFocus
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          className="h-9 px-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs cursor-pointer shadow-sm active:scale-95 transition-all"
+                        >
+                          APPLY
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsTypingCoupon(false)}
+                          className="h-9 px-2 text-xs text-slate-400 hover:text-white cursor-pointer"
+                          title="Cancel"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </form>
+                    ) : (
+                      <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setIsTypingCoupon(true)}
+                          className="hover:text-amber-300 flex items-center gap-1.5 cursor-pointer underline text-[11px] transition-colors"
+                        >
+                          <Percent className="w-3 h-3 text-amber-400" />
+                          <span>Type in promo code / discount</span>
+                        </button>
+                        {isLotteryUnlocked && (
+                          <span className="text-[10px] text-amber-500/70">Or scratch card</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="text-xs text-slate-400 mt-1 font-mono">One-time purchase · Lifetime access & updates</div>
                 
@@ -1433,7 +1508,7 @@ export default function ProjectDetails() {
                 <span className="line-through text-slate-500 text-xs">₹{project.price.toLocaleString()}</span>
                 <span className="text-emerald-400 font-black text-base sm:text-lg">₹{finalPrice.toLocaleString()}</span>
                 <span className="text-[10px] text-emerald-400 font-bold bg-emerald-950/60 border border-emerald-500/30 px-1.5 py-0.2 rounded">
-                  {appliedDiscount}% OFF
+                  {appliedDiscountType === "fixed" ? `₹${appliedDiscount.toLocaleString()}` : `${appliedDiscount}%`} OFF
                 </span>
               </>
             ) : (
@@ -1532,7 +1607,9 @@ export default function ProjectDetails() {
                       <>
                         <span className="line-through text-slate-500 mr-1.5">₹{project.price.toLocaleString()}</span>
                         <strong className="text-emerald-400">₹{finalPrice.toLocaleString()}</strong>
-                        <span className="ml-1 text-[10px] text-emerald-400 font-bold">({appliedDiscount}% OFF)</span>
+                        <span className="ml-1 text-[10px] text-emerald-400 font-bold">
+                          ({appliedDiscountType === "fixed" ? `₹${appliedDiscount.toLocaleString()}` : `${appliedDiscount}%`} OFF)
+                        </span>
                       </>
                     ) : (
                       <strong className="text-amber-400">₹{project.price.toLocaleString()}</strong>
@@ -1552,6 +1629,45 @@ export default function ProjectDetails() {
                         SCRATCH NOW →
                       </span>
                     </button>
+                  )}
+                  {appliedDiscount === 0 && (
+                    <div className="mt-2 pt-2 border-t border-slate-800/80">
+                      {isTypingCoupon ? (
+                        <form onSubmit={handleTypeInCouponSubmit} className="flex items-center gap-1.5 font-mono">
+                          <input
+                            type="text"
+                            value={couponInput}
+                            onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                            placeholder="PROMO CODE (e.g. STUDENT2026)"
+                            className="flex-1 h-8 px-2.5 rounded bg-[#090e1c] border border-amber-500/40 text-amber-300 text-xs font-mono font-bold tracking-wider uppercase placeholder:text-slate-600 focus:outline-hidden focus:border-amber-400"
+                            autoFocus
+                          />
+                          <button
+                            type="submit"
+                            className="h-8 px-2.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs cursor-pointer active:scale-95 transition-all"
+                          >
+                            APPLY
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setIsTypingCoupon(false)}
+                            className="h-8 px-2 text-xs text-slate-400 hover:text-white cursor-pointer"
+                            title="Cancel"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </form>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setIsTypingCoupon(true)}
+                          className="text-[11px] font-mono text-slate-400 hover:text-amber-300 flex items-center gap-1.5 cursor-pointer underline transition-colors"
+                        >
+                          <Percent className="w-3 h-3 text-amber-400" />
+                          <span>Have a discount coupon or voucher? Type it here</span>
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
 
@@ -1980,6 +2096,7 @@ export default function ProjectDetails() {
             onClose={() => setIsLotteryModalOpen(false)}
             projectTitle={project?.title || ""}
             originalPrice={project?.price || 0}
+            discountType={bounds.discountType}
             minDiscount={bounds.minDiscount}
             maxDiscount={bounds.maxDiscount}
             ticketId={activeTicket?.ticket_id}

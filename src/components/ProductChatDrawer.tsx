@@ -978,27 +978,32 @@ export default function ProductChatDrawer({
             onClose={() => setIsInternalLotteryOpen(false)}
             projectTitle={project?.title || ""}
             originalPrice={project?.price || 0}
+            discountType={bounds.discountType}
             minDiscount={bounds.minDiscount}
             maxDiscount={bounds.maxDiscount}
             ticketId={activeTicket?.ticket_id}
-            onApplyDiscount={async (disc, code) => {
+            onApplyDiscount={async (disc, code, dType = "percentage") => {
               setInternalDiscount(disc);
               setInternalCoupon(code);
               setIsInternalLotteryOpen(false);
-              toast.success(`🎉 ${disc}% Lucky Discount Applied! Promo: ${code}`);
+              toast.success(dType === "fixed" ? `₹${disc.toLocaleString()} Lucky Discount Applied! Promo: ${code}` : `${disc}% Lucky Discount Applied! Promo: ${code}`);
 
               if (conversation?.id) {
                 const origPrice = Number(conversation.project_price || project?.price || 0);
-                const discountedPrice = origPrice > 0 ? Math.round(origPrice * (1 - disc / 100)) : 0;
+                const discountedPrice = origPrice > 0 
+                  ? (dType === "fixed" ? Math.max(0, origPrice - disc) : Math.round(origPrice * (1 - disc / 100))) 
+                  : 0;
                 
                 const discountMsg = {
                   id: `msg-${Date.now()}`,
                   sender_id: user?.id || "user",
                   sender_role: "user",
                   sender_name: user?.user_metadata?.name || user?.email?.split("@")[0] || "Student",
-                  message: `🎟️ Applied Lucky Student Coupon: ${code} (${disc}% OFF) — Total: ₹${discountedPrice.toLocaleString('en-IN')}`,
+                  message: `Applied Lucky Student Coupon: ${code} (${dType === "fixed" ? `₹${disc.toLocaleString()}` : `${disc}%`} OFF) — Total: ₹${discountedPrice.toLocaleString('en-IN')}`,
                   type: "coupon_applied",
-                  discount_percent: disc,
+                  discount_type: dType,
+                  discount_value: disc,
+                  discount_percent: dType === "fixed" ? Math.round((disc / (origPrice || 1)) * 100) : disc,
                   coupon_code: code,
                   original_price: origPrice,
                   discounted_price: discountedPrice,
@@ -1011,6 +1016,7 @@ export default function ProductChatDrawer({
                 setConversation((prev: any) => prev ? {
                   ...prev,
                   applied_discount: disc,
+                  applied_discount_type: dType,
                   coupon_code: code,
                   discounted_price: discountedPrice,
                   messages: nextMsgs,

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { X, CheckCircle2, Coins, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getLotteryConfig } from "@/lib/lotteryConfig";
+import { getLotteryConfig, DiscountType } from "@/lib/lotteryConfig";
 import { toast } from "sonner";
 
 interface StudentLotteryTicketModalProps {
@@ -9,7 +9,8 @@ interface StudentLotteryTicketModalProps {
   onClose: () => void;
   projectTitle: string;
   originalPrice: number;
-  onApplyDiscount: (discountPercent: number, couponCode: string) => void;
+  onApplyDiscount: (discountValue: number, couponCode: string, discountType?: DiscountType) => void;
+  discountType?: DiscountType;
   minDiscount?: number;
   maxDiscount?: number;
   ticketId?: string;
@@ -21,6 +22,7 @@ export default function StudentLotteryTicketModal({
   projectTitle,
   originalPrice,
   onApplyDiscount,
+  discountType: discountTypeProp,
   minDiscount,
   maxDiscount,
   ticketId: ticketIdProp,
@@ -29,7 +31,8 @@ export default function StudentLotteryTicketModal({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isScratched, setIsScratched] = useState(false);
   const [scratchPercent, setScratchPercent] = useState(0);
-  const [discountPercent, setDiscountPercent] = useState<number>(25);
+  const [discountValue, setDiscountValue] = useState<number>(25);
+  const [effectiveDiscountType, setEffectiveDiscountType] = useState<DiscountType>("percentage");
   const [couponCode, setCouponCode] = useState<string>("STUDENT-25");
   const [ticketId, setTicketId] = useState<string>("№ 008530 · SERIES 1984");
   const [isCopied, setIsCopied] = useState(false);
@@ -113,16 +116,33 @@ export default function StudentLotteryTicketModal({
   useEffect(() => {
     if (isOpen) {
       const config = getLotteryConfig();
-      const boundMin = typeof minDiscount === "number" && minDiscount > 0 ? minDiscount : config.minDiscount;
-      const boundMax = typeof maxDiscount === "number" && maxDiscount > 0 ? maxDiscount : config.maxDiscount;
+      const resolvedType: DiscountType = discountTypeProp || config.discountType || "percentage";
+      setEffectiveDiscountType(resolvedType);
+
+      const defaultMin = resolvedType === "fixed" ? 500 : 20;
+      const defaultMax = resolvedType === "fixed" ? 1500 : 30;
+
+      const boundMin = typeof minDiscount === "number" && minDiscount > 0 
+        ? minDiscount 
+        : (config.discountType === resolvedType ? config.minDiscount : defaultMin);
+      const boundMax = typeof maxDiscount === "number" && maxDiscount > 0 
+        ? maxDiscount 
+        : (config.discountType === resolvedType ? config.maxDiscount : defaultMax);
       const min = Math.min(boundMin, boundMax);
       const max = Math.max(boundMin, boundMax);
-      // Random integer between min and max (inclusive)
-      const randomDisc = Math.floor(Math.random() * (max - min + 1)) + min;
-      const code = `STUDENT-${randomDisc}`;
+
+      let randomDisc: number;
+      if (resolvedType === "fixed") {
+        const steps = Math.max(1, Math.floor((max - min) / 50));
+        randomDisc = min + Math.floor(Math.random() * (steps + 1)) * 50;
+      } else {
+        randomDisc = Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      const code = resolvedType === "fixed" ? `FLAT-${randomDisc}` : `STUDENT-${randomDisc}`;
       const randomSerial = ticketIdProp || `№ 00${Math.floor(1000 + Math.random() * 9000)} · SERIES 1984`;
 
-      setDiscountPercent(randomDisc);
+      setDiscountValue(randomDisc);
       setCouponCode(code);
       setTicketId(randomSerial);
       setIsScratched(false);
@@ -132,7 +152,7 @@ export default function StudentLotteryTicketModal({
       // Setup canvas on next tick
       setTimeout(initCanvas, 60);
     }
-  }, [isOpen, minDiscount, maxDiscount, ticketIdProp, initCanvas]);
+  }, [isOpen, minDiscount, maxDiscount, discountTypeProp, ticketIdProp, initCanvas]);
 
   const calculateScratchPercent = useCallback(() => {
     const canvas = canvasRef.current;
@@ -223,8 +243,10 @@ export default function StudentLotteryTicketModal({
 
   if (!isOpen) return null;
 
-  const discountedPrice = Math.round(originalPrice * (1 - discountPercent / 100));
-  const savingsAmount = originalPrice - discountedPrice;
+  const savingsAmount = effectiveDiscountType === "fixed"
+    ? Math.min(originalPrice, discountValue)
+    : Math.round(originalPrice * (discountValue / 100));
+  const discountedPrice = Math.max(0, originalPrice - savingsAmount);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
@@ -311,8 +333,8 @@ export default function StudentLotteryTicketModal({
                 </div>
 
                 {/* Stately Gilded Prize Percentage */}
-                <div className="text-5xl sm:text-6xl font-black font-['Cinzel',serif] tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-[#fffbeb] via-[#fbbf24] to-[#b45309] drop-shadow-[0_4px_16px_rgba(245,158,11,0.5)] my-1">
-                  {discountPercent}% OFF
+                <div className="text-4xl sm:text-6xl font-black font-['Cinzel',serif] tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-[#fffbeb] via-[#fbbf24] to-[#b45309] drop-shadow-[0_4px_16px_rgba(245,158,11,0.5)] my-1">
+                  {effectiveDiscountType === "fixed" ? `₹${discountValue.toLocaleString()} OFF` : `${discountValue}% OFF`}
                 </div>
 
                 {/* Secret Promo Voucher Box */}
@@ -388,13 +410,15 @@ export default function StudentLotteryTicketModal({
               {isScratched ? (
                 <Button
                   onClick={() => {
-                    onApplyDiscount(discountPercent, couponCode);
+                    onApplyDiscount(discountValue, couponCode, effectiveDiscountType);
                     onClose();
                   }}
                   className="w-full rounded-xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 hover:from-emerald-400 hover:to-emerald-300 text-slate-950 font-black font-mono text-xs sm:text-sm h-12 shadow-[0_0_25px_rgba(16,185,129,0.4)] border border-emerald-300 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 retro-btn"
                 >
                   <CheckCircle2 className="w-4 h-4 text-slate-950 stroke-[2.5]" />
-                  <span>[ REDEEM TICKET · APPLY {discountPercent}% DISCOUNT ]</span>
+                  <span>
+                    [ REDEEM TICKET · APPLY {effectiveDiscountType === "fixed" ? `₹${discountValue.toLocaleString()}` : `${discountValue}%`} DISCOUNT ]
+                  </span>
                 </Button>
               ) : (
                 <Button

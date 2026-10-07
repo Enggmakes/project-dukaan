@@ -7,13 +7,21 @@ import {
   Send, Sparkles, CheckCircle2, Clock, User, Filter, Archive, ArrowLeft, FolderGit2, 
   HardDrive, Video, FileText, FileCode, PackageCheck, Copy, Menu, X, SlidersHorizontal, 
   Terminal, Shield, ArrowUpRight, BarChart3, Inbox, FileSpreadsheet, Check, Key, Ticket, Zap, Gift,
-  Radio, Megaphone, Volume2, VolumeX, Eye, GraduationCap, Rocket
+  Radio, Megaphone, Volume2, VolumeX, Eye, GraduationCap, Rocket, Percent
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import CyberConfirmDialog from "@/components/CyberConfirmDialog";
 import StudentLotteryTicketModal from "@/components/StudentLotteryTicketModal";
 import SmartSchemeModal from "@/components/SmartSchemeModal";
-import { getLotteryConfig, saveLotteryConfig, LotteryConfig, isLotteryActiveForConvo, getConvoDiscountInfo } from "@/lib/lotteryConfig";
+import { 
+  getLotteryConfig, 
+  saveLotteryConfig, 
+  LotteryConfig, 
+  DiscountType,
+  isLotteryActiveForConvo, 
+  getConvoDiscountInfo,
+  getConvoLotteryBounds 
+} from "@/lib/lotteryConfig";
 import { 
   getPopupConfig, 
   savePopupConfig, 
@@ -113,14 +121,23 @@ export default function AdminDashboard() {
 
   // Student Scratch Lottery Ticket Config state
   const [lotteryConfig, setLotteryConfig] = useState<LotteryConfig>(() => getLotteryConfig());
+  const [lotteryDiscountType, setLotteryDiscountType] = useState<DiscountType>(() => getLotteryConfig().discountType || "percentage");
   const [lotteryMinInput, setLotteryMinInput] = useState<number>(() => getLotteryConfig().minDiscount);
   const [lotteryMaxInput, setLotteryMaxInput] = useState<number>(() => getLotteryConfig().maxDiscount);
   const [isTestLotteryOpen, setIsTestLotteryOpen] = useState(false);
+
+  // Student Scratch Lottery Dispatch / Custom Grant Dialog State
+  const [grantDialogConvo, setGrantDialogConvo] = useState<any | null>(null);
+  const [grantDialogType, setGrantDialogType] = useState<DiscountType>("percentage");
+  const [grantDialogMin, setGrantDialogMin] = useState<number>(20);
+  const [grantDialogMax, setGrantDialogMax] = useState<number>(30);
+  const [isGrantingTicket, setIsGrantingTicket] = useState(false);
 
   useEffect(() => {
     const handleConfigChange = (e: any) => {
       const cfg = e.detail || getLotteryConfig();
       setLotteryConfig(cfg);
+      setLotteryDiscountType(cfg.discountType || "percentage");
       setLotteryMinInput(cfg.minDiscount);
       setLotteryMaxInput(cfg.maxDiscount);
     };
@@ -256,15 +273,19 @@ export default function AdminDashboard() {
     };
     setLotteryConfig(newCfg);
     saveLotteryConfig(newCfg);
-    toast.success(newCfg.enabled ? "🟢 Student Scratch Lottery enabled storewide!" : "🔴 Student Scratch Lottery disabled storewide.");
+    toast.success(newCfg.enabled ? "Student Scratch Lottery enabled storewide." : "Student Scratch Lottery disabled storewide.");
   };
 
   const handleSaveLotteryRules = (e: React.FormEvent) => {
     e.preventDefault();
-    const min = Math.max(1, Math.min(90, Number(lotteryMinInput) || 20));
-    const max = Math.max(min, Math.min(90, Number(lotteryMaxInput) || 30));
+    const isFixed = lotteryDiscountType === "fixed";
+    const minVal = Number(lotteryMinInput) || (isFixed ? 500 : 20);
+    const maxVal = Number(lotteryMaxInput) || (isFixed ? 1500 : 30);
+    const min = isFixed ? Math.max(50, Math.min(50000, minVal)) : Math.max(1, Math.min(90, minVal));
+    const max = isFixed ? Math.max(min, Math.min(50000, maxVal)) : Math.max(min, Math.min(90, maxVal));
     const newCfg: LotteryConfig = {
       ...lotteryConfig,
+      discountType: lotteryDiscountType,
       minDiscount: min,
       maxDiscount: max
     };
@@ -276,7 +297,11 @@ export default function AdminDashboard() {
       event: 'config_updated',
       payload: newCfg
     }).catch(() => {});
-    toast.success(`Lottery rules updated: ${min}% to ${max}% discount range!`);
+    toast.success(
+      isFixed 
+        ? `Lottery rules updated: ₹${min.toLocaleString()} to ₹${max.toLocaleString()} cash discount range!` 
+        : `Lottery rules updated: ${min}% to ${max}% discount range!`
+    );
   };
 
   useEffect(() => {
@@ -836,20 +861,41 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleGrantLotteryAccess = async (convo: any) => {
+  const openGrantTicketDialog = (convo: any) => {
     if (!convo) return;
+    const bounds = getConvoLotteryBounds(convo, convo.messages);
+    setGrantDialogConvo(convo);
+    setGrantDialogType(bounds.discountType || lotteryConfig.discountType || "percentage");
+    setGrantDialogMin(bounds.minDiscount || lotteryConfig.minDiscount);
+    setGrantDialogMax(bounds.maxDiscount || lotteryConfig.maxDiscount);
+  };
+
+  const handleGrantLotteryAccess = (convo: any) => {
+    openGrantTicketDialog(convo);
+  };
+
+  const handleExecuteGrantTicket = async () => {
+    const convo = grantDialogConvo;
+    if (!convo) return;
+    setIsGrantingTicket(true);
     try {
-      const minDisc = lotteryConfig.minDiscount;
-      const maxDisc = lotteryConfig.maxDiscount;
+      const discType: DiscountType = grantDialogType;
+      const minDisc = Math.min(Number(grantDialogMin) || 0, Number(grantDialogMax) || 0);
+      const maxDisc = Math.max(Number(grantDialogMin) || 0, Number(grantDialogMax) || 0);
       const randomTicketId = `№ 00${Math.floor(1000 + Math.random() * 9000)} · SERIES 1984`;
+      const rangeLabel = discType === "fixed" 
+        ? (minDisc === maxDisc ? `₹${minDisc.toLocaleString()} FLAT` : `₹${minDisc.toLocaleString()} – ₹${maxDisc.toLocaleString()}`) 
+        : (minDisc === maxDisc ? `${minDisc}% FLAT` : `${minDisc}% – ${maxDisc}%`);
+
       const ticketMsg = {
         id: `msg-${Date.now()}`,
         sender_id: adminUser?.id || "admin",
         sender_role: "admin",
         sender_name: "Lead Systems Engineer",
-        message: `[STUDENT LUCKY RAFFLE UNLOCKED] An exclusive vintage student raffle ticket (${randomTicketId}) has been granted for "${convo.project_title}"! (Lucky Range: ${minDisc}% – ${maxDisc}% OFF) Scratch your authentic golden ticket below to reveal your lucky discount.`,
+        message: `[STUDENT LUCKY RAFFLE UNLOCKED] An exclusive vintage student raffle ticket (${randomTicketId}) has been granted for "${convo.project_title}"! (Lucky Range: ${rangeLabel} OFF) Scratch your authentic golden ticket below to reveal your lucky discount.`,
         type: "lottery_ticket",
         ticket_id: randomTicketId,
+        discount_type: discType,
         min_discount: minDisc,
         max_discount: maxDisc,
         created_at: new Date().toISOString()
@@ -864,6 +910,7 @@ export default function AdminDashboard() {
           return {
             ...prev,
             lottery_unlocked: true,
+            lottery_discount_type: discType,
             lottery_min_discount: minDisc,
             lottery_max_discount: maxDisc,
             messages: updatedMessages,
@@ -882,6 +929,7 @@ export default function AdminDashboard() {
             ? {
                 ...c,
                 lottery_unlocked: true,
+                lottery_discount_type: discType,
                 lottery_min_discount: minDisc,
                 lottery_max_discount: maxDisc,
                 messages: updatedMessages,
@@ -906,6 +954,7 @@ export default function AdminDashboard() {
         payload: {
           id: convo.id,
           lottery_unlocked: true,
+          lottery_discount_type: discType,
           lottery_min_discount: minDisc,
           lottery_max_discount: maxDisc,
           last_message: `Student raffle ticket granted (${randomTicketId})`,
@@ -916,6 +965,7 @@ export default function AdminDashboard() {
 
       let updatePayload: any = {
         lottery_unlocked: true,
+        lottery_discount_type: discType,
         lottery_min_discount: minDisc,
         lottery_max_discount: maxDisc,
         messages: updatedMessages,
@@ -930,8 +980,9 @@ export default function AdminDashboard() {
         .eq('id', convo.id);
 
       // Fallback if lottery_min_discount or lottery_unlocked column doesn't exist yet on table
-      if (error && (error.message?.includes("lottery_unlocked") || error.message?.includes("lottery_min_discount"))) {
+      if (error && (error.message?.includes("lottery_unlocked") || error.message?.includes("lottery_min_discount") || error.message?.includes("lottery_discount_type"))) {
         delete updatePayload.lottery_unlocked;
+        delete updatePayload.lottery_discount_type;
         delete updatePayload.lottery_min_discount;
         delete updatePayload.lottery_max_discount;
         const res = await supabase
@@ -943,11 +994,14 @@ export default function AdminDashboard() {
 
       if (error) throw error;
 
-      toast.success(`Student scratch ticket granted (${minDisc}%–${maxDisc}% OFF) to ${convo.user_name || convo.user_email}!`);
+      toast.success(`Student scratch ticket granted (${rangeLabel} OFF) to ${convo.user_name || convo.user_email}!`);
+      setGrantDialogConvo(null);
       fetchConversations();
     } catch (err: any) {
       console.error("Failed to grant lottery access:", err);
       toast.error("Failed to grant lottery ticket in Supabase");
+    } finally {
+      setIsGrantingTicket(false);
     }
   };
 
@@ -2933,10 +2987,10 @@ export default function AdminDashboard() {
                                         )}
                                         {(() => {
                                           const discInfo = getConvoDiscountInfo(c);
-                                          if (discInfo && discInfo.discountPercent > 0) {
+                                          if (discInfo && discInfo.discountValue > 0) {
                                             return (
                                               <span className="text-[9px] font-mono font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 px-1.5 py-0.5 rounded shadow-[0_0_6px_rgba(16,185,129,0.25)]">
-                                                {discInfo.discountPercent}% OFF
+                                                {discInfo.discountType === "fixed" ? `₹${discInfo.discountValue.toLocaleString()} OFF` : `${discInfo.discountValue}% OFF`}
                                               </span>
                                             );
                                           }
@@ -3347,46 +3401,142 @@ export default function AdminDashboard() {
                       <div className="flex items-center justify-between">
                         <h4 className="text-sm font-bold text-white font-mono flex items-center gap-2">
                           <SlidersHorizontal className="w-4 h-4 text-amber-400" />
-                          RANDOM_DISCOUNT_BOUNDS
+                          DISCOUNT_ENGINE_RULES
                         </h4>
-                        <span className="text-[10px] font-mono text-slate-500">
-                          MIN & MAX THRESHOLDS
+                        <span className="text-[10px] font-mono text-slate-500 uppercase">
+                          STOREWIDE POLICY
                         </span>
                       </div>
 
+                      {/* Calculation Mode Toggle */}
+                      <div>
+                        <label className="text-xs font-mono text-slate-400 block mb-1.5">
+                          Discount Calculation Mode:
+                        </label>
+                        <div className="grid grid-cols-2 gap-2 font-mono">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLotteryDiscountType("percentage");
+                              if (lotteryMinInput >= 100) setLotteryMinInput(20);
+                              if (lotteryMaxInput >= 100) setLotteryMaxInput(30);
+                            }}
+                            className={`h-10 rounded-lg text-xs font-bold flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                              lotteryDiscountType === "percentage"
+                                ? "bg-amber-500/20 text-amber-300 border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
+                                : "bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200"
+                            }`}
+                          >
+                            <Percent className="w-4 h-4 text-amber-400" />
+                            <span>Percentage (% OFF)</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLotteryDiscountType("fixed");
+                              if (lotteryMinInput <= 90) setLotteryMinInput(500);
+                              if (lotteryMaxInput <= 90) setLotteryMaxInput(1500);
+                            }}
+                            className={`h-10 rounded-lg text-xs font-bold flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                              lotteryDiscountType === "fixed"
+                                ? "bg-amber-500/20 text-amber-300 border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
+                                : "bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200"
+                            }`}
+                          >
+                            <IndianRupee className="w-4 h-4 text-amber-400" />
+                            <span>Fixed Cash (₹ OFF)</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Min / Max Inputs */}
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="text-xs font-mono text-slate-400 block mb-1.5">
-                            Minimum Discount (%)
+                            {lotteryDiscountType === "fixed" ? "Minimum Cash Discount (₹)" : "Minimum Discount (%)"}
                           </label>
                           <Input
                             type="number"
-                            min={1}
-                            max={90}
+                            min={lotteryDiscountType === "fixed" ? 50 : 1}
+                            max={lotteryDiscountType === "fixed" ? 50000 : 90}
+                            step={lotteryDiscountType === "fixed" ? 50 : 1}
                             value={lotteryMinInput}
                             onChange={(e) => setLotteryMinInput(Number(e.target.value))}
                             className="bg-[#090e1c] border-slate-700 text-white font-mono text-sm h-11"
                           />
                           <span className="text-[10px] text-slate-500 font-mono mt-1 block">
-                            Default: 20%
+                            {lotteryDiscountType === "fixed" ? "Default: ₹500" : "Default: 20%"}
                           </span>
                         </div>
 
                         <div>
                           <label className="text-xs font-mono text-slate-400 block mb-1.5">
-                            Maximum Discount (%)
+                            {lotteryDiscountType === "fixed" ? "Maximum Cash Discount (₹)" : "Maximum Discount (%)"}
                           </label>
                           <Input
                             type="number"
-                            min={1}
-                            max={90}
+                            min={lotteryDiscountType === "fixed" ? 50 : 1}
+                            max={lotteryDiscountType === "fixed" ? 50000 : 90}
+                            step={lotteryDiscountType === "fixed" ? 50 : 1}
                             value={lotteryMaxInput}
                             onChange={(e) => setLotteryMaxInput(Number(e.target.value))}
                             className="bg-[#090e1c] border-slate-700 text-white font-mono text-sm h-11"
                           />
                           <span className="text-[10px] text-slate-500 font-mono mt-1 block">
-                            Default: 30%
+                            {lotteryDiscountType === "fixed" ? "Default: ₹1,500" : "Default: 30%"}
                           </span>
+                        </div>
+                      </div>
+
+                      {/* Quick Presets */}
+                      <div>
+                        <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-1.5">
+                          Quick Presets:
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {lotteryDiscountType === "fixed" ? (
+                            <>
+                              {[
+                                { label: "₹500 – ₹1,000", min: 500, max: 1000 },
+                                { label: "₹500 – ₹1,500", min: 500, max: 1500 },
+                                { label: "₹1,000 Flat", min: 1000, max: 1000 },
+                                { label: "₹2,000 High Tier", min: 2000, max: 2000 },
+                              ].map((p, idx) => (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => {
+                                    setLotteryMinInput(p.min);
+                                    setLotteryMaxInput(p.max);
+                                  }}
+                                  className="text-[11px] font-mono px-2.5 py-1 rounded bg-[#090e1c] border border-slate-700 hover:border-amber-500/50 text-slate-300 hover:text-amber-300 transition-colors cursor-pointer"
+                                >
+                                  {p.label}
+                                </button>
+                              ))}
+                            </>
+                          ) : (
+                            <>
+                              {[
+                                { label: "15% – 25%", min: 15, max: 25 },
+                                { label: "20% – 30%", min: 20, max: 30 },
+                                { label: "25% Flat", min: 25, max: 25 },
+                                { label: "35% Capstone VIP", min: 35, max: 35 },
+                              ].map((p, idx) => (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => {
+                                    setLotteryMinInput(p.min);
+                                    setLotteryMaxInput(p.max);
+                                  }}
+                                  className="text-[11px] font-mono px-2.5 py-1 rounded bg-[#090e1c] border border-slate-700 hover:border-amber-500/50 text-slate-300 hover:text-amber-300 transition-colors cursor-pointer"
+                                >
+                                  {p.label}
+                                </button>
+                              ))}
+                            </>
+                          )}
                         </div>
                       </div>
 
@@ -3396,7 +3546,14 @@ export default function AdminDashboard() {
                           <span>Student Psychology & Isolated Per-User Granting:</span>
                         </div>
                         <p className="text-[11px] text-slate-400 leading-relaxed">
-                          Lottery tickets are strictly isolated per student and hidden from general visitors on project pages. When chatting with an inquiring student, click <strong className="text-amber-400">[GRANT_LOTTERY_TICKET]</strong> in the conversation toolbar. Only that specific student receives the vintage scratch ticket to reveal their lucky academic discount between <strong className="text-amber-400">{lotteryMinInput}%</strong> and <strong className="text-amber-400">{lotteryMaxInput}%</strong>.
+                          Lottery tickets are strictly isolated per student and hidden from general visitors on project pages. When chatting with an inquiring student, click <strong className="text-amber-400">[GRANT_LOTTERY]</strong> in the conversation toolbar. You can customize the discount type (percentage or flat cash) and amount on the fly. Only that specific student receives the vintage scratch ticket to reveal their lucky academic discount between{" "}
+                          <strong className="text-amber-400">
+                            {lotteryDiscountType === "fixed" ? `₹${lotteryMinInput.toLocaleString()}` : `${lotteryMinInput}%`}
+                          </strong>{" "}
+                          and{" "}
+                          <strong className="text-amber-400">
+                            {lotteryDiscountType === "fixed" ? `₹${lotteryMaxInput.toLocaleString()}` : `${lotteryMaxInput}%`}
+                          </strong>.
                         </p>
                       </div>
 
@@ -3432,9 +3589,17 @@ export default function AdminDashboard() {
                             </span>
                           </div>
                           <div className="flex justify-between text-slate-400 text-[11px]">
+                            <span>Calculation Mode:</span>
+                            <span className="text-cyan-400 font-bold uppercase">
+                              {lotteryConfig.discountType === "fixed" ? "Fixed Cash (₹ OFF)" : "Percentage (% OFF)"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-slate-400 text-[11px]">
                             <span>Active Range:</span>
                             <span className="text-amber-400 font-bold">
-                              {lotteryConfig.minDiscount}% – {lotteryConfig.maxDiscount}% Random
+                              {lotteryConfig.discountType === "fixed" 
+                                ? `₹${lotteryConfig.minDiscount.toLocaleString()} – ₹${lotteryConfig.maxDiscount.toLocaleString()} Flat Cash` 
+                                : `${lotteryConfig.minDiscount}% – ${lotteryConfig.maxDiscount}% Random`}
                             </span>
                           </div>
                           <div className="flex justify-between text-slate-400 text-[11px]">
@@ -3513,12 +3678,12 @@ export default function AdminDashboard() {
                                       const discInfo = getConvoDiscountInfo(convo);
                                       const orig = Number(convo.project_price || 0);
                                       if (orig <= 0) return null;
-                                      if (discInfo && discInfo.discountPercent > 0) {
+                                      if (discInfo && discInfo.discountValue > 0) {
                                         return (
                                           <span className="ml-1 font-mono inline-flex items-center gap-1">
                                             · <span className="line-through text-slate-500 text-[10px]">₹{orig.toLocaleString('en-IN')}</span>
                                             <span className="text-emerald-400 font-bold bg-emerald-950/70 border border-emerald-500/40 px-1.5 py-0.2 rounded text-[10px]">
-                                              ₹{discInfo.discountedPrice.toLocaleString('en-IN')} ({discInfo.discountPercent}% OFF)
+                                              ₹{discInfo.discountedPrice.toLocaleString('en-IN')} ({discInfo.discountType === "fixed" ? `₹${discInfo.discountValue.toLocaleString()}` : `${discInfo.discountValue}%`} OFF)
                                             </span>
                                           </span>
                                         );
@@ -3554,7 +3719,7 @@ export default function AdminDashboard() {
                                   ) : (
                                     <Button
                                       size="sm"
-                                      onClick={() => handleGrantLotteryAccess(convo)}
+                                      onClick={() => openGrantTicketDialog(convo)}
                                       className="h-8 text-[11px] font-mono font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 border border-amber-400 shadow-sm cursor-pointer"
                                     >
                                       <Ticket className="w-3.5 h-3.5 mr-1" />
@@ -4496,14 +4661,226 @@ export default function AdminDashboard() {
         isLoading={confirmDialog.isLoading}
       />
 
+      {/* Student Scratch Lottery Custom Dispatch Modal */}
+      <Dialog open={Boolean(grantDialogConvo)} onOpenChange={(open) => !open && setGrantDialogConvo(null)}>
+        <DialogContent className="bg-[#0c101d] border border-amber-500/40 text-slate-100 sm:max-w-md shadow-[0_0_50px_rgba(245,158,11,0.15)] rounded-2xl p-6 font-mono">
+          <DialogHeader className="space-y-1">
+            <div className="flex items-center gap-2 text-amber-400">
+              <Ticket className="w-5 h-5" />
+              <DialogTitle className="text-base font-bold text-white tracking-wide">
+                GRANT SCRATCH LOTTERY TICKET
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-slate-400">
+              Configure student discount type and value before issuing this vintage golden raffle ticket.
+            </DialogDescription>
+          </DialogHeader>
+
+          {grantDialogConvo && (
+            <div className="space-y-4 py-2">
+              {/* Target Student & Project summary */}
+              <div className="p-3 rounded-lg bg-[#070b14] border border-slate-800 space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Student:</span>
+                  <span className="text-white font-bold">{grantDialogConvo.user_name || "Student"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Project:</span>
+                  <span className="text-amber-300 font-bold truncate max-w-[200px]">{grantDialogConvo.project_title}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Price:</span>
+                  <span className="text-emerald-400 font-bold">₹{Number(grantDialogConvo.project_price || 0).toLocaleString('en-IN')}</span>
+                </div>
+              </div>
+
+              {/* Discount Mode Selector */}
+              <div>
+                <label className="text-slate-400 block mb-1.5 font-bold uppercase tracking-wider text-[10px]">
+                  Discount Type:
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGrantDialogType("percentage");
+                      if (grantDialogMin >= 100) setGrantDialogMin(20);
+                      if (grantDialogMax >= 100) setGrantDialogMax(30);
+                    }}
+                    className={`h-9 rounded-lg text-xs font-bold flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                      grantDialogType === "percentage"
+                        ? "bg-amber-500/20 text-amber-300 border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]"
+                        : "bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200"
+                    }`}
+                  >
+                    <Percent className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Percentage (% OFF)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGrantDialogType("fixed");
+                      if (grantDialogMin <= 90) setGrantDialogMin(500);
+                      if (grantDialogMax <= 90) setGrantDialogMax(1500);
+                    }}
+                    className={`h-9 rounded-lg text-xs font-bold flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                      grantDialogType === "fixed"
+                        ? "bg-amber-500/20 text-amber-300 border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]"
+                        : "bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200"
+                    }`}
+                  >
+                    <IndianRupee className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Fixed Rupee (₹ OFF)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Min & Max Inputs (can be equal for flat discount) */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] text-slate-400 block mb-1 uppercase font-bold">
+                    {grantDialogType === "fixed" ? "Min Discount (₹)" : "Min Discount (%)"}
+                  </label>
+                  <Input
+                    type="number"
+                    min={grantDialogType === "fixed" ? 50 : 1}
+                    max={grantDialogType === "fixed" ? 50000 : 90}
+                    step={grantDialogType === "fixed" ? 50 : 1}
+                    value={grantDialogMin}
+                    onChange={(e) => setGrantDialogMin(Number(e.target.value))}
+                    className="bg-[#090e1c] border-slate-700 text-white text-xs h-9"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 block mb-1 uppercase font-bold">
+                    {grantDialogType === "fixed" ? "Max Discount (₹)" : "Max Discount (%)"}
+                  </label>
+                  <Input
+                    type="number"
+                    min={grantDialogType === "fixed" ? 50 : 1}
+                    max={grantDialogType === "fixed" ? 50000 : 90}
+                    step={grantDialogType === "fixed" ? 50 : 1}
+                    value={grantDialogMax}
+                    onChange={(e) => setGrantDialogMax(Number(e.target.value))}
+                    className="bg-[#090e1c] border-slate-700 text-white text-xs h-9"
+                  />
+                </div>
+              </div>
+
+              {/* Quick Presets */}
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1.5 font-bold">
+                  Quick Presets:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {grantDialogType === "fixed" ? (
+                    <>
+                      {[
+                        { label: "₹500 Flat", min: 500, max: 500 },
+                        { label: "₹500 – ₹1,000", min: 500, max: 1000 },
+                        { label: "₹1,000 Flat", min: 1000, max: 1000 },
+                        { label: "₹1,500 High", min: 1500, max: 1500 },
+                      ].map((p, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setGrantDialogMin(p.min);
+                            setGrantDialogMax(p.max);
+                          }}
+                          className="text-[10px] px-2 py-0.5 rounded bg-[#090e1c] border border-slate-700 hover:border-amber-500/50 text-slate-300 hover:text-amber-300 transition-colors cursor-pointer"
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      {[
+                        { label: "15% – 25%", min: 15, max: 25 },
+                        { label: "20% – 30%", min: 20, max: 30 },
+                        { label: "25% Flat", min: 25, max: 25 },
+                        { label: "35% VIP", min: 35, max: 35 },
+                      ].map((p, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setGrantDialogMin(p.min);
+                            setGrantDialogMax(p.max);
+                          }}
+                          className="text-[10px] px-2 py-0.5 rounded bg-[#090e1c] border border-slate-700 hover:border-amber-500/50 text-slate-300 hover:text-amber-300 transition-colors cursor-pointer"
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Calculated Prize Preview */}
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs space-y-1">
+                <div className="text-amber-300 font-bold flex items-center justify-between">
+                  <span>Student Ticket Reveal Range:</span>
+                  <span className="text-amber-400 font-black">
+                    {grantDialogType === "fixed"
+                      ? (grantDialogMin === grantDialogMax ? `₹${grantDialogMin.toLocaleString()} FLAT` : `₹${grantDialogMin.toLocaleString()} – ₹${grantDialogMax.toLocaleString()}`)
+                      : (grantDialogMin === grantDialogMax ? `${grantDialogMin}% FLAT` : `${grantDialogMin}% – ${grantDialogMax}%`)} OFF
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  Estimated student price: ~₹
+                  {(() => {
+                    const orig = Number(grantDialogConvo.project_price || 0);
+                    const avg = Math.round((grantDialogMin + grantDialogMax) / 2);
+                    if (grantDialogType === "fixed") {
+                      return Math.max(0, orig - avg).toLocaleString('en-IN');
+                    }
+                    return Math.round(orig * (1 - avg / 100)).toLocaleString('en-IN');
+                  })()}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex gap-2 sm:justify-end pt-3 border-t border-slate-800">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setGrantDialogConvo(null)}
+              className="text-slate-400 hover:text-white border border-slate-800 text-xs h-9 cursor-pointer"
+            >
+              CANCEL
+            </Button>
+            <Button
+              type="button"
+              disabled={isGrantingTicket}
+              onClick={handleExecuteGrantTicket}
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs h-9 px-4 border border-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.3)] gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <Ticket className="w-4 h-4" />
+              <span>{isGrantingTicket ? "DISPATCHING..." : "GRANT TICKET NOW"}</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Admin Test Simulator Scratch Lottery Ticket Modal */}
       <StudentLotteryTicketModal
         isOpen={isTestLotteryOpen}
         onClose={() => setIsTestLotteryOpen(false)}
         projectTitle="Admin Simulator Project"
         originalPrice={24999}
-        onApplyDiscount={(disc, code) => {
-          toast.success(`Simulation verified: ${disc}% Lucky Discount (${code}) generated!`);
+        discountType={lotteryConfig.discountType}
+        minDiscount={lotteryConfig.minDiscount}
+        maxDiscount={lotteryConfig.maxDiscount}
+        onApplyDiscount={(disc, code, dType = "percentage") => {
+          toast.success(
+            dType === "fixed"
+              ? `Simulation verified: ₹${disc.toLocaleString()} Lucky Discount (${code}) generated!`
+              : `Simulation verified: ${disc}% Lucky Discount (${code}) generated!`
+          );
         }}
       />
 
