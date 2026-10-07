@@ -25,6 +25,7 @@ import NotFound from "./pages/NotFound.tsx";
 import { HelmetProvider } from "react-helmet-async";
 import GlobalTechParticles from "@/components/GlobalTechParticles";
 import ScrollToTop from "@/components/ScrollToTop";
+import SmartSchemeModal from "@/components/SmartSchemeModal";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ const App = () => (
         <BrowserRouter>
           <AuthRecoveryListener />
           <ScrollToTop />
+          <SmartSchemeModal />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/home" element={<Navigate to="/" replace />} />
