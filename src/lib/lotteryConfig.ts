@@ -54,16 +54,11 @@ export function isLotteryActiveForConvo(convo: any, messages?: any[]): boolean {
   if (!convo) return false;
   if (convo.status === "withdrawn" || convo.status === "cancelled") return false;
 
-  // Crucial: The admin must have explicitly unlocked the lottery on this conversation record
-  if (!convo.lottery_unlocked) {
-    return false;
-  }
-
   const msgList = Array.isArray(messages) && messages.length > 0
     ? messages
     : (Array.isArray(convo.messages) ? convo.messages : []);
 
-  // Scan backwards to verify the latest event is not a revocation
+  // Scan backwards to find the latest lottery event
   for (let i = msgList.length - 1; i >= 0; i--) {
     const m = msgList[i];
     if (!m) continue;
@@ -86,12 +81,13 @@ export function isLotteryActiveForConvo(convo: any, messages?: any[]): boolean {
     }
   }
 
-  return true;
+  // Fallback to lottery_unlocked flag if no lottery messages exist
+  return Boolean(convo.lottery_unlocked);
 }
 
 /**
  * Checks whether a specific lottery message within the chat list is currently active.
- * A message is active if the overall lottery is active AND no revocation message occurred after it.
+ * A message is active if no subsequent revocation message occurred after it.
  */
 export function isMessageTicketActive(
   msgIndex: number,
@@ -102,9 +98,6 @@ export function isMessageTicketActive(
     return false;
   }
   if (!Array.isArray(messages) || msgIndex < 0 || msgIndex >= messages.length) {
-    return false;
-  }
-  if (!isLotteryActiveForConvo(convo, messages)) {
     return false;
   }
 
