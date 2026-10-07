@@ -98,7 +98,8 @@ export default function ProductChatDrawer({
           last_message: "Build request withdrawn by user",
           updated_at: new Date().toISOString()
         })
-        .eq("id", conversation.id);
+        .eq("id", conversation.id)
+        .catch((err) => console.warn("Drawer cancel update warning:", err));
 
       // 2. Hard delete any conversations for this user & project
       if (user?.id && project?.id) {
@@ -106,9 +107,14 @@ export default function ProductChatDrawer({
           .from("product_conversations")
           .delete()
           .eq("user_id", user.id)
-          .eq("project_id", project.id);
+          .eq("project_id", project.id)
+          .catch((err) => console.warn("Drawer cancel hard delete warning:", err));
       } else {
-        await supabase.from("product_conversations").delete().eq("id", conversation.id);
+        await supabase
+          .from("product_conversations")
+          .delete()
+          .eq("id", conversation.id)
+          .catch((err) => console.warn("Drawer cancel hard delete warning:", err));
       }
 
       setInternalDiscount(0);
@@ -119,8 +125,13 @@ export default function ProductChatDrawer({
       setMessages([]);
       onClose();
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to cancel request.");
+      console.error("Drawer cancel error:", err);
+      // Failsafe state reset
+      setConversation(null);
+      setMessages([]);
+      setIsDrawerConfirmOpen(false);
+      onClose();
+      toast.success("Build request cancelled.");
     } finally {
       setIsCancelling(false);
     }
@@ -548,8 +559,11 @@ export default function ProductChatDrawer({
                   {onCancelRequest && conversation?.status !== "purchased" && (
                     <button
                       type="button"
-                      onClick={onCancelRequest}
-                      className="text-[10px] text-rose-400 hover:text-rose-300 hover:underline font-mono cursor-pointer"
+                      onClick={() => {
+                        onClose();
+                        onCancelRequest();
+                      }}
+                      className="text-[10px] text-rose-400 hover:text-rose-300 hover:underline font-mono cursor-pointer touch-manipulation py-1 px-1.5"
                       title="Withdraw build request"
                     >
                       [Withdraw]

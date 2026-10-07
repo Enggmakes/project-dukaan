@@ -1,5 +1,6 @@
 import { AlertTriangle, Trash2, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { createPortal } from "react-dom";
 
 interface CyberConfirmDialogProps {
   isOpen: boolean;
@@ -25,15 +26,20 @@ export default function CyberConfirmDialog({
   isLoading = false,
 }: CyberConfirmDialogProps) {
   if (!isOpen) return null;
+  if (typeof document === "undefined") return null;
 
   const isDanger = variant === "danger";
 
-  return (
-    <div className="fixed inset-0 z-[100] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+  return createPortal(
+    <div 
+      className="fixed inset-0 z-[99999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 pointer-events-auto touch-manipulation"
+      onClick={onClose}
+    >
       <div 
-        className="bg-[#090e1c] border border-slate-800 text-slate-100 rounded-2xl max-w-md w-full p-6 shadow-[0_15px_60px_rgba(0,0,0,0.9)] relative overflow-hidden font-mono animate-in zoom-in-95 duration-150"
+        className="bg-[#090e1c] border border-slate-800 text-slate-100 rounded-2xl max-w-md w-full p-6 shadow-[0_15px_60px_rgba(0,0,0,0.9)] relative overflow-hidden font-mono animate-in zoom-in-95 duration-150 pointer-events-auto"
         role="dialog"
         aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Top ambient scanline accent */}
         <div 
@@ -44,9 +50,11 @@ export default function CyberConfirmDialog({
 
         {/* Close Button */}
         <button
+          type="button"
           onClick={onClose}
           disabled={isLoading}
-          className="absolute top-4 right-4 text-slate-500 hover:text-slate-300 p-1.5 rounded-lg hover:bg-slate-800/80 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 text-slate-500 hover:text-slate-300 p-2 rounded-lg hover:bg-slate-800/80 transition-colors cursor-pointer touch-manipulation"
+          aria-label="Close confirmation dialog"
         >
           <X className="w-4 h-4" />
         </button>
@@ -86,7 +94,7 @@ export default function CyberConfirmDialog({
             variant="outline"
             disabled={isLoading}
             onClick={onClose}
-            className="rounded-xl bg-[#070a12] text-slate-300 border-slate-800 hover:bg-slate-800/80 hover:text-white h-10 px-4 text-xs font-mono font-semibold cursor-pointer"
+            className="rounded-xl bg-[#070a12] text-slate-300 border-slate-800 hover:bg-slate-800/80 hover:text-white h-11 px-4 text-xs font-mono font-semibold cursor-pointer touch-manipulation active:scale-95"
           >
             {cancelText}
           </Button>
@@ -94,10 +102,11 @@ export default function CyberConfirmDialog({
           <Button
             type="button"
             disabled={isLoading}
-            onClick={async () => {
+            onClick={async (e) => {
+              e.stopPropagation();
               await onConfirm();
             }}
-            className={`rounded-xl text-xs font-mono font-black h-10 px-4 shadow-lg flex items-center gap-2 cursor-pointer transition-all ${
+            className={`rounded-xl text-xs font-mono font-black h-11 px-5 shadow-lg flex items-center gap-2 cursor-pointer transition-all touch-manipulation active:scale-95 ${
               isDanger
                 ? "bg-rose-600 hover:bg-rose-500 text-white shadow-[0_0_20px_rgba(225,29,72,0.3)] border border-rose-400/40"
                 : "bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.3)] border border-amber-300"
@@ -117,6 +126,7 @@ export default function CyberConfirmDialog({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

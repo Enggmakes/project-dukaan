@@ -489,6 +489,9 @@ export default function ProjectDetails() {
   };
 
   const handleCancelRequest = async () => {
+    // 1. Immediately close chat drawer so Radix Sheet unmounts its focus trap
+    setIsChatDrawerOpen(false);
+
     let targetConvo = activeConvo;
     if (!targetConvo?.id && id) {
       try {
