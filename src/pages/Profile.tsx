@@ -256,17 +256,17 @@ export default function Profile() {
                 <TabsList className="bg-[#090e1c] border border-slate-800 p-1 rounded-xl font-mono text-xs self-start sm:self-auto">
                   <TabsTrigger 
                     value="purchases" 
-                    className="text-slate-400 data-[state=active]:bg-amber-500 data-[state=active]:text-slate-950 font-bold rounded-lg px-4 py-1.5 transition-all"
+                    className="text-slate-400 data-[state=active]:bg-amber-500 data-[state=active]:text-amber-950 data-[state=active]:font-black font-bold rounded-lg px-4 py-1.5 transition-all"
                   >
                     Purchases ({orders.length})
                   </TabsTrigger>
                   {!isAdmin && (
                     <TabsTrigger 
-                      value="wishlist" 
-                      className="text-slate-400 data-[state=active]:bg-amber-500 data-[state=active]:text-slate-950 font-bold rounded-lg px-4 py-1.5 transition-all"
-                    >
-                      Wishlist ({wishlist.length})
-                    </TabsTrigger>
+                    value="wishlist" 
+                    className="text-slate-400 data-[state=active]:bg-amber-500 data-[state=active]:text-amber-950 data-[state=active]:font-black font-bold rounded-lg px-4 py-1.5 transition-all"
+                  >
+                    Wishlist ({wishlist.length})
+                  </TabsTrigger>
                   )}
                 </TabsList>
               </div>
@@ -394,7 +394,7 @@ export default function Profile() {
                                 <div className="space-y-1.5">
                                   <div className="flex items-center gap-2">
                                     <div className={`w-7 h-7 rounded-lg grid place-items-center text-xs font-mono font-bold ${
-                                      activeStep >= 1 ? "bg-amber-500 text-slate-950 shadow-xs" : "bg-slate-900 border border-slate-800 text-slate-500"
+                                      activeStep >= 1 ? "bg-amber-500 text-amber-950 font-black shadow-xs" : "bg-slate-900 border border-slate-800 text-slate-500"
                                     }`}>
                                       1
                                     </div>
@@ -410,7 +410,7 @@ export default function Profile() {
                                 <div className="space-y-1.5">
                                   <div className="flex items-center gap-2">
                                     <div className={`w-7 h-7 rounded-lg grid place-items-center text-xs font-mono font-bold ${
-                                      activeStep >= 2 ? "bg-amber-500 text-slate-950 shadow-xs" : "bg-slate-900 border border-slate-800 text-slate-500"
+                                      activeStep >= 2 ? "bg-amber-500 text-amber-950 font-black shadow-xs" : "bg-slate-900 border border-slate-800 text-slate-500"
                                     }`}>
                                       2
                                     </div>
@@ -426,7 +426,7 @@ export default function Profile() {
                                 <div className="space-y-1.5">
                                   <div className="flex items-center gap-2">
                                     <div className={`w-7 h-7 rounded-lg grid place-items-center text-xs font-mono font-bold ${
-                                      activeStep >= 3 ? "bg-amber-500 text-slate-950 shadow-xs" : "bg-slate-900 border border-slate-800 text-slate-500"
+                                      activeStep >= 3 ? "bg-amber-500 text-amber-950 font-black shadow-xs" : "bg-slate-900 border border-slate-800 text-slate-500"
                                     }`}>
                                       3
                                     </div>
@@ -442,7 +442,7 @@ export default function Profile() {
                                 <div className="space-y-1.5">
                                   <div className="flex items-center gap-2">
                                     <div className={`w-7 h-7 rounded-lg grid place-items-center text-xs font-mono font-bold ${
-                                      activeStep >= 4 ? "bg-emerald-500 text-slate-950 shadow-xs" : "bg-slate-900 border border-slate-800 text-slate-500"
+                                      activeStep >= 4 ? "bg-emerald-500 text-emerald-950 font-black shadow-xs" : "bg-slate-900 border border-slate-800 text-slate-500"
                                     }`}>
                                       4
                                     </div>
@@ -644,7 +644,7 @@ export default function Profile() {
                                     <div className="w-full md:w-auto shrink-0">
                                       <Button 
                                         onClick={() => handleDownload(o)}
-                                        className="w-full md:w-auto bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold rounded-xl px-6 h-11 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.25)] transition-all cursor-pointer border-0"
+                                        className="w-full md:w-auto bg-amber-500 hover:bg-amber-400 text-amber-950 font-mono font-black rounded-xl px-6 h-11 flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.25)] transition-all cursor-pointer border-0"
                                       >
                                         <Download className="w-4 h-4" /> DOWNLOAD REPO (.zip)
                                       </Button>
@@ -673,7 +673,7 @@ export default function Profile() {
                       <p className="text-slate-400 text-xs sm:text-sm font-sans">Bookmark blueprints and kits you want to build next from the catalog.</p>
                       <Button 
                         onClick={() => navigate("/marketplace")} 
-                        className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold rounded-xl px-8 mt-2 shadow-md border-0 transition-all text-xs"
+                        className="bg-amber-500 hover:bg-amber-400 text-amber-950 font-mono font-black rounded-xl px-8 mt-2 shadow-md border-0 transition-all text-xs"
                       >
                         BROWSE_CATALOG
                       </Button>

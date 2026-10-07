@@ -724,10 +724,24 @@ export default function ProjectDetails() {
     }
   };
 
-  const handleDownload = () => {
-    // ... logic remains
-    if (project?.github_url) {
-      let finalUrl = project.github_url;
+  const handleDownload = async () => {
+    let rawUrl = (project as any)?.github_url || null;
+
+    // Securely retrieve deliverable URL from verified purchased order if not in project object
+    if (!rawUrl && currentUser?.email && project) {
+      const { data: orderData } = await supabase
+        .from("orders")
+        .select("deliverables, github_url")
+        .ilike("customer_email", currentUser.email.toLowerCase())
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      rawUrl = orderData?.deliverables?.github_url || orderData?.github_url || null;
+    }
+
+    if (rawUrl) {
+      let finalUrl = rawUrl;
       // Auto-format standard github repo link to a ZIP download
       if (finalUrl.includes("github.com") && !finalUrl.includes("/archive/")) {
         finalUrl = finalUrl.replace(/\.git$/, '');
@@ -737,14 +751,14 @@ export default function ProjectDetails() {
       const element = document.createElement("a");
       element.href = finalUrl;
       element.target = "_blank";
-      element.download = `${project.title.replace(/\s+/g, '_')}_source.zip`;
+      element.download = `${project ? project.title.replace(/\s+/g, '_') : 'project'}_source.zip`;
       document.body.appendChild(element);
       element.click();
       document.body.removeChild(element);
       
       toast.success("Project downloading successfully! Thank you.");
     } else {
-      toast.error("This project doesn't have a download link attached. Please contact support.");
+      toast.error("Download package is being prepared or available in your Profile registry.");
     }
   };
 
@@ -799,17 +813,28 @@ export default function ProjectDetails() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-    supabase.from("projects").select("*").eq("id", id).single().then(({ data }) => {
-      if (data) {
-        setProject(data as Project);
-        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-        supabase.from("projects").select("*").eq("category", data.category).neq("id", data.id).limit(3).then(({ data: rData }) => {
-          if (rData) setRelated(rData as Project[]);
-        });
-      } else {
-        setProject(null);
-      }
-    });
+    supabase
+      .from("projects")
+      .select("id, title, short, description, category, difficulty, price, rating, reviews, tech, features, includes, screenshots, video_url, thumb, delivery_type, price_note, created_at")
+      .eq("id", id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setProject(data as Project);
+          window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+          supabase
+            .from("projects")
+            .select("id, title, short, description, category, difficulty, price, rating, reviews, tech, features, includes, screenshots, video_url, thumb, delivery_type, price_note, created_at")
+            .eq("category", data.category)
+            .neq("id", data.id)
+            .limit(3)
+            .then(({ data: rData }) => {
+              if (rData) setRelated(rData as Project[]);
+            });
+        } else {
+          setProject(null);
+        }
+      });
   }, [id]);
 
   if (!project) {
@@ -850,7 +875,7 @@ export default function ProjectDetails() {
         <meta property="og:description" content={`Buy and download ${project.title}. ${project.description.substring(0, 150)}...`} />
         {project.thumb?.startsWith('http') && <meta property="og:image" content={project.thumb} />}
       </Helmet>
-      <div className="container-px py-8">
+      <div className="container-px py-8 pb-24 lg:pb-8">
         <div className="max-w-6xl mx-auto">
           <Link to="/marketplace" className="text-xs text-slate-400 hover:text-amber-400 font-mono font-semibold inline-flex items-center gap-1.5 transition-colors group">
             <span className="text-amber-500 group-hover:text-amber-400">[←]</span> SYS:\MARKETPLACE
@@ -935,8 +960,8 @@ export default function ProjectDetails() {
               {((project.features || []).length > 0 || (project.screenshots || []).length > 0) && (
                 <Tabs defaultValue={(project.features || []).length > 0 ? "features" : "screens"} className="mt-10">
                   <TabsList className="rounded-md bg-[#0d121e] p-1 border border-slate-800">
-                    {(project.features || []).length > 0 && <TabsTrigger value="features" className="rounded font-mono text-xs font-semibold data-[state=active]:bg-amber-500 data-[state=active]:text-amber-950 data-[state=active]:font-black text-slate-400">FEATURES</TabsTrigger>}
-                    {(project.screenshots || []).length > 0 && <TabsTrigger value="screens" className="rounded font-mono text-xs font-semibold data-[state=active]:bg-amber-500 data-[state=active]:text-amber-950 data-[state=active]:font-black text-slate-400">SCREENSHOTS</TabsTrigger>}
+                    {(project.features || []).length > 0 && <TabsTrigger value="features" className="text-slate-400 rounded font-mono text-xs font-semibold data-[state=active]:bg-amber-500 data-[state=active]:text-amber-950 data-[state=active]:font-black">FEATURES</TabsTrigger>}
+                    {(project.screenshots || []).length > 0 && <TabsTrigger value="screens" className="text-slate-400 rounded font-mono text-xs font-semibold data-[state=active]:bg-amber-500 data-[state=active]:text-amber-950 data-[state=active]:font-black">SCREENSHOTS</TabsTrigger>}
                   </TabsList>
                   
                   {(project.features || []).length > 0 && (
@@ -1206,7 +1231,77 @@ export default function ProjectDetails() {
             </div>
           )}
         </div>
-      </div>      {/* Checkout Modal */}
+      </div>
+
+      {/* Mobile Sticky Thumb-Zone Action Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#070a12]/95 backdrop-blur-md border-t border-slate-800 p-3 px-4 shadow-[0_-4px_24px_rgba(0,0,0,0.8)] flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="text-[10px] text-slate-400 font-mono uppercase truncate">
+            {project.title}
+          </div>
+          <div className="flex items-center gap-1.5 font-mono">
+            {appliedDiscount > 0 ? (
+              <>
+                <span className="line-through text-slate-500 text-xs">₹{project.price.toLocaleString()}</span>
+                <span className="text-emerald-400 font-bold text-base">₹{finalPrice.toLocaleString()}</span>
+                <span className="text-[10px] text-emerald-400 font-bold">({appliedDiscount}% OFF)</span>
+              </>
+            ) : (
+              <span className="text-amber-400 font-black text-base">₹{project.price.toLocaleString()}</span>
+            )}
+          </div>
+        </div>
+
+        <div className="shrink-0 flex items-center gap-2">
+          {isLotteryUnlocked && appliedDiscount === 0 && (
+            <button
+              type="button"
+              onClick={() => setIsLotteryModalOpen(true)}
+              className="p-2.5 rounded-lg bg-amber-500/20 border border-amber-500/50 text-amber-300 text-xs font-mono flex items-center justify-center cursor-pointer hover:bg-amber-500/30 transition-colors"
+              title="Scratch Lucky Ticket"
+            >
+              <Ticket className="w-4 h-4 text-amber-400" />
+            </button>
+          )}
+
+          {isOwned ? (
+            <Button
+              onClick={handleDownload}
+              className="rounded bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-mono font-black text-xs h-10 px-4 flex items-center gap-1.5 shadow-md active:translate-y-0.5"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>DOWNLOAD</span>
+            </Button>
+          ) : convoStatus === "ready_to_purchase" ? (
+            <Button
+              onClick={handlePurchaseClick}
+              className="rounded bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-mono font-black text-xs h-10 px-4 flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.3)] active:translate-y-0.5"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              <span>BUY NOW</span>
+            </Button>
+          ) : convoStatus === "active" ? (
+            <Button
+              onClick={() => setIsChatDrawerOpen(true)}
+              className="rounded bg-cyan-500 hover:bg-cyan-400 text-cyan-950 font-mono font-black text-xs h-10 px-4 flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.3)] active:translate-y-0.5"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>LIVE CHAT</span>
+            </Button>
+          ) : (
+            <Button
+              onClick={handleRequestBuildClick}
+              disabled={isRequestingBuild}
+              className="rounded bg-amber-500 hover:bg-amber-400 text-amber-950 font-mono font-black text-xs h-10 px-4 flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.25)] active:translate-y-0.5"
+            >
+              <Bot className="w-3.5 h-3.5" />
+              <span>{isRequestingBuild ? "REQUESTING..." : "REQUEST BUILD"}</span>
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Checkout Modal */}
       {isCheckoutOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
           <div className="bg-[#0a0e17] rounded-md w-full max-w-lg border border-slate-800 shadow-2xl relative overflow-hidden flex flex-col p-6 sm:p-8 animate-in zoom-in-95 duration-200 text-slate-100">
@@ -1553,8 +1648,8 @@ export default function ProjectDetails() {
 
                 <Tabs defaultValue="card" className="w-full">
                   <TabsList className="bg-[#0d121e] border border-slate-800 p-1 w-full rounded-md mb-5">
-                    <TabsTrigger value="card" className="w-1/2 rounded py-2 text-xs font-mono font-semibold data-[state=active]:bg-amber-500 data-[state=active]:text-amber-950 data-[state=active]:font-black text-slate-400">CARD</TabsTrigger>
-                    <TabsTrigger value="upi" className="w-1/2 rounded py-2 text-xs font-mono font-semibold data-[state=active]:bg-amber-500 data-[state=active]:text-amber-950 data-[state=active]:font-black text-slate-400">UPI / QR</TabsTrigger>
+                    <TabsTrigger value="card" className="text-slate-400 w-1/2 rounded py-2 text-xs font-mono font-semibold data-[state=active]:bg-amber-500 data-[state=active]:text-amber-950 data-[state=active]:font-black">CARD</TabsTrigger>
+                    <TabsTrigger value="upi" className="text-slate-400 w-1/2 rounded py-2 text-xs font-mono font-semibold data-[state=active]:bg-amber-500 data-[state=active]:text-amber-950 data-[state=active]:font-black">UPI / QR</TabsTrigger>
                   </TabsList>
 
                   {/* Card Payments */}

@@ -121,7 +121,7 @@ export default function Index() {
       try {
         const { data: projs } = await supabase
           .from("projects")
-          .select("*")
+          .select("id, title, short, description, category, difficulty, price, rating, reviews, tech, features, includes, screenshots, video_url, thumb, delivery_type, price_note, created_at")
           .order("created_at", { ascending: false });
 
         if (projs && projs.length > 0) {

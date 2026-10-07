@@ -55,14 +55,18 @@ export default function Marketplace() {
   }, [params]);
 
   useEffect(() => {
-    supabase.from("projects").select("*").order("created_at", { ascending: false }).then(({ data }) => {
-      if (data) {
-        setProjects(data as Project[]);
-      } else {
-        setProjects([]);
-      }
-      setIsLoading(false);
-    });
+    supabase
+      .from("projects")
+      .select("id, title, short, description, category, difficulty, price, rating, reviews, tech, features, includes, screenshots, video_url, thumb, delivery_type, price_note, created_at")
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (data) {
+          setProjects(data as Project[]);
+        } else {
+          setProjects([]);
+        }
+        setIsLoading(false);
+      });
   }, []);
 
   const handleCatChange = (newCat: string) => {
@@ -651,7 +655,7 @@ export default function Marketplace() {
                   onClick={() => toggle(techs, tech, setTechs)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all border shrink-0 flex items-center gap-1.5 cursor-pointer ${
                     isSelected
-                      ? "bg-cyan-500 text-slate-950 border-cyan-500 shadow-[0_0_12px_rgba(6,182,212,0.25)] font-black"
+                      ? "bg-cyan-500 text-cyan-950 border-cyan-500 shadow-[0_0_12px_rgba(6,182,212,0.25)] font-black"
                       : "bg-[#090e1c] text-slate-400 hover:text-white border-slate-800 hover:border-slate-700"
                   }`}
                 >
@@ -758,7 +762,7 @@ export default function Marketplace() {
                   </p>
                   <Button 
                     onClick={resetFilters}
-                    className="mt-5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-mono font-black px-6 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+                    className="mt-5 rounded-xl bg-amber-500 hover:bg-amber-400 text-amber-950 text-xs font-mono font-black px-6 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
                   >
                     RESET QUERY FILTERS
                   </Button>
@@ -789,7 +793,7 @@ export default function Marketplace() {
           {/* Sheet Header */}
           <SheetHeader className="px-6 py-3.5 border-b border-slate-800 bg-[#090e1c] flex flex-row items-center justify-between space-y-0 text-left shrink-0 font-mono">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-amber-500 text-slate-950 grid place-items-center shadow-[0_0_10px_rgba(245,158,11,0.3)]">
+              <div className="w-7 h-7 rounded-lg bg-amber-500 text-amber-950 font-black grid place-items-center shadow-[0_0_10px_rgba(245,158,11,0.3)]">
                 <SlidersHorizontal className="w-4 h-4" />
               </div>
               <div>
@@ -829,7 +833,7 @@ export default function Marketplace() {
             )}
             <Button
               onClick={() => setMobileDrawerOpen(false)}
-              className="flex-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-black text-xs sm:text-sm h-11 shadow-[0_0_15px_rgba(245,158,11,0.25)] flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-amber-950 font-mono font-black text-xs sm:text-sm h-11 shadow-[0_0_15px_rgba(245,158,11,0.25)] flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>SHOW {filtered.length} BLUEPRINTS</span>
             </Button>
