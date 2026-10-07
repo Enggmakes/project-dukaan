@@ -62,15 +62,23 @@ export default function SmartSchemeModal({
   // Auth session check
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser && config.audience === "guests_only") {
+        setIsOpen(false);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser && config.audience === "guests_only") {
+        setIsOpen(false);
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [config.audience]);
 
   // Normal visitor schedule, Database sync, and real-time broadcast listener
   useEffect(() => {
@@ -83,21 +91,40 @@ export default function SmartSchemeModal({
       if (!cfg.enabled) return false;
       if (cfg.audience === "all_visitors") return true;
       if (cfg.audience === "guests_only") return !currentUser;
-      if (cfg.audience === "authenticated_only") return !!currentUser;
+      if (cfg.audience === "authenticated_only") return Boolean(currentUser);
       return true;
     };
 
-    // 1. Fetch live configuration from Supabase PostgreSQL Database
+    // 1. Fetch live configuration and verify current auth session
     const initializeFromDb = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+
       const dbConfig = await fetchPopupFromDb();
       const activeConfig = dbConfig || getPopupConfig();
       setConfig(activeConfig);
       setIsMuted(activeConfig.videoMuted);
 
-      if (matchesAudience(activeConfig, user) && !isPopupSnoozed()) {
+      // If guests_only scheme and user is already logged in, NEVER trigger
+      if (activeConfig.audience === "guests_only" && currentUser) {
+        setIsOpen(false);
+        return;
+      }
+
+      if (matchesAudience(activeConfig, currentUser) && !isPopupSnoozed()) {
         const delayMs = (activeConfig.showDelaySeconds || 4) * 1000;
-        timer = setTimeout(() => {
-          setIsOpen(true);
+        timer = setTimeout(async () => {
+          // Double check session at moment of popup triggering
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          const curr = currentSession?.user ?? null;
+          if (activeConfig.audience === "guests_only" && curr) {
+            setIsOpen(false);
+            return;
+          }
+          if (matchesAudience(activeConfig, curr)) {
+            setIsOpen(true);
+          }
         }, delayMs);
       }
     };
@@ -119,12 +146,18 @@ export default function SmartSchemeModal({
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "marketing_popups" },
-        (payload: any) => {
+        async (payload: any) => {
           if (payload.new) {
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            const curr = currentSession?.user ?? null;
             const updatedConfig = dbToConfig(payload.new);
             setConfig(updatedConfig);
             setIsMuted(updatedConfig.videoMuted);
-            if (matchesAudience(updatedConfig, user)) {
+            if (updatedConfig.audience === "guests_only" && curr) {
+              setIsOpen(false);
+              return;
+            }
+            if (matchesAudience(updatedConfig, curr)) {
               setIsOpen(true);
             }
           }
@@ -138,12 +171,18 @@ export default function SmartSchemeModal({
       .on(
         "broadcast",
         { event: "popup_broadcast" },
-        (payload: any) => {
+        async (payload: any) => {
           if (payload.payload) {
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            const curr = currentSession?.user ?? null;
             const liveConfig: PopupConfig = payload.payload;
             setConfig(liveConfig);
             setIsMuted(liveConfig.videoMuted);
-            if (matchesAudience(liveConfig, user)) {
+            if (liveConfig.audience === "guests_only" && curr) {
+              setIsOpen(false);
+              return;
+            }
+            if (matchesAudience(liveConfig, curr)) {
               setIsOpen(true);
               try {
                 // High-tech audio alert
@@ -275,6 +314,8 @@ export default function SmartSchemeModal({
   };
 
   if (!isOpen && !isPreview) return null;
+  if (!isPreview && config.audience === "guests_only" && user) return null;
+  if (!isPreview && config.audience === "authenticated_only" && !user) return null;
 
   const hasMedia = config.mediaType !== "none" && Boolean(config.mediaUrl);
 

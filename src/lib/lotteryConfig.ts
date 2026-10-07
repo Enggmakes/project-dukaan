@@ -54,35 +54,39 @@ export function isLotteryActiveForConvo(convo: any, messages?: any[]): boolean {
   if (!convo) return false;
   if (convo.status === "withdrawn" || convo.status === "cancelled") return false;
 
+  // Crucial: The admin must have explicitly unlocked the lottery on this conversation record
+  if (!convo.lottery_unlocked) {
+    return false;
+  }
+
   const msgList = Array.isArray(messages) && messages.length > 0
     ? messages
     : (Array.isArray(convo.messages) ? convo.messages : []);
 
-  // Scan backwards to find the latest lottery event
+  // Scan backwards to verify the latest event is not a revocation
   for (let i = msgList.length - 1; i >= 0; i--) {
     const m = msgList[i];
     if (!m) continue;
 
-    const isGrant = m.type === "lottery_ticket" || 
-      (typeof m.message === "string" && m.message.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"));
-    
     const isRevoke = m.type === "lottery_revoked" ||
       (typeof m.message === "string" && (
         m.message.includes("ticket has been revoked") || 
         m.message.includes("ticket has been deactivated")
       ));
 
-    if (isGrant) {
-      return true;
-    }
-
     if (isRevoke) {
       return false;
     }
+
+    const isGrant = m.type === "lottery_ticket" || 
+      (typeof m.message === "string" && m.message.includes("[STUDENT LUCKY RAFFLE UNLOCKED]"));
+
+    if (isGrant) {
+      return true;
+    }
   }
 
-  // Fallback to lottery_unlocked flag if no lottery messages exist
-  return Boolean(convo.lottery_unlocked);
+  return true;
 }
 
 /**
